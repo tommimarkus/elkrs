@@ -16,10 +16,14 @@ pub(crate) fn import_graph(graph: &ElkGraph) -> Result<LGraph, LayoutError> {
         let source = endpoint_node(graph, &edge.source)?;
         let target = endpoint_node(graph, &edge.target)?;
         if !contains_node(&nodes, &source.node) {
-            return Err(LayoutError::MissingEndpoint(source.node.as_str().to_string()));
+            return Err(LayoutError::MissingEndpoint(
+                source.node.as_str().to_string(),
+            ));
         }
         if !contains_node(&nodes, &target.node) {
-            return Err(LayoutError::MissingEndpoint(target.node.as_str().to_string()));
+            return Err(LayoutError::MissingEndpoint(
+                target.node.as_str().to_string(),
+            ));
         }
         edges.push(LEdge {
             id: edge.id.clone(),
@@ -116,7 +120,7 @@ fn contains_node(nodes: &[LNode], id: &ElementId) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use elkrs_core::geometry::Size;
+    use elkrs_core::geometry::{Point, Size};
     use elkrs_core::graph::{ElkEdge, ElkPort};
     use elkrs_core::options::PortSide;
 
@@ -195,10 +199,14 @@ mod tests {
         let mut source = ElkNode::new("source");
         let mut source_port = ElkPort::new("out");
         source_port.side = Some(PortSide::East);
+        source_port.position = Point::new(10.0, 12.0);
+        source_port.size = Size::new(3.0, 4.0);
         source.add_port(source_port);
         let mut target = ElkNode::new("target");
         let mut target_port = ElkPort::new("in");
         target_port.side = Some(PortSide::West);
+        target_port.position = Point::new(1.5, 2.5);
+        target_port.size = Size::new(5.0, 6.0);
         target.add_port(target_port);
 
         let mut graph = ElkGraph::new("root");
@@ -228,5 +236,25 @@ mod tests {
             layered.edges[0].target.port.as_ref().map(ElementId::as_str),
             Some("in")
         );
+
+        let source = layered
+            .nodes
+            .iter()
+            .find(|node| node.id.as_str() == "source")
+            .unwrap();
+        let source_port = source.ports.get(&ElementId::from("out")).unwrap();
+        assert_eq!(source_port.side, Some(PortSide::East));
+        assert_eq!(source_port.position, Point::new(10.0, 12.0));
+        assert_eq!(source_port.size, Size::new(3.0, 4.0));
+
+        let target = layered
+            .nodes
+            .iter()
+            .find(|node| node.id.as_str() == "target")
+            .unwrap();
+        let target_port = target.ports.get(&ElementId::from("in")).unwrap();
+        assert_eq!(target_port.side, Some(PortSide::West));
+        assert_eq!(target_port.position, Point::new(1.5, 2.5));
+        assert_eq!(target_port.size, Size::new(5.0, 6.0));
     }
 }
