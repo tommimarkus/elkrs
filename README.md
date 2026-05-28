@@ -30,3 +30,12 @@ Not current scope:
 - Full ELK algorithm coverage
 - Pixel-perfect Java coordinate parity
 - Copying Eclipse ELK implementation source
+
+Verification:
+
+```bash
+cargo fmt --all --check
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --locked
+cargo doc --workspace --locked --no-deps
+```
