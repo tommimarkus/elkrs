@@ -13,6 +13,7 @@ Current scope:
 - Typed direction, spacing, algorithm, routing, and hierarchy options for the initial supported subset
 - Diagnostics for recognized but unsupported `elkrs-layered` options
 - Deterministic, structurally valid layout for simple directed graphs, port-aware edge endpoints, and basic compound child nodes
+- Stable layer normalization across equivalent node insertion orders
 - Import-time validation for duplicate node IDs, missing endpoints, and self-loop edges
 - Layout output writes child node coordinates as absolute graph coordinates
 

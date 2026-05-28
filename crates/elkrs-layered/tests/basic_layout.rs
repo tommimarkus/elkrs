@@ -25,6 +25,56 @@ fn layered_layout_respects_down_direction() {
 }
 
 #[test]
+fn layered_layout_is_stable_across_node_insertion_order() {
+    let mut forward = chain_with_node_order(["a", "b", "c"]);
+    let mut reverse = chain_with_node_order(["c", "b", "a"]);
+
+    LayeredLayout.layout(&mut forward).unwrap();
+    LayeredLayout.layout(&mut reverse).unwrap();
+
+    for id in ["a", "b", "c"] {
+        assert_eq!(
+            forward.nodes[&ElementId::from(id)].position,
+            reverse.nodes[&ElementId::from(id)].position
+        );
+    }
+}
+
+#[test]
+fn layered_layout_routes_multi_node_cycle_in_original_edge_directions() {
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node("a", 60.0, 30.0));
+    graph.add_node(node("b", 60.0, 30.0));
+    graph.add_node(node("c", 60.0, 30.0));
+    graph.add_edge(ElkEdge::new(
+        "ab",
+        ElementRef::Node(ElementId::from("a")),
+        ElementRef::Node(ElementId::from("b")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "bc",
+        ElementRef::Node(ElementId::from("b")),
+        ElementRef::Node(ElementId::from("c")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "ca",
+        ElementRef::Node(ElementId::from("c")),
+        ElementRef::Node(ElementId::from("a")),
+    ));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    for (edge_id, source_id, target_id) in [("ab", "a", "b"), ("bc", "b", "c"), ("ca", "c", "a")] {
+        let section = &graph.edges[&ElementId::from(edge_id)].sections[0];
+        assert_point_on_node(section.points[0], &graph.nodes[&ElementId::from(source_id)]);
+        assert_point_on_node(
+            *section.points.last().unwrap(),
+            &graph.nodes[&ElementId::from(target_id)],
+        );
+    }
+}
+
+#[test]
 fn layered_layout_returns_missing_endpoint_error() {
     let mut graph = ElkGraph::new("root");
     graph.add_node(node("source", 60.0, 30.0));
@@ -265,4 +315,29 @@ fn port_with_geometry(id: &str, side: PortSide, position: Point, size: Size) -> 
     port.position = position;
     port.size = size;
     port
+}
+
+fn assert_point_on_node(point: Point, node: &ElkNode) {
+    assert!(point.x >= node.position.x);
+    assert!(point.x <= node.position.x + node.size.width);
+    assert!(point.y >= node.position.y);
+    assert!(point.y <= node.position.y + node.size.height);
+}
+
+fn chain_with_node_order(ids: [&str; 3]) -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    for id in ids {
+        graph.add_node(node(id, 60.0, 30.0));
+    }
+    graph.add_edge(ElkEdge::new(
+        "ab",
+        ElementRef::Node(ElementId::from("a")),
+        ElementRef::Node(ElementId::from("b")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "bc",
+        ElementRef::Node(ElementId::from("b")),
+        ElementRef::Node(ElementId::from("c")),
+    ));
+    graph
 }

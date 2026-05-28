@@ -13,11 +13,16 @@ impl LayeredProcessor for CycleBreaking {
     }
 
     fn run(&self, graph: &mut LGraph, _context: &mut LayeredContext) -> Result<(), LayoutError> {
-        let order = graph
+        let mut node_ids = graph
             .nodes
             .iter()
+            .map(|node| node.id.clone())
+            .collect::<Vec<_>>();
+        node_ids.sort();
+        let order = node_ids
+            .into_iter()
             .enumerate()
-            .map(|(index, node)| (node.id.clone(), index))
+            .map(|(index, id)| (id, index))
             .collect::<BTreeMap<_, _>>();
         for edge in &mut graph.edges {
             let source = order.get(&edge.source.node).copied().unwrap_or(0);
