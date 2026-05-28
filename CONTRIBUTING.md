@@ -13,6 +13,8 @@ Allowed implementation inputs are documented in `CLEANROOM.md`.
 Run the default gate before sending changes:
 
 ```bash
+cargo install cargo-audit --locked
+cargo audit
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
