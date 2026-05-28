@@ -1,0 +1,51 @@
+name: Release Evidence
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - name: Verify workspace
+        run: |
+          cargo fmt --all --check
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+          cargo test --workspace --locked
+          cargo doc --workspace --locked --no-deps
+      - name: Install release evidence tools
+        run: |
+          cargo install cargo-audit --locked
+          cargo install cargo-cyclonedx --locked
+      - name: Audit dependencies
+        run: cargo audit
+      - name: Generate CycloneDX SBOMs
+        run: cargo cyclonedx --format json --spec-version 1.5
+      - name: Record package file manifests
+        run: |
+          mkdir -p target/release-evidence
+          cargo package -p elkrs-core --locked --list > target/release-evidence/elkrs-core-package-files.txt
+          cargo package -p elkrs-json --locked --list > target/release-evidence/elkrs-json-package-files.txt
+          cargo package -p elkrs-layered --locked --list > target/release-evidence/elkrs-layered-package-files.txt
+      - name: Collect release evidence
+        run: |
+          cp bom.json target/release-evidence/workspace-bom.json
+          cp crates/elkrs-core/bom.json target/release-evidence/elkrs-core-bom.json
+          cp crates/elkrs-json/bom.json target/release-evidence/elkrs-json-bom.json
+          cp crates/elkrs-layered/bom.json target/release-evidence/elkrs-layered-bom.json
+          (cd target/release-evidence && sha256sum * > SHA256SUMS)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-evidence
+          path: target/release-evidence/
+          if-no-files-found: error
