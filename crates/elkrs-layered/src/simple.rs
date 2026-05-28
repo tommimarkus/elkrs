@@ -119,23 +119,42 @@ impl LayeredProcessor for NodePlacement {
     }
 
     fn run(&self, graph: &mut LGraph, _context: &mut LayeredContext) -> Result<(), LayoutError> {
-        let mut per_layer_index = BTreeMap::<usize, usize>::new();
-        for node in &mut graph.nodes {
-            let index = per_layer_index.entry(node.layer).or_insert(0);
-            let major = node.layer as f64 * LAYER_SPACING;
-            let hierarchy_offset = if node.parent.is_some() {
-                NODE_SPACING / 4.0
-            } else {
-                0.0
-            };
-            let minor = *index as f64 * NODE_SPACING + hierarchy_offset;
-            node.position = match self.direction {
-                Direction::Right => Point::new(major, minor),
-                Direction::Left => Point::new(-major, minor),
-                Direction::Down => Point::new(minor, major),
-                Direction::Up => Point::new(minor, -major),
-            };
-            *index += 1;
+        let mut nodes_by_layer = BTreeMap::<usize, Vec<usize>>::new();
+        let mut layer_major_extent = BTreeMap::<usize, f64>::new();
+        for (index, node) in graph.nodes.iter().enumerate() {
+            nodes_by_layer.entry(node.layer).or_default().push(index);
+            layer_major_extent
+                .entry(node.layer)
+                .and_modify(|extent| *extent = extent.max(major_extent(self.direction, node.size)))
+                .or_insert_with(|| major_extent(self.direction, node.size));
+        }
+
+        let mut next_major = 0.0;
+        let mut layer_major_position = BTreeMap::<usize, f64>::new();
+        for (layer, extent) in &layer_major_extent {
+            layer_major_position.insert(*layer, next_major);
+            next_major += *extent + LAYER_SPACING;
+        }
+
+        let mut positions = vec![Point::new(0.0, 0.0); graph.nodes.len()];
+        for (layer, indices) in nodes_by_layer {
+            let major = layer_major_position[&layer];
+            let mut minor = 0.0;
+            for index in indices {
+                let node = &graph.nodes[index];
+                let hierarchy_offset = if node.parent.is_some() {
+                    NODE_SPACING / 4.0
+                } else {
+                    0.0
+                };
+                positions[index] =
+                    position_from_axes(self.direction, major, minor + hierarchy_offset, node.size);
+                minor += minor_extent(self.direction, node.size) + NODE_SPACING;
+            }
+        }
+
+        for (node, position) in graph.nodes.iter_mut().zip(positions) {
+            node.position = position;
         }
         Ok(())
     }
@@ -221,10 +240,38 @@ fn write_back(graph: &mut ElkGraph, layered: &LGraph) {
     }
     for layered_edge in &layered.edges {
         if let Some(edge) = graph.edges.get_mut(&layered_edge.id) {
-            edge.sections = vec![ElkEdgeSection {
-                points: layered_edge.points.clone(),
-            }];
+            let points = if layered_edge.reversed {
+                layered_edge.points.iter().rev().copied().collect()
+            } else {
+                layered_edge.points.clone()
+            };
+            edge.sections = vec![ElkEdgeSection { points }];
         }
+    }
+}
+
+fn major_extent(direction: Direction, size: Size) -> f64 {
+    if direction.is_horizontal() {
+        size.width
+    } else {
+        size.height
+    }
+}
+
+fn minor_extent(direction: Direction, size: Size) -> f64 {
+    if direction.is_horizontal() {
+        size.height
+    } else {
+        size.width
+    }
+}
+
+fn position_from_axes(direction: Direction, major: f64, minor: f64, size: Size) -> Point {
+    match direction {
+        Direction::Right => Point::new(major, minor),
+        Direction::Left => Point::new(-major - size.width, minor),
+        Direction::Down => Point::new(minor, major),
+        Direction::Up => Point::new(minor, -major - size.height),
     }
 }
 
