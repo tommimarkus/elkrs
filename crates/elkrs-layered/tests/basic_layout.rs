@@ -53,6 +53,60 @@ fn layered_layout_keeps_child_node_layout_available() {
 }
 
 #[test]
+fn layered_layout_writes_child_coordinates_as_absolute_output() {
+    let mut group = node("group", 200.0, 120.0);
+    group.add_child(node("child", 40.0, 30.0));
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(group);
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let group = &graph.nodes[&ElementId::from("group")];
+    let child = &group.children[&ElementId::from("child")];
+    assert!(child.position.x >= group.position.x);
+    assert!(child.position.y >= group.position.y);
+}
+
+#[test]
+fn layered_layout_accepts_parent_child_edge_endpoints() {
+    let mut group = node("group", 200.0, 120.0);
+    group.add_child(node("child", 40.0, 30.0));
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(group);
+    graph.add_edge(ElkEdge::new(
+        "edge",
+        ElementRef::Node(ElementId::from("group")),
+        ElementRef::Node(ElementId::from("child")),
+    ));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    assert_eq!(
+        graph.edges[&ElementId::from("edge")].sections[0]
+            .points
+            .len(),
+        4
+    );
+}
+
+#[test]
+fn layered_layout_rejects_duplicate_nested_node_ids() {
+    let mut group = node("group", 200.0, 120.0);
+    group.add_child(node("duplicate", 40.0, 30.0));
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node("duplicate", 40.0, 30.0));
+    graph.add_node(group);
+
+    let error = LayeredLayout.layout(&mut graph).unwrap_err();
+
+    assert!(matches!(
+        error,
+        LayoutError::InvalidHierarchy(message)
+            if message.contains("duplicate node id: duplicate")
+    ));
+}
+
+#[test]
 fn layered_layout_accepts_edges_connected_to_ports() {
     let mut source = node("source", 60.0, 30.0);
     source.add_port(port("out", PortSide::East));

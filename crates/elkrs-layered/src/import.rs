@@ -7,14 +7,21 @@ use crate::internal::{LEdge, LEndpoint, LGraph, LNode, LPort};
 
 pub(crate) fn import_graph(graph: &ElkGraph) -> Result<LGraph, LayoutError> {
     let mut nodes = Vec::new();
+    let mut node_ids = BTreeMap::<ElementId, ()>::new();
     for node in graph.nodes.values() {
-        import_node(node, None, &mut nodes);
+        import_node(node, None, &mut nodes, &mut node_ids)?;
     }
 
     let mut edges = Vec::new();
     for edge in graph.edges.values() {
         let source = endpoint_node(graph, &edge.source)?;
         let target = endpoint_node(graph, &edge.target)?;
+        if source.node == target.node {
+            return Err(LayoutError::InvalidHierarchy(format!(
+                "self-loop edge: {}",
+                edge.id.as_str()
+            )));
+        }
         if !contains_node(&nodes, &source.node) {
             return Err(LayoutError::MissingEndpoint(
                 source.node.as_str().to_string(),
@@ -37,7 +44,19 @@ pub(crate) fn import_graph(graph: &ElkGraph) -> Result<LGraph, LayoutError> {
     Ok(LGraph { nodes, edges })
 }
 
-fn import_node(node: &ElkNode, parent: Option<ElementId>, nodes: &mut Vec<LNode>) {
+fn import_node(
+    node: &ElkNode,
+    parent: Option<ElementId>,
+    nodes: &mut Vec<LNode>,
+    node_ids: &mut BTreeMap<ElementId, ()>,
+) -> Result<(), LayoutError> {
+    if node_ids.insert(node.id.clone(), ()).is_some() {
+        return Err(LayoutError::InvalidHierarchy(format!(
+            "duplicate node id: {}",
+            node.id.as_str()
+        )));
+    }
+
     let ports = node
         .ports
         .values()
@@ -63,8 +82,9 @@ fn import_node(node: &ElkNode, parent: Option<ElementId>, nodes: &mut Vec<LNode>
         ports,
     });
     for child in node.children.values() {
-        import_node(child, Some(node.id.clone()), nodes);
+        import_node(child, Some(node.id.clone()), nodes, node_ids)?;
     }
+    Ok(())
 }
 
 fn endpoint_node(graph: &ElkGraph, endpoint: &ElementRef) -> Result<LEndpoint, LayoutError> {
@@ -159,6 +179,64 @@ mod tests {
         assert!(matches!(
             import_graph(&graph),
             Err(LayoutError::MissingEndpoint(endpoint)) if endpoint == "missing"
+        ));
+    }
+
+    #[test]
+    fn import_rejects_duplicate_node_ids_across_hierarchy() {
+        let mut group = ElkNode::new("group");
+        group.add_child(ElkNode::new("duplicate"));
+        let mut graph = ElkGraph::new("root");
+        graph.add_node(ElkNode::new("duplicate"));
+        graph.add_node(group);
+
+        assert!(matches!(
+            import_graph(&graph),
+            Err(LayoutError::InvalidHierarchy(message))
+                if message.contains("duplicate node id: duplicate")
+        ));
+    }
+
+    #[test]
+    fn import_rejects_self_loop_edges() {
+        let mut graph = ElkGraph::new("root");
+        graph.add_node(ElkNode::new("a"));
+        graph.add_edge(ElkEdge::new(
+            "self",
+            ElementRef::Node(ElementId::from("a")),
+            ElementRef::Node(ElementId::from("a")),
+        ));
+
+        assert!(matches!(
+            import_graph(&graph),
+            Err(LayoutError::InvalidHierarchy(message))
+                if message.contains("self-loop edge: self")
+        ));
+    }
+
+    #[test]
+    fn import_rejects_self_loop_edges_between_ports_on_same_node() {
+        let mut node = ElkNode::new("a");
+        node.add_port(ElkPort::new("out"));
+        node.add_port(ElkPort::new("in"));
+        let mut graph = ElkGraph::new("root");
+        graph.add_node(node);
+        graph.add_edge(ElkEdge::new(
+            "self",
+            ElementRef::Port {
+                node: ElementId::from("a"),
+                port: ElementId::from("out"),
+            },
+            ElementRef::Port {
+                node: ElementId::from("a"),
+                port: ElementId::from("in"),
+            },
+        ));
+
+        assert!(matches!(
+            import_graph(&graph),
+            Err(LayoutError::InvalidHierarchy(message))
+                if message.contains("self-loop edge: self")
         ));
     }
 
