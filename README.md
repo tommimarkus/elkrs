@@ -6,15 +6,16 @@ The first target is library-first strict clean-room ELK Layered behavior aligned
 
 Downstream users adapt their own graph contracts.
 
-Current foundation scope:
+Current scope:
 
 - Rust graph, geometry, options, diagnostics, and layout error/report types
-- Placeholder crate for the ELK Layered port
+- Initial `elkrs-layered` layout API with `LayeredLayout` and `LayoutAlgorithm`
+- Deterministic, structurally valid layout for simple directed graphs, port endpoints, and basic compound child nodes
 
 Not current scope:
 
 - Dediren adapter
 - CLI-first runtime
-- ELK Layered processors
+- Full ELK algorithm coverage
 - Pixel-perfect Java coordinate parity
 - Copying Eclipse ELK implementation source
