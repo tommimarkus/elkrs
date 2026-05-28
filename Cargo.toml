@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "crates/elkrs-core",
+  "crates/elkrs-json",
   "crates/elkrs-layered",
 ]
 resolver = "2"
@@ -12,4 +13,6 @@ repository = "https://github.com/tommimarkus/elkrs"
 
 [workspace.dependencies]
 indexmap = "2.8.0"
+serde = "1"
+serde_json = "1"
 thiserror = "2.0.12"
