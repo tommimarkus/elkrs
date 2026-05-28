@@ -1,7 +1,6 @@
 use thiserror::Error;
 
 use crate::diagnostic::Diagnostic;
-use crate::graph::ElkGraph;
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum LayoutError {
@@ -24,10 +23,6 @@ pub enum LayoutError {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct LayoutReport {
     pub diagnostics: Vec<Diagnostic>,
-}
-
-pub trait LayoutAlgorithm {
-    fn layout(&self, graph: &mut ElkGraph) -> Result<LayoutReport, LayoutError>;
 }
 
 #[cfg(test)]

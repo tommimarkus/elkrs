@@ -60,8 +60,9 @@ pub struct Properties {
 }
 
 impl Properties {
-    pub fn set(&mut self, option: CoreOption, value: PropertyValue) -> Option<PropertyValue> {
-        self.values.insert(option, value)
+    pub fn set_direction(&mut self, direction: Direction) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::Direction, PropertyValue::Direction(direction))
     }
 
     pub fn get(&self, option: CoreOption) -> Option<&PropertyValue> {
@@ -71,6 +72,7 @@ impl Properties {
     pub fn direction(&self) -> Direction {
         match self.get(CoreOption::Direction) {
             Some(PropertyValue::Direction(direction)) => *direction,
+            Some(value) => unreachable!("direction option stored incompatible value: {value:?}"),
             _ => Direction::Right,
         }
     }
@@ -90,10 +92,7 @@ mod tests {
     #[test]
     fn direction_uses_override() {
         let mut properties = Properties::default();
-        properties.set(
-            CoreOption::Direction,
-            PropertyValue::Direction(Direction::Down),
-        );
+        properties.set_direction(Direction::Down);
 
         assert_eq!(properties.direction(), Direction::Down);
     }
