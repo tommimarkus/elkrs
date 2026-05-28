@@ -65,8 +65,8 @@ impl LayeredProcessor for CycleBreaking {
             .map(|(index, node)| (node.id.clone(), index))
             .collect::<BTreeMap<_, _>>();
         for edge in &mut graph.edges {
-            let source = order.get(&edge.source).copied().unwrap_or(0);
-            let target = order.get(&edge.target).copied().unwrap_or(0);
+            let source = order.get(&edge.source.node).copied().unwrap_or(0);
+            let target = order.get(&edge.target.node).copied().unwrap_or(0);
             if source > target {
                 std::mem::swap(&mut edge.source, &mut edge.target);
                 edge.reversed = !edge.reversed;
@@ -92,10 +92,10 @@ impl LayeredProcessor for LayerAssignment {
         for _ in 0..graph.nodes.len() {
             let mut changed = false;
             for edge in &graph.edges {
-                let source_layer = *layers.get(&edge.source).unwrap_or(&0);
-                let target_layer = *layers.get(&edge.target).unwrap_or(&0);
+                let source_layer = *layers.get(&edge.source.node).unwrap_or(&0);
+                let target_layer = *layers.get(&edge.target.node).unwrap_or(&0);
                 if target_layer <= source_layer {
-                    layers.insert(edge.target.clone(), source_layer + 1);
+                    layers.insert(edge.target.node.clone(), source_layer + 1);
                     changed = true;
                 }
             }
@@ -202,13 +202,13 @@ fn route_edge(
     direction: Direction,
 ) -> Result<(), LayoutError> {
     let (source_pos, source_size) = positions
-        .get(&edge.source)
+        .get(&edge.source.node)
         .copied()
-        .ok_or_else(|| LayoutError::MissingEndpoint(edge.source.as_str().to_string()))?;
+        .ok_or_else(|| LayoutError::MissingEndpoint(edge.source.node.as_str().to_string()))?;
     let (target_pos, target_size) = positions
-        .get(&edge.target)
+        .get(&edge.target.node)
         .copied()
-        .ok_or_else(|| LayoutError::MissingEndpoint(edge.target.as_str().to_string()))?;
+        .ok_or_else(|| LayoutError::MissingEndpoint(edge.target.node.as_str().to_string()))?;
 
     let start = match direction {
         Direction::Right => Point::new(

@@ -1,7 +1,9 @@
+use std::collections::BTreeMap;
+
 use elkrs_core::graph::{ElementId, ElementRef, ElkGraph, ElkNode};
 use elkrs_core::layout::LayoutError;
 
-use crate::internal::{LEdge, LGraph, LNode};
+use crate::internal::{LEdge, LEndpoint, LGraph, LNode, LPort};
 
 pub(crate) fn import_graph(graph: &ElkGraph) -> Result<LGraph, LayoutError> {
     let mut nodes = Vec::new();
@@ -13,11 +15,11 @@ pub(crate) fn import_graph(graph: &ElkGraph) -> Result<LGraph, LayoutError> {
     for edge in graph.edges.values() {
         let source = endpoint_node(graph, &edge.source)?;
         let target = endpoint_node(graph, &edge.target)?;
-        if !contains_node(&nodes, &source) {
-            return Err(LayoutError::MissingEndpoint(source.as_str().to_string()));
+        if !contains_node(&nodes, &source.node) {
+            return Err(LayoutError::MissingEndpoint(source.node.as_str().to_string()));
         }
-        if !contains_node(&nodes, &target) {
-            return Err(LayoutError::MissingEndpoint(target.as_str().to_string()));
+        if !contains_node(&nodes, &target.node) {
+            return Err(LayoutError::MissingEndpoint(target.node.as_str().to_string()));
         }
         edges.push(LEdge {
             id: edge.id.clone(),
@@ -32,27 +34,50 @@ pub(crate) fn import_graph(graph: &ElkGraph) -> Result<LGraph, LayoutError> {
 }
 
 fn import_node(node: &ElkNode, parent: Option<ElementId>, nodes: &mut Vec<LNode>) {
+    let ports = node
+        .ports
+        .values()
+        .map(|port| {
+            (
+                port.id.clone(),
+                LPort {
+                    id: port.id.clone(),
+                    side: port.side,
+                    position: port.position,
+                    size: port.size,
+                },
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+
     nodes.push(LNode {
         id: node.id.clone(),
         size: node.size,
         position: node.position,
         layer: 0,
         parent: parent.clone(),
+        ports,
     });
     for child in node.children.values() {
         import_node(child, Some(node.id.clone()), nodes);
     }
 }
 
-fn endpoint_node(graph: &ElkGraph, endpoint: &ElementRef) -> Result<ElementId, LayoutError> {
+fn endpoint_node(graph: &ElkGraph, endpoint: &ElementRef) -> Result<LEndpoint, LayoutError> {
     match endpoint {
-        ElementRef::Node(node) => Ok(node.clone()),
+        ElementRef::Node(node) => Ok(LEndpoint {
+            node: node.clone(),
+            port: None,
+        }),
         ElementRef::Port { node, port } => {
             let owner = find_node(graph, node).ok_or_else(|| {
                 LayoutError::MissingEndpoint(format!("{}:{}", node.as_str(), port.as_str()))
             })?;
             if owner.ports.contains_key(port) {
-                Ok(node.clone())
+                Ok(LEndpoint {
+                    node: node.clone(),
+                    port: Some(port.clone()),
+                })
             } else {
                 Err(LayoutError::MissingEndpoint(format!(
                     "{}:{}",
@@ -161,7 +186,47 @@ mod tests {
 
         let layered = import_graph(&graph).unwrap();
 
-        assert_eq!(layered.edges[0].source.as_str(), "source");
-        assert_eq!(layered.edges[0].target.as_str(), "target");
+        assert_eq!(layered.edges[0].source.node.as_str(), "source");
+        assert_eq!(layered.edges[0].target.node.as_str(), "target");
+    }
+
+    #[test]
+    fn import_preserves_port_endpoint_identity() {
+        let mut source = ElkNode::new("source");
+        let mut source_port = ElkPort::new("out");
+        source_port.side = Some(PortSide::East);
+        source.add_port(source_port);
+        let mut target = ElkNode::new("target");
+        let mut target_port = ElkPort::new("in");
+        target_port.side = Some(PortSide::West);
+        target.add_port(target_port);
+
+        let mut graph = ElkGraph::new("root");
+        graph.add_node(source);
+        graph.add_node(target);
+        graph.add_edge(ElkEdge::new(
+            "edge",
+            ElementRef::Port {
+                node: ElementId::from("source"),
+                port: ElementId::from("out"),
+            },
+            ElementRef::Port {
+                node: ElementId::from("target"),
+                port: ElementId::from("in"),
+            },
+        ));
+
+        let layered = import_graph(&graph).unwrap();
+
+        assert_eq!(layered.edges[0].source.node.as_str(), "source");
+        assert_eq!(
+            layered.edges[0].source.port.as_ref().map(ElementId::as_str),
+            Some("out")
+        );
+        assert_eq!(layered.edges[0].target.node.as_str(), "target");
+        assert_eq!(
+            layered.edges[0].target.port.as_ref().map(ElementId::as_str),
+            Some("in")
+        );
     }
 }
