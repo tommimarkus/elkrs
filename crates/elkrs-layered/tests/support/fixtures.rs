@@ -134,6 +134,69 @@ pub fn port_heavy() -> ElkGraph {
     graph
 }
 
+pub fn consumer_compound_ports() -> ElkGraph {
+    let mut client = node("a-client", 80.0, 40.0);
+    client.add_port(port(
+        "client-out",
+        PortSide::East,
+        Point::new(70.0, 15.0),
+        Size::new(10.0, 10.0),
+    ));
+
+    let mut api = node("b-api", 90.0, 40.0);
+    api.add_port(port(
+        "api-in",
+        PortSide::West,
+        Point::new(0.0, 15.0),
+        Size::new(10.0, 10.0),
+    ));
+    api.add_port(port(
+        "api-out",
+        PortSide::East,
+        Point::new(80.0, 15.0),
+        Size::new(10.0, 10.0),
+    ));
+
+    let mut worker = node("c-worker", 90.0, 40.0);
+    worker.add_port(port(
+        "worker-in",
+        PortSide::West,
+        Point::new(0.0, 15.0),
+        Size::new(10.0, 10.0),
+    ));
+
+    let mut group = node("core-services", 320.0, 220.0);
+    group.add_child(api);
+    group.add_child(worker);
+
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(client);
+    graph.add_node(group);
+    graph.add_edge(ElkEdge::new(
+        "client-api",
+        ElementRef::Port {
+            node: ElementId::from("a-client"),
+            port: ElementId::from("client-out"),
+        },
+        ElementRef::Port {
+            node: ElementId::from("b-api"),
+            port: ElementId::from("api-in"),
+        },
+    ));
+    graph.add_edge(ElkEdge::new(
+        "api-worker",
+        ElementRef::Port {
+            node: ElementId::from("b-api"),
+            port: ElementId::from("api-out"),
+        },
+        ElementRef::Port {
+            node: ElementId::from("c-worker"),
+            port: ElementId::from("worker-in"),
+        },
+    ));
+    graph
+}
+
 pub fn node(id: &str, width: f64, height: f64) -> ElkNode {
     let mut node = ElkNode::new(id);
     node.size = Size::new(width, height);
