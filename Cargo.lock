@@ -25,6 +25,7 @@ name = "elkrs-layered"
 version = "0.1.0"
 dependencies = [
  "elkrs-core",
+ "elkrs-json",
 ]
 
 [[package]]

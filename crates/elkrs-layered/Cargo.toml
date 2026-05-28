@@ -7,3 +7,6 @@ repository.workspace = true
 
 [dependencies]
 elkrs-core = { path = "../elkrs-core" }
+
+[dev-dependencies]
+elkrs-json = { path = "../elkrs-json" }

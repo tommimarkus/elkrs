@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::options::PortSide;
