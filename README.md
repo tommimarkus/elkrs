@@ -6,14 +6,15 @@ The first target is library-first strict clean-room ELK Layered behavior aligned
 
 Downstream users adapt their own graph contracts.
 
-Current scope:
+Current foundation scope:
 
 - Rust graph, geometry, options, diagnostics, and layout APIs
-- First ELK-shaped Layered pipeline
+- Placeholder crate for the ELK Layered port
 
 Not current scope:
 
 - Dediren adapter
 - CLI-first runtime
+- ELK Layered processors
 - Pixel-perfect Java coordinate parity
 - Copying Eclipse ELK implementation source

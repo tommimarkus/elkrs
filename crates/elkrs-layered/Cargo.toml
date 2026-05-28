@@ -7,5 +7,3 @@ repository.workspace = true
 
 [dependencies]
 elkrs-core = { path = "../elkrs-core" }
-indexmap.workspace = true
-thiserror.workspace = true
