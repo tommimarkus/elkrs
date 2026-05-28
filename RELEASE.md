@@ -23,7 +23,6 @@ Before publishing a crate version:
 
    Download and inspect the `release-evidence` artifact. It must contain:
 
-   - `workspace-bom.json`
    - `elkrs-core-bom.json`
    - `elkrs-json-bom.json`
    - `elkrs-layered-bom.json`

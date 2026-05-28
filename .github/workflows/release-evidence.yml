@@ -29,20 +29,19 @@ jobs:
           cargo install cargo-cyclonedx --locked
       - name: Audit dependencies
         run: cargo audit
-      - name: Generate CycloneDX SBOMs
-        run: cargo cyclonedx --format json --spec-version 1.5
       - name: Record package file manifests
         run: |
           mkdir -p target/release-evidence
           cargo package -p elkrs-core --locked --list > target/release-evidence/elkrs-core-package-files.txt
           cargo package -p elkrs-json --locked --list > target/release-evidence/elkrs-json-package-files.txt
           cargo package -p elkrs-layered --locked --list > target/release-evidence/elkrs-layered-package-files.txt
+      - name: Generate CycloneDX SBOMs
+        run: cargo cyclonedx --format json --spec-version 1.5
       - name: Collect release evidence
         run: |
-          cp bom.json target/release-evidence/workspace-bom.json
-          cp crates/elkrs-core/bom.json target/release-evidence/elkrs-core-bom.json
-          cp crates/elkrs-json/bom.json target/release-evidence/elkrs-json-bom.json
-          cp crates/elkrs-layered/bom.json target/release-evidence/elkrs-layered-bom.json
+          cp crates/elkrs-core/elkrs-core.cdx.json target/release-evidence/elkrs-core-bom.json
+          cp crates/elkrs-json/elkrs-json.cdx.json target/release-evidence/elkrs-json-bom.json
+          cp crates/elkrs-layered/elkrs-layered.cdx.json target/release-evidence/elkrs-layered-bom.json
           (cd target/release-evidence && sha256sum * > SHA256SUMS)
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
