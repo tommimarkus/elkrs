@@ -3,14 +3,26 @@ use std::collections::BTreeMap;
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElkEdgeSection, ElkGraph};
 use elkrs_core::layout::{LayoutError, LayoutReport};
-use elkrs_core::options::Direction;
+use elkrs_core::options::{Direction, Properties};
 
 use crate::import::import_graph;
 use crate::internal::{LEdge, LGraph};
 use crate::pipeline::{LayeredContext, LayeredPipeline, LayeredProcessor};
 
-const LAYER_SPACING: f64 = 120.0;
-const NODE_SPACING: f64 = 80.0;
+#[derive(Debug, Clone, Copy)]
+struct LayoutSpacing {
+    node_node: f64,
+    layer_node_node: f64,
+}
+
+impl LayoutSpacing {
+    fn from_properties(properties: &Properties) -> Self {
+        Self {
+            node_node: properties.spacing_node_node(),
+            layer_node_node: properties.spacing_layer_node_node(),
+        }
+    }
+}
 
 pub struct LayeredLayout;
 
@@ -21,12 +33,13 @@ pub trait LayoutAlgorithm {
 impl LayoutAlgorithm for LayeredLayout {
     fn layout(&self, graph: &mut ElkGraph) -> Result<LayoutReport, LayoutError> {
         let direction = graph.properties.direction();
+        let spacing = LayoutSpacing::from_properties(&graph.properties);
         let mut layered = import_graph(graph)?;
         let pipeline = LayeredPipeline::new(vec![
             Box::new(CycleBreaking),
             Box::new(LayerAssignment),
             Box::new(CrossingMinimization),
-            Box::new(NodePlacement { direction }),
+            Box::new(NodePlacement { direction, spacing }),
             Box::new(EdgeRouting { direction }),
         ]);
         let context = pipeline.run(&mut layered)?;
@@ -111,6 +124,7 @@ impl LayeredProcessor for CrossingMinimization {
 
 struct NodePlacement {
     direction: Direction,
+    spacing: LayoutSpacing,
 }
 
 impl LayeredProcessor for NodePlacement {
@@ -133,7 +147,7 @@ impl LayeredProcessor for NodePlacement {
         let mut layer_major_position = BTreeMap::<usize, f64>::new();
         for (layer, extent) in &layer_major_extent {
             layer_major_position.insert(*layer, next_major);
-            next_major += *extent + LAYER_SPACING;
+            next_major += *extent + self.spacing.layer_node_node;
         }
 
         let mut positions = vec![Point::new(0.0, 0.0); graph.nodes.len()];
@@ -143,13 +157,13 @@ impl LayeredProcessor for NodePlacement {
             for index in indices {
                 let node = &graph.nodes[index];
                 let hierarchy_offset = if node.parent.is_some() {
-                    NODE_SPACING / 4.0
+                    self.spacing.node_node / 4.0
                 } else {
                     0.0
                 };
                 positions[index] =
                     position_from_axes(self.direction, major, minor + hierarchy_offset, node.size);
-                minor += minor_extent(self.direction, node.size) + NODE_SPACING;
+                minor += minor_extent(self.direction, node.size) + self.spacing.node_node;
             }
         }
 

@@ -60,6 +60,35 @@ fn adjacent_layer_large_nodes_do_not_overlap() {
     assert_eq!(overlap_count(&graph), 0);
 }
 
+#[test]
+fn custom_node_spacing_separates_same_layer_nodes() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_node_node(200.0);
+    graph.add_node(node("a", 40.0, 30.0));
+    graph.add_node(node("b", 40.0, 30.0));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let a = &graph.nodes[&ElementId::from("a")];
+    let b = &graph.nodes[&ElementId::from("b")];
+    assert!(b.position.y >= a.position.y + a.size.height + 200.0);
+}
+
+#[test]
+fn custom_layer_spacing_separates_connected_layers() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_layer_node_node(300.0);
+    graph.add_node(node("a", 40.0, 30.0));
+    graph.add_node(node("b", 40.0, 30.0));
+    graph.add_edge(edge("ab", "a", "b"));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let a = &graph.nodes[&ElementId::from("a")];
+    let b = &graph.nodes[&ElementId::from("b")];
+    assert!(b.position.x >= a.position.x + a.size.width + 300.0);
+}
+
 fn node(id: &str, width: f64, height: f64) -> ElkNode {
     let mut node = ElkNode::new(id);
     node.size = Size::new(width, height);
