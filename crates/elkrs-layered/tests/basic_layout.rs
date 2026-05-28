@@ -1,4 +1,4 @@
-use elkrs_core::geometry::Size;
+use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::options::{Direction, PortSide};
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
@@ -82,6 +82,54 @@ fn layered_layout_accepts_edges_connected_to_ports() {
     );
 }
 
+#[test]
+fn layered_layout_routes_from_port_anchor_geometry() {
+    let mut source = node("source", 100.0, 40.0);
+    source.add_port(port_with_geometry(
+        "out",
+        PortSide::East,
+        Point::new(90.0, 5.0),
+        Size::new(10.0, 10.0),
+    ));
+    let mut target = node("target", 100.0, 40.0);
+    target.add_port(port_with_geometry(
+        "in",
+        PortSide::West,
+        Point::new(0.0, 25.0),
+        Size::new(10.0, 10.0),
+    ));
+
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(source);
+    graph.add_node(target);
+    graph.add_edge(ElkEdge::new(
+        "edge",
+        ElementRef::Port {
+            node: ElementId::from("source"),
+            port: ElementId::from("out"),
+        },
+        ElementRef::Port {
+            node: ElementId::from("target"),
+            port: ElementId::from("in"),
+        },
+    ));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let source = &graph.nodes[&ElementId::from("source")];
+    let target = &graph.nodes[&ElementId::from("target")];
+    let section = &graph.edges[&ElementId::from("edge")].sections[0];
+
+    assert_eq!(
+        section.points[0],
+        Point::new(source.position.x + 100.0, source.position.y + 10.0)
+    );
+    assert_eq!(
+        *section.points.last().unwrap(),
+        Point::new(target.position.x, target.position.y + 30.0)
+    );
+}
+
 fn node(id: &str, width: f64, height: f64) -> ElkNode {
     let mut node = ElkNode::new(id);
     node.size = Size::new(width, height);
@@ -91,5 +139,13 @@ fn node(id: &str, width: f64, height: f64) -> ElkNode {
 fn port(id: &str, side: PortSide) -> ElkPort {
     let mut port = ElkPort::new(id);
     port.side = Some(side);
+    port
+}
+
+fn port_with_geometry(id: &str, side: PortSide, position: Point, size: Size) -> ElkPort {
+    let mut port = ElkPort::new(id);
+    port.side = Some(side);
+    port.position = position;
+    port.size = size;
     port
 }

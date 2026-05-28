@@ -1,5 +1,6 @@
 use elkrs_core::geometry::{Point, Rect, Size};
-use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode};
+use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
+use elkrs_core::options::PortSide;
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
 #[test]
@@ -35,6 +36,54 @@ fn backward_edge_section_follows_original_edge_direction() {
     let target = &graph.nodes[&ElementId::from("a")];
     assert_point_on_node(section.points[0], source);
     assert_point_on_node(*section.points.last().unwrap(), target);
+}
+
+#[test]
+fn backward_port_edge_section_follows_original_port_direction() {
+    let mut a = node("a", 100.0, 40.0);
+    a.add_port(port(
+        "in",
+        PortSide::West,
+        Point::new(0.0, 25.0),
+        Size::new(10.0, 10.0),
+    ));
+    let mut b = node("b", 100.0, 40.0);
+    b.add_port(port(
+        "out",
+        PortSide::East,
+        Point::new(90.0, 5.0),
+        Size::new(10.0, 10.0),
+    ));
+
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(a);
+    graph.add_node(b);
+    graph.add_edge(ElkEdge::new(
+        "ba",
+        ElementRef::Port {
+            node: ElementId::from("b"),
+            port: ElementId::from("out"),
+        },
+        ElementRef::Port {
+            node: ElementId::from("a"),
+            port: ElementId::from("in"),
+        },
+    ));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let a = &graph.nodes[&ElementId::from("a")];
+    let b = &graph.nodes[&ElementId::from("b")];
+    let section = &graph.edges[&ElementId::from("ba")].sections[0];
+
+    assert_eq!(
+        section.points[0],
+        Point::new(b.position.x + 100.0, b.position.y + 10.0)
+    );
+    assert_eq!(
+        *section.points.last().unwrap(),
+        Point::new(a.position.x, a.position.y + 30.0)
+    );
 }
 
 #[test]
@@ -101,6 +150,14 @@ fn edge(id: &str, source: &str, target: &str) -> ElkEdge {
         ElementRef::Node(ElementId::from(source)),
         ElementRef::Node(ElementId::from(target)),
     )
+}
+
+fn port(id: &str, side: PortSide, position: Point, size: Size) -> ElkPort {
+    let mut port = ElkPort::new(id);
+    port.side = Some(side);
+    port.position = position;
+    port.size = size;
+    port
 }
 
 fn assert_point_on_node(point: Point, node: &ElkNode) {

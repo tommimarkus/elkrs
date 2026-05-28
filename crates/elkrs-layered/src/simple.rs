@@ -6,7 +6,7 @@ use elkrs_core::layout::{LayoutError, LayoutReport};
 use elkrs_core::options::{Direction, Properties};
 
 use crate::import::import_graph;
-use crate::internal::{LEdge, LGraph};
+use crate::internal::{LEdge, LEndpoint, LGraph, LNode, LPort};
 use crate::pipeline::{LayeredContext, LayeredPipeline, LayeredProcessor};
 
 #[derive(Debug, Clone, Copy)]
@@ -184,13 +184,13 @@ impl LayeredProcessor for EdgeRouting {
     }
 
     fn run(&self, graph: &mut LGraph, _context: &mut LayeredContext) -> Result<(), LayoutError> {
-        let positions = graph
+        let nodes = graph
             .nodes
             .iter()
-            .map(|node| (node.id.clone(), (node.position, node.size)))
+            .map(|node| (node.id.clone(), node.clone()))
             .collect::<BTreeMap<_, _>>();
         for edge in &mut graph.edges {
-            route_edge(edge, &positions, self.direction)?;
+            route_edge(edge, &nodes, self.direction)?;
         }
         Ok(())
     }
@@ -198,42 +198,12 @@ impl LayeredProcessor for EdgeRouting {
 
 fn route_edge(
     edge: &mut LEdge,
-    positions: &BTreeMap<ElementId, (Point, Size)>,
+    nodes: &BTreeMap<ElementId, LNode>,
     direction: Direction,
 ) -> Result<(), LayoutError> {
-    let (source_pos, source_size) = positions
-        .get(&edge.source.node)
-        .copied()
-        .ok_or_else(|| LayoutError::MissingEndpoint(edge.source.node.as_str().to_string()))?;
-    let (target_pos, target_size) = positions
-        .get(&edge.target.node)
-        .copied()
-        .ok_or_else(|| LayoutError::MissingEndpoint(edge.target.node.as_str().to_string()))?;
+    let start = endpoint_anchor(&edge.source, nodes, direction, true)?;
+    let end = endpoint_anchor(&edge.target, nodes, direction, false)?;
 
-    let start = match direction {
-        Direction::Right => Point::new(
-            source_pos.x + source_size.width,
-            source_pos.y + source_size.height / 2.0,
-        ),
-        Direction::Left => Point::new(source_pos.x, source_pos.y + source_size.height / 2.0),
-        Direction::Down => Point::new(
-            source_pos.x + source_size.width / 2.0,
-            source_pos.y + source_size.height,
-        ),
-        Direction::Up => Point::new(source_pos.x + source_size.width / 2.0, source_pos.y),
-    };
-    let end = match direction {
-        Direction::Right => Point::new(target_pos.x, target_pos.y + target_size.height / 2.0),
-        Direction::Left => Point::new(
-            target_pos.x + target_size.width,
-            target_pos.y + target_size.height / 2.0,
-        ),
-        Direction::Down => Point::new(target_pos.x + target_size.width / 2.0, target_pos.y),
-        Direction::Up => Point::new(
-            target_pos.x + target_size.width / 2.0,
-            target_pos.y + target_size.height,
-        ),
-    };
     edge.points = if direction.is_horizontal() {
         let x = (start.x + end.x) / 2.0;
         vec![start, Point::new(x, start.y), Point::new(x, end.y), end]
@@ -242,6 +212,75 @@ fn route_edge(
         vec![start, Point::new(start.x, y), Point::new(end.x, y), end]
     };
     Ok(())
+}
+
+fn endpoint_anchor(
+    endpoint: &LEndpoint,
+    nodes: &BTreeMap<ElementId, LNode>,
+    direction: Direction,
+    source: bool,
+) -> Result<Point, LayoutError> {
+    let node = nodes
+        .get(&endpoint.node)
+        .ok_or_else(|| LayoutError::MissingEndpoint(endpoint.node.as_str().to_string()))?;
+    match &endpoint.port {
+        Some(port_id) => {
+            let port = node.ports.get(port_id).ok_or_else(|| {
+                LayoutError::MissingEndpoint(format!(
+                    "{}:{}",
+                    endpoint.node.as_str(),
+                    port_id.as_str()
+                ))
+            })?;
+            debug_assert_eq!(&port.id, port_id);
+            Ok(port_anchor(node, port))
+        }
+        None => Ok(node_anchor(node.position, node.size, direction, source)),
+    }
+}
+
+fn node_anchor(position: Point, size: Size, direction: Direction, source: bool) -> Point {
+    match (direction, source) {
+        (Direction::Right, true) | (Direction::Left, false) => {
+            Point::new(position.x + size.width, position.y + size.height / 2.0)
+        }
+        (Direction::Right, false) | (Direction::Left, true) => {
+            Point::new(position.x, position.y + size.height / 2.0)
+        }
+        (Direction::Down, true) | (Direction::Up, false) => {
+            Point::new(position.x + size.width / 2.0, position.y + size.height)
+        }
+        (Direction::Down, false) | (Direction::Up, true) => {
+            Point::new(position.x + size.width / 2.0, position.y)
+        }
+    }
+}
+
+fn port_anchor(node: &LNode, port: &LPort) -> Point {
+    let origin = Point::new(
+        node.position.x + port.position.x,
+        node.position.y + port.position.y,
+    );
+    match port.side {
+        Some(elkrs_core::options::PortSide::North) => {
+            Point::new(origin.x + port.size.width / 2.0, origin.y)
+        }
+        Some(elkrs_core::options::PortSide::East) => Point::new(
+            origin.x + port.size.width,
+            origin.y + port.size.height / 2.0,
+        ),
+        Some(elkrs_core::options::PortSide::South) => Point::new(
+            origin.x + port.size.width / 2.0,
+            origin.y + port.size.height,
+        ),
+        Some(elkrs_core::options::PortSide::West) => {
+            Point::new(origin.x, origin.y + port.size.height / 2.0)
+        }
+        None => Point::new(
+            origin.x + port.size.width / 2.0,
+            origin.y + port.size.height / 2.0,
+        ),
+    }
 }
 
 fn write_back(graph: &mut ElkGraph, layered: &LGraph) {
