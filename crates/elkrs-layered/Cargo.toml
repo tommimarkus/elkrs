@@ -1,12 +1,14 @@
 [package]
 name = "elkrs-layered"
 version = "0.1.0"
+description = "Initial clean-room ELK Layered layout implementation for elkrs"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+readme = "../../README.md"
 
 [dependencies]
-elkrs-core = { path = "../elkrs-core" }
+elkrs-core = { version = "0.1.0", path = "../elkrs-core" }
 
 [dev-dependencies]
-elkrs-json = { path = "../elkrs-json" }
+elkrs-json = { version = "0.1.0", path = "../elkrs-json" }

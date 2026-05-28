@@ -1,12 +1,14 @@
 [package]
 name = "elkrs-json"
 version = "0.1.0"
+description = "Narrow ELK-style JSON import and export support for elkrs"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+readme = "../../README.md"
 
 [dependencies]
-elkrs-core = { path = "../elkrs-core" }
+elkrs-core = { version = "0.1.0", path = "../elkrs-core" }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true
