@@ -7,6 +7,7 @@ use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
 use support::fixtures::{
     chain, cross_group_edge, diamond, edge, fan_in, fan_out, nested_group, node, port, port_heavy,
+    two_layer_crossing,
 };
 use support::quality::{
     containment_violation_count, crossing_count, edge_through_node_count, node_overlap_count,
@@ -161,6 +162,19 @@ fn chain_metrics_report_no_crossings_or_route_through_nodes() {
 
     assert_eq!(crossing_count(&graph), 0);
     assert_eq!(edge_through_node_count(&graph), 0);
+}
+
+#[test]
+fn crossing_minimization_reorders_two_layer_targets() {
+    let mut graph = two_layer_crossing();
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(
+        graph.nodes[&ElementId::from("c")].position.y
+            < graph.nodes[&ElementId::from("d")].position.y
+    );
+    assert_eq!(crossing_count(&graph), 0);
 }
 
 #[test]

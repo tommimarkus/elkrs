@@ -46,6 +46,16 @@ pub fn fan_out() -> ElkGraph {
     graph
 }
 
+pub fn two_layer_crossing() -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    for id in ["a", "b", "d", "c"] {
+        graph.add_node(node(id, 50.0, 30.0));
+    }
+    graph.add_edge(edge("a-c", "a", "c"));
+    graph.add_edge(edge("b-d", "b", "d"));
+    graph
+}
+
 pub fn nested_group() -> ElkGraph {
     let mut group = node("group", 240.0, 160.0);
     group.add_child(node("child-a", 50.0, 30.0));
