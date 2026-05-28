@@ -1,6 +1,8 @@
+use elkrs_core::diagnostic::Severity;
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
-use elkrs_core::options::{Direction, PortSide};
+use elkrs_core::layout::LayoutError;
+use elkrs_core::options::{Algorithm, Direction, HierarchyHandling, PortSide};
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
 #[test]
@@ -128,6 +130,67 @@ fn layered_layout_routes_from_port_anchor_geometry() {
         *section.points.last().unwrap(),
         Point::new(target.position.x, target.position.y + 30.0)
     );
+}
+
+#[test]
+fn layered_layout_rejects_non_layered_algorithm_option() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_algorithm(Algorithm::Other("org.eclipse.elk.force".to_string()));
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let error = LayeredLayout.layout(&mut graph).unwrap_err();
+
+    assert!(matches!(
+        error,
+        LayoutError::UnsupportedAlgorithm(algorithm)
+            if algorithm == "org.eclipse.elk.force"
+    ));
+}
+
+#[test]
+fn layered_layout_reports_unsupported_hierarchy_handling() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_hierarchy_handling(HierarchyHandling::SeparateChildren);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("hierarchy handling")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_unimplemented_edge_spacing_options() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_edge_node(12.0);
+    graph.properties.set_spacing_edge_edge(24.0);
+    graph.add_node(node("source", 60.0, 30.0));
+    graph.add_node(node("target", 60.0, 30.0));
+    graph.add_edge(ElkEdge::new(
+        "edge",
+        ElementRef::Node(ElementId::from("source")),
+        ElementRef::Node(ElementId::from("target")),
+    ));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("edge-node spacing")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("edge-edge spacing")
+    }));
 }
 
 fn node(id: &str, width: f64, height: f64) -> ElkNode {

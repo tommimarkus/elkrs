@@ -1,13 +1,16 @@
 use std::collections::BTreeMap;
 
+use elkrs_core::diagnostic::Diagnostic;
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElkEdgeSection, ElkGraph};
 use elkrs_core::layout::{LayoutError, LayoutReport};
-use elkrs_core::options::{Direction, Properties};
+use elkrs_core::options::{Algorithm, CoreOption, Direction, HierarchyHandling, Properties};
 
 use crate::import::import_graph;
 use crate::internal::{LEdge, LEndpoint, LGraph, LNode, LPort};
 use crate::pipeline::{LayeredContext, LayeredPipeline, LayeredProcessor};
+
+const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
 
 #[derive(Debug, Clone, Copy)]
 struct LayoutSpacing {
@@ -32,6 +35,7 @@ pub trait LayoutAlgorithm {
 
 impl LayoutAlgorithm for LayeredLayout {
     fn layout(&self, graph: &mut ElkGraph) -> Result<LayoutReport, LayoutError> {
+        let mut diagnostics = validate_options(&graph.properties)?;
         let direction = graph.properties.direction();
         let spacing = LayoutSpacing::from_properties(&graph.properties);
         let mut layered = import_graph(graph)?;
@@ -44,10 +48,43 @@ impl LayoutAlgorithm for LayeredLayout {
         ]);
         let context = pipeline.run(&mut layered)?;
         write_back(graph, &layered);
-        Ok(LayoutReport {
-            diagnostics: context.diagnostics,
-        })
+        diagnostics.extend(context.diagnostics);
+        Ok(LayoutReport { diagnostics })
     }
+}
+
+fn validate_options(properties: &Properties) -> Result<Vec<Diagnostic>, LayoutError> {
+    match properties.algorithm() {
+        Some(Algorithm::Layered) | None => {}
+        Some(Algorithm::Other(algorithm)) => {
+            return Err(LayoutError::UnsupportedAlgorithm(algorithm));
+        }
+    }
+
+    let mut diagnostics = Vec::new();
+    if matches!(
+        properties.hierarchy_handling(),
+        HierarchyHandling::SeparateChildren
+    ) {
+        diagnostics.push(Diagnostic::warning(
+            UNSUPPORTED_OPTION_CODE,
+            "hierarchy handling SeparateChildren is recognized but not implemented by elkrs-layered yet; laying out children with the current graph",
+        ));
+    }
+    if properties.get(CoreOption::SpacingEdgeNode).is_some() {
+        diagnostics.push(Diagnostic::warning(
+            UNSUPPORTED_OPTION_CODE,
+            "edge-node spacing is recognized but not applied by elkrs-layered edge routing yet",
+        ));
+    }
+    if properties.get(CoreOption::SpacingEdgeEdge).is_some() {
+        diagnostics.push(Diagnostic::warning(
+            UNSUPPORTED_OPTION_CODE,
+            "edge-edge spacing is recognized but not applied by elkrs-layered edge routing yet",
+        ));
+    }
+
+    Ok(diagnostics)
 }
 
 struct CycleBreaking;
