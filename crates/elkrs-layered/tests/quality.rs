@@ -1,20 +1,25 @@
-use elkrs_core::geometry::{Point, Rect, Size};
-use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
+mod support;
+
+use elkrs_core::geometry::{Point, Size};
+use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph};
 use elkrs_core::options::PortSide;
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
+use support::fixtures::{
+    chain, cross_group_edge, diamond, edge, fan_in, fan_out, nested_group, node, port, port_heavy,
+};
+use support::quality::{
+    containment_violation_count, crossing_count, edge_through_node_count, node_overlap_count,
+    port_anchor_mismatch_count, route_segment_count,
+};
+
 #[test]
 fn simple_chain_has_no_node_overlap_and_routed_edges() {
-    let mut graph = ElkGraph::new("root");
-    for id in ["a", "b", "c"] {
-        graph.add_node(node(id, 40.0, 30.0));
-    }
-    graph.add_edge(edge("ab", "a", "b"));
-    graph.add_edge(edge("bc", "b", "c"));
+    let mut graph = chain();
 
     LayeredLayout.layout(&mut graph).unwrap();
 
-    assert_eq!(overlap_count(&graph), 0);
+    assert_eq!(node_overlap_count(&graph), 0);
     assert!(graph.edges.values().all(|edge| edge.sections.len() == 1));
     assert!(graph
         .edges
@@ -94,7 +99,7 @@ fn same_layer_large_nodes_do_not_overlap() {
 
     LayeredLayout.layout(&mut graph).unwrap();
 
-    assert_eq!(overlap_count(&graph), 0);
+    assert_eq!(node_overlap_count(&graph), 0);
 }
 
 #[test]
@@ -106,7 +111,7 @@ fn adjacent_layer_large_nodes_do_not_overlap() {
 
     LayeredLayout.layout(&mut graph).unwrap();
 
-    assert_eq!(overlap_count(&graph), 0);
+    assert_eq!(node_overlap_count(&graph), 0);
 }
 
 #[test]
@@ -138,49 +143,48 @@ fn custom_layer_spacing_separates_connected_layers() {
     assert!(b.position.x >= a.position.x + a.size.width + 300.0);
 }
 
-fn node(id: &str, width: f64, height: f64) -> ElkNode {
-    let mut node = ElkNode::new(id);
-    node.size = Size::new(width, height);
-    node
+#[test]
+fn structural_metrics_cover_common_fixture_shapes() {
+    for mut graph in [diamond(), fan_in(), fan_out(), cross_group_edge()] {
+        LayeredLayout.layout(&mut graph).unwrap();
+
+        assert_eq!(node_overlap_count(&graph), 0);
+        assert!(route_segment_count(&graph) >= graph.edges.len());
+    }
 }
 
-fn edge(id: &str, source: &str, target: &str) -> ElkEdge {
-    ElkEdge::new(
-        id,
-        ElementRef::Node(ElementId::from(source)),
-        ElementRef::Node(ElementId::from(target)),
-    )
+#[test]
+fn chain_metrics_report_no_crossings_or_route_through_nodes() {
+    let mut graph = chain();
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    assert_eq!(crossing_count(&graph), 0);
+    assert_eq!(edge_through_node_count(&graph), 0);
 }
 
-fn port(id: &str, side: PortSide, position: Point, size: Size) -> ElkPort {
-    let mut port = ElkPort::new(id);
-    port.side = Some(side);
-    port.position = position;
-    port.size = size;
-    port
+#[test]
+fn nested_group_metric_reports_current_containment_limit() {
+    let mut graph = nested_group();
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(containment_violation_count(&graph) > 0);
 }
 
-fn assert_point_on_node(point: Point, node: &ElkNode) {
+#[test]
+fn port_heavy_fixture_preserves_port_anchor_fidelity() {
+    let mut graph = port_heavy();
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    assert_eq!(port_anchor_mismatch_count(&graph), 0);
+    assert!(route_segment_count(&graph) >= graph.edges.len());
+}
+
+fn assert_point_on_node(point: Point, node: &elkrs_core::graph::ElkNode) {
     assert!(point.x >= node.position.x);
     assert!(point.x <= node.position.x + node.size.width);
     assert!(point.y >= node.position.y);
     assert!(point.y <= node.position.y + node.size.height);
-}
-
-fn overlap_count(graph: &ElkGraph) -> usize {
-    let nodes = graph.nodes.values().collect::<Vec<_>>();
-    let mut count = 0;
-    for left in 0..nodes.len() {
-        for right in left + 1..nodes.len() {
-            let left_rect = Rect::new(nodes[left].position, nodes[left].size);
-            let right_rect = Rect::new(
-                Point::new(nodes[right].position.x, nodes[right].position.y),
-                nodes[right].size,
-            );
-            if left_rect.intersects(&right_rect) {
-                count += 1;
-            }
-        }
-    }
-    count
 }
