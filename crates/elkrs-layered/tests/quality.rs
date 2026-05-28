@@ -178,12 +178,12 @@ fn crossing_minimization_reorders_two_layer_targets() {
 }
 
 #[test]
-fn nested_group_metric_reports_current_containment_limit() {
+fn nested_group_fixture_has_contained_children() {
     let mut graph = nested_group();
 
     LayeredLayout.layout(&mut graph).unwrap();
 
-    assert!(containment_violation_count(&graph) > 0);
+    assert_eq!(containment_violation_count(&graph), 0);
 }
 
 #[test]

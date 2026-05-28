@@ -15,6 +15,7 @@ Current scope:
 - Deterministic, structurally valid layout for simple directed graphs, port-aware edge endpoints, and basic compound child nodes
 - Stable layer normalization across equivalent node insertion orders
 - Basic barycenter-style crossing minimization for adjacent layers
+- Basic compound child placement inside parent bounds
 - Import-time validation for duplicate node IDs, missing endpoints, and self-loop edges
 - Layout output writes child node coordinates as absolute graph coordinates
 

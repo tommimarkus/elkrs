@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use elkrs_core::geometry::{Point, Size};
+use elkrs_core::graph::ElementId;
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{Direction, Properties};
 
@@ -79,7 +80,33 @@ impl LayeredProcessor for NodePlacement {
         for (node, position) in graph.nodes.iter_mut().zip(positions) {
             node.position = position;
         }
+        place_children_inside_parents(graph, self.spacing);
         Ok(())
+    }
+}
+
+fn place_children_inside_parents(graph: &mut LGraph, spacing: LayoutSpacing) {
+    let mut children_by_parent = BTreeMap::<ElementId, Vec<usize>>::new();
+    for (index, node) in graph.nodes.iter().enumerate() {
+        if let Some(parent) = &node.parent {
+            children_by_parent
+                .entry(parent.clone())
+                .or_default()
+                .push(index);
+        }
+    }
+
+    let padding = spacing.node_node / 4.0;
+    for (parent_id, child_indices) in children_by_parent {
+        let Some(parent_index) = graph.nodes.iter().position(|node| node.id == parent_id) else {
+            continue;
+        };
+        let parent_position = graph.nodes[parent_index].position;
+        let mut child_y = parent_position.y + padding;
+        for child_index in child_indices {
+            graph.nodes[child_index].position = Point::new(parent_position.x + padding, child_y);
+            child_y += graph.nodes[child_index].size.height + spacing.node_node;
+        }
     }
 }
 
