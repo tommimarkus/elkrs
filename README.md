@@ -23,6 +23,11 @@ Current scope:
 - Import-time validation for duplicate node IDs, missing endpoints, and self-loop edges
 - Layout output writes child node coordinates as absolute graph coordinates
 
+Security:
+
+- Vulnerability reporting and supported versions are documented in `SECURITY.md`.
+- The initial `0.1.x` supply-chain target is SCVS Level 1 and SLSA Build Level 1 evidence for GitHub-built release artifacts.
+
 Not current scope:
 
 - Dediren adapter
