@@ -16,6 +16,7 @@ Current scope:
 - Stable layer normalization across equivalent node insertion orders
 - Basic barycenter-style crossing minimization for adjacent layers
 - Basic compound child placement inside parent bounds
+- Simple orthogonal edge detours around the first unrelated node obstacle
 - Import-time validation for duplicate node IDs, missing endpoints, and self-loop edges
 - Layout output writes child node coordinates as absolute graph coordinates
 
