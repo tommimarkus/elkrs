@@ -10,7 +10,8 @@ Current scope:
 
 - Rust graph, geometry, options, diagnostics, and layout error/report types
 - Initial `elkrs-layered` layout API with `LayeredLayout` and `LayoutAlgorithm`
-- Deterministic, structurally valid layout for simple directed graphs, port endpoints, and basic compound child nodes
+- Typed direction and spacing options for the initial supported subset
+- Deterministic, structurally valid layout for simple directed graphs, port-aware edge endpoints, and basic compound child nodes
 
 Not current scope:
 
