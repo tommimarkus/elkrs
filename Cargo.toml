@@ -1,0 +1,15 @@
+[workspace]
+members = [
+  "crates/elkrs-core",
+  "crates/elkrs-layered",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "EPL-2.0"
+repository = "https://github.com/tommimarkus/elkrs"
+
+[workspace.dependencies]
+indexmap = "2.8.0"
+thiserror = "2.0.12"
