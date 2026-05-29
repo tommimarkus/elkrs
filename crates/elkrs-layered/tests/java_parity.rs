@@ -11,10 +11,10 @@ use support::fixtures::chain;
 use support::quality::{edge_through_node_count, node_overlap_count, route_segment_count};
 
 #[test]
+#[ignore = "requires ELKRS_JAVA_ELK_COMMAND to point at a Java ELK JSON command"]
 fn java_elk_chain_parity_matches_structural_metrics_when_configured() {
-    let Ok(command) = env::var("ELKRS_JAVA_ELK_COMMAND") else {
-        return;
-    };
+    let command = env::var("ELKRS_JAVA_ELK_COMMAND")
+        .expect("set ELKRS_JAVA_ELK_COMMAND to a Java ELK JSON command");
 
     let fixture = chain();
     let input = to_string_pretty(&fixture).unwrap();
