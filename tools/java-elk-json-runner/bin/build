@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+tool_dir="$(cd -- "${script_dir}/.." && pwd)"
+
+if [[ -z "${SDKMAN_DIR:-}" ]]; then
+  export SDKMAN_DIR="${HOME}/.sdkman"
+fi
+
+if [[ ! -s "${SDKMAN_DIR}/bin/sdkman-init.sh" ]]; then
+  echo "SDKMAN is required to build the Java ELK JSON runner." >&2
+  echo "Install SDKMAN, then install the versions pinned in ${tool_dir}/.sdkmanrc." >&2
+  exit 127
+fi
+
+set +u
+# shellcheck source=/dev/null
+source "${SDKMAN_DIR}/bin/sdkman-init.sh"
+set -u
+
+previous_dir="${PWD}"
+cd "${tool_dir}"
+set +u
+sdk env >/dev/null
+set -u
+gradle --no-daemon "$@" installDist
+cd "${previous_dir}"

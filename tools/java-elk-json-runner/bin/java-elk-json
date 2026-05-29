@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+tool_dir="$(cd -- "${script_dir}/.." && pwd)"
+runner="${tool_dir}/build/install/java-elk-json-runner/bin/java-elk-json-runner"
+
+if [[ -z "${SDKMAN_DIR:-}" ]]; then
+  export SDKMAN_DIR="${HOME}/.sdkman"
+fi
+
+if [[ ! -s "${SDKMAN_DIR}/bin/sdkman-init.sh" ]]; then
+  echo "SDKMAN is required to run the Java ELK JSON runner." >&2
+  echo "Install SDKMAN, then install the versions pinned in ${tool_dir}/.sdkmanrc." >&2
+  exit 127
+fi
+
+set +u
+# shellcheck source=/dev/null
+source "${SDKMAN_DIR}/bin/sdkman-init.sh"
+set -u
+
+previous_dir="${PWD}"
+cd "${tool_dir}"
+set +u
+sdk env >/dev/null
+set -u
+cd "${previous_dir}"
+
+if [[ ! -x "${runner}" ]]; then
+  echo "Java ELK JSON runner is not built. Run: ${tool_dir}/bin/build" >&2
+  exit 127
+fi
+
+exec "${runner}" "$@"
