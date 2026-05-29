@@ -1,0 +1,3080 @@
+{
+  "elkVersion": "0.11.0",
+  "algorithm": {
+    "id": "org.eclipse.elk.layered",
+    "name": "ELK Layered",
+    "description": "Layer-based algorithm provided by the Eclipse Layout Kernel. Arranges as many edges as possible into one direction by placing nodes into subsequent layers. This implementation supports different routing styles (straight, orthogonal, splines); if orthogonal routing is selected, arbitrary port constraints are respected, thus enabling the layout of block diagrams such as actor-oriented models or circuit schematics. Furthermore, full layout of compound graphs with cross-hierarchy edges is supported when the respective option is activated on the top level.",
+    "categoryId": "org.eclipse.elk.layered",
+    "bundleName": null,
+    "definingBundleId": "org.eclipse.elk.alg.layered",
+    "supportedFeatures": [
+      "CLUSTERS",
+      "COMPOUND",
+      "EDGE_LABELS",
+      "INSIDE_SELF_LOOPS",
+      "MULTI_EDGES",
+      "PORTS",
+      "SELF_LOOPS"
+    ]
+  },
+  "knownOptions": [
+    {
+      "id": "org.eclipse.elk.alignment",
+      "name": "Alignment",
+      "description": "Alignment of the selected node relative to other nodes; the exact meaning depends on the used algorithm.",
+      "group": "",
+      "type": "ENUM",
+      "targets": [
+        "NODES"
+      ],
+      "default": "AUTOMATIC",
+      "algorithmDefault": "AUTOMATIC",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.Alignment",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "AUTOMATIC",
+        "BOTTOM",
+        "CENTER",
+        "LEFT",
+        "RIGHT",
+        "TOP"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.aspectRatio",
+      "name": "Aspect Ratio",
+      "description": "The desired aspect ratio of the drawing, that is the quotient of width by height.",
+      "group": "",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": null,
+      "algorithmDefault": 1.600000023841858,
+      "lowerBound": "0.0 (exclusive)",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.commentBox",
+      "name": "Comment Box",
+      "description": "Whether the node should be regarded as a comment box instead of a regular node. In that case its placement should be similar to how labels are handled. Any edges incident to a comment box specify to which graph elements the comment is related.",
+      "group": "",
+      "type": "BOOLEAN",
+      "targets": [
+        "NODES"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.contentAlignment",
+      "name": "Content Alignment",
+      "description": "Specifies how the content of a node are aligned. Each node can individually control the alignment of its contents. I.e. if a node should be aligned top left in its parent node, the parent node should specify that option.",
+      "group": "",
+      "type": "ENUMSET",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": [
+        "V_TOP",
+        "H_LEFT"
+      ],
+      "algorithmDefault": [
+        "V_TOP",
+        "H_LEFT"
+      ],
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.ContentAlignment",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "H_CENTER",
+        "H_LEFT",
+        "H_RIGHT",
+        "V_BOTTOM",
+        "V_CENTER",
+        "V_TOP"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.debugMode",
+      "name": "Debug Mode",
+      "description": "Whether additional debug information shall be generated.",
+      "group": "",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.direction",
+      "name": "Direction",
+      "description": "Overall direction of edges: horizontal (right / left) or vertical (down / up).",
+      "group": "",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "UNDEFINED",
+      "algorithmDefault": "UNDEFINED",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.Direction",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "DOWN",
+        "LEFT",
+        "RIGHT",
+        "UNDEFINED",
+        "UP"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.edge.thickness",
+      "name": "Edge Thickness",
+      "description": "The thickness of an edge. This is a hint on the line width used to draw an edge, possibly requiring more space to be reserved for it.",
+      "group": "edge",
+      "type": "DOUBLE",
+      "targets": [
+        "EDGES"
+      ],
+      "default": 1.0,
+      "algorithmDefault": 1.0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "HIDDEN",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.edgeLabels.inline",
+      "name": "Inline Edge Labels",
+      "description": "If true, an edge label is placed directly on its edge. May only apply to center edge labels. This kind of label placement is only advisable if the label\u0027s rendering is such that it is not crossed by its edge and thus stays legible.",
+      "group": "edgeLabels",
+      "type": "BOOLEAN",
+      "targets": [
+        "LABELS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.edgeLabels.placement",
+      "name": "Edge Label Placement",
+      "description": "Gives a hint on where to put edge labels.",
+      "group": "edgeLabels",
+      "type": "ENUM",
+      "targets": [
+        "LABELS"
+      ],
+      "default": "CENTER",
+      "algorithmDefault": "CENTER",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.EdgeLabelPlacement",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "CENTER",
+        "HEAD",
+        "TAIL"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.edgeRouting",
+      "name": "Edge Routing",
+      "description": "What kind of edge routing style should be applied for the content of a parent node. Algorithms may also set this option to single edges in order to mark them as splines. The bend point list of edges with this option set to SPLINES must be interpreted as control points for a piecewise cubic spline.",
+      "group": "",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "UNDEFINED",
+      "algorithmDefault": "ORTHOGONAL",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.EdgeRouting",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "ORTHOGONAL",
+        "POLYLINE",
+        "SPLINES",
+        "UNDEFINED"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.hierarchyHandling",
+      "name": "Hierarchy Handling",
+      "description": "Determines whether separate layout runs are triggered for different compound nodes in a hierarchical graph. Setting a node\u0027s hierarchy handling to `INCLUDE_CHILDREN` will lay out that node and all of its descendants in a single layout run, until a descendant is encountered which has its hierarchy handling set to `SEPARATE_CHILDREN`. In general, `SEPARATE_CHILDREN` will ensure that a new layout run is triggered for a node with that setting. Including multiple levels of hierarchy in a single layout run may allow cross-hierarchical edges to be laid out properly. If the root node is set to `INHERIT` (or not set at all), the default behavior is `SEPARATE_CHILDREN`.",
+      "group": "",
+      "type": "ENUM",
+      "targets": [
+        "NODES",
+        "PARENTS"
+      ],
+      "default": "INHERIT",
+      "algorithmDefault": "INHERIT",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.HierarchyHandling",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "INCLUDE_CHILDREN",
+        "INHERIT",
+        "SEPARATE_CHILDREN"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.hypernode",
+      "name": "Hypernode",
+      "description": "Whether the node should be handled as a hypernode.",
+      "group": "",
+      "type": "BOOLEAN",
+      "targets": [
+        "NODES"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "HIDDEN",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.insideSelfLoops.activate",
+      "name": "Activate Inside Self Loops",
+      "description": "Whether this node allows to route self loops inside of it instead of around it. If set to true, this will make the node a compound node if it isn\u0027t already, and will require the layout algorithm to support compound nodes with hierarchical ports.",
+      "group": "insideSelfLoops",
+      "type": "BOOLEAN",
+      "targets": [
+        "NODES"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.insideSelfLoops.yo",
+      "name": "Inside Self Loop",
+      "description": "Whether a self loop should be routed inside a node instead of around that node.",
+      "group": "insideSelfLoops",
+      "type": "BOOLEAN",
+      "targets": [
+        "EDGES"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.interactiveLayout",
+      "name": "interactive Layout",
+      "description": "Whether the graph should be changeable interactively and by setting constraints",
+      "group": "",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.junctionPoints",
+      "name": "Junction Points",
+      "description": "This option is not used as option, but as output of the layout algorithms. It is attached to edges and determines the points where junction symbols should be drawn in order to represent hyperedges with orthogonal routing. Whether such points are computed depends on the chosen layout algorithm and edge routing style. The points are put into the vector chain with no specific order.",
+      "group": "",
+      "type": "OBJECT",
+      "targets": [
+        "EDGES"
+      ],
+      "default": [],
+      "algorithmDefault": [],
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.math.KVectorChain",
+      "visibility": "HIDDEN",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.allowNonFlowPortsToSwitchSides",
+      "name": "Allow Non-Flow Ports To Switch Sides",
+      "description": "Specifies whether non-flow ports may switch sides if their node\u0027s port constraints are either FIXED_SIDE or FIXED_ORDER. A non-flow port is a port on a side that is not part of the currently configured layout flow. For instance, given a left-to-right layout direction, north and south ports would be considered non-flow ports. Further note that the underlying criterium whether to switch sides or not solely relies on the minimization of edge crossings. Hence, edge length and other aesthetics criteria are not addressed.",
+      "group": "",
+      "type": "BOOLEAN",
+      "targets": [
+        "PORTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [
+        "org.eclipse.elk.layered.northOrSouthPort"
+      ],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.compaction.connectedComponents",
+      "name": "Connected Components Compaction",
+      "description": "Tries to further compact components (disconnected sub-graphs).",
+      "group": "compaction",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.compaction.postCompaction.constraints",
+      "name": "Post Compaction Constraint Calculation",
+      "description": "Specifies whether and how post-process compaction is applied.",
+      "group": "compaction.postCompaction",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "SCANLINE",
+      "algorithmDefault": "SCANLINE",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.ConstraintCalculationStrategy",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "QUADRATIC",
+        "SCANLINE"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.compaction.postCompaction.strategy",
+      "name": "Post Compaction Strategy",
+      "description": "Specifies whether and how post-process compaction is applied.",
+      "group": "compaction.postCompaction",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "NONE",
+      "algorithmDefault": "NONE",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.GraphCompactionStrategy",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "EDGE_LENGTH",
+        "LEFT",
+        "LEFT_RIGHT_CONNECTION_LOCKING",
+        "LEFT_RIGHT_CONSTRAINT_LOCKING",
+        "NONE",
+        "RIGHT"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.components",
+      "name": "Consider Model Order for Components",
+      "description": "If set to NONE the usual ordering strategy (by cumulative node priority and size of nodes) is used. INSIDE_PORT_SIDES orders the components with external ports only inside the groups with the same port side. FORCE_MODEL_ORDER enforces the mode order on components. This option might produce bad alignments and sub optimal drawings in terms of used area since the ordering should be respected.",
+      "group": "considerModelOrder",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "NONE",
+      "algorithmDefault": "NONE",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.components.ComponentOrderingStrategy",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "GROUP_MODEL_ORDER",
+        "INSIDE_PORT_SIDE_GROUPS",
+        "MODEL_ORDER",
+        "NONE"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.crossingCounterNodeInfluence",
+      "name": "Crossing Counter Node Order Influence",
+      "description": "Indicates with what percentage (1 for 100%) violations of the node model order are weighted against the crossings e.g. a value of 0.5 means two model order violations are as important as on edge crossing. This allows some edge crossings in favor of preserving the model order. It is advised to set this value to a very small positive value (e.g. 0.001) to have minimal crossing and a optimal node order. Defaults to no influence (0).",
+      "group": "considerModelOrder",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 0.0,
+      "algorithmDefault": 0.0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.crossingCounterPortInfluence",
+      "name": "Crossing Counter Port Order Influence",
+      "description": "Indicates with what percentage (1 for 100%) violations of the port model order are weighted against the crossings e.g. a value of 0.5 means two model order violations are as important as on edge crossing. This allows some edge crossings in favor of preserving the model order. It is advised to set this value to a very small positive value (e.g. 0.001) to have minimal crossing and a optimal port order. Defaults to no influence (0).",
+      "group": "considerModelOrder",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 0.0,
+      "algorithmDefault": 0.0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbGroupOrderStrategy",
+      "name": "Cycle Breaking Group Ordering Strategy",
+      "description": "Determines how to count ordering violations during cycle breaking. NONE: They do not count. ENFORCED: A group with a higher model order is before a node with a smaller. MODEL_ORDER: The model order counts instead of the model order group id ordering.",
+      "group": "considerModelOrder.groupModelOrder",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "ONLY_WITHIN_GROUP",
+      "algorithmDefault": "ONLY_WITHIN_GROUP",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.GroupOrderStrategy",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "ENFORCED",
+        "MODEL_ORDER",
+        "ONLY_WITHIN_GROUP"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredSourceId",
+      "name": "Cycle Breaking Preferred Source Id",
+      "description": "The model order group id for which should be preferred as a source if possible.",
+      "group": "considerModelOrder.groupModelOrder",
+      "type": "INT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredTargetId",
+      "name": "Cycle Breaking Preferred Target Id",
+      "description": "The model order group id for which should be preferred as a target if possible.",
+      "group": "considerModelOrder.groupModelOrder",
+      "type": "INT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmEnforcedGroupOrders",
+      "name": "Crossing Minimization Enforced Group Orders",
+      "description": "Holds all group ids which are enforcing their order during crossing minimization strategies. E.g. if only groups 2 and -1 (default) enforce their ordering. Other groups e.g. the group of timer nodes can be ordered arbitrarily if it helps and the mentioned groups may not change their order.",
+      "group": "considerModelOrder.groupModelOrder",
+      "type": "OBJECT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": [
+        1,
+        2,
+        6,
+        7,
+        10,
+        11
+      ],
+      "algorithmDefault": [
+        1,
+        2,
+        6,
+        7,
+        10,
+        11
+      ],
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.util.List",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmGroupOrderStrategy",
+      "name": "Crossing Minimization Group Ordering Strategy",
+      "description": "Determines how to count ordering violations during crossing minimization. NONE: They do not count. ENFORCED: A group with a lower id is before a group with a higher id. MODEL_ORDER: The model order counts instead of the model order group id ordering.",
+      "group": "considerModelOrder.groupModelOrder",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "ONLY_WITHIN_GROUP",
+      "algorithmDefault": "ONLY_WITHIN_GROUP",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.GroupOrderStrategy",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "ENFORCED",
+        "MODEL_ORDER",
+        "ONLY_WITHIN_GROUP"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.componentGroupId",
+      "name": "Group ID of the Node Type",
+      "description": "Used to define partial ordering groups during component packing. A lower group id means that the group is sorted before other groups. A group model order of 0 is the default group.",
+      "group": "considerModelOrder.groupModelOrder",
+      "type": "INT",
+      "targets": [
+        "EDGES",
+        "NODES",
+        "PORTS"
+      ],
+      "default": 0,
+      "algorithmDefault": 0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId",
+      "name": "Group ID of the Node Type",
+      "description": "Used to define partial ordering groups during crossing minimization. A lower group id means that the group is sorted before other groups. A group model order of 0 is the default group.",
+      "group": "considerModelOrder.groupModelOrder",
+      "type": "INT",
+      "targets": [
+        "EDGES",
+        "NODES",
+        "PORTS"
+      ],
+      "default": 0,
+      "algorithmDefault": 0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cycleBreakingId",
+      "name": "Group ID of the Node Type",
+      "description": "Used to define partial ordering groups during cycle breaking. A lower group id means that the group is sorted before other groups. A group model order of 0 is the default group.",
+      "group": "considerModelOrder.groupModelOrder",
+      "type": "INT",
+      "targets": [
+        "NODES"
+      ],
+      "default": 0,
+      "algorithmDefault": 0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.longEdgeStrategy",
+      "name": "Long Edge Ordering Strategy",
+      "description": "Indicates whether long edges are sorted under, over, or equal to nodes that have no connection to a previous layer in a left-to-right or right-to-left layout. Under and over changes to right and left in a vertical layout.",
+      "group": "considerModelOrder",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "DUMMY_NODE_OVER",
+      "algorithmDefault": "DUMMY_NODE_OVER",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.LongEdgeOrderingStrategy",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "DUMMY_NODE_OVER",
+        "DUMMY_NODE_UNDER",
+        "EQUAL"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.noModelOrder",
+      "name": "No Model Order",
+      "description": "Set on a node to not set a model order for this node even though it is a real node.",
+      "group": "considerModelOrder",
+      "type": "BOOLEAN",
+      "targets": [
+        "NODES"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.portModelOrder",
+      "name": "Consider Port Order",
+      "description": "If disabled the port order of output ports is derived from the edge order and input ports are ordered by their incoming connections. If enabled all ports are ordered by the port model order.",
+      "group": "considerModelOrder",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.considerModelOrder.strategy",
+      "name": "Consider Model Order",
+      "description": "Preserves the order of nodes and edges in the model file if this does not lead to additional edge crossings. Depending on the strategy this is not always possible since the node and edge order might be conflicting.",
+      "group": "considerModelOrder",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "NONE",
+      "algorithmDefault": "NONE",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.OrderingStrategy",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "NODES_AND_EDGES",
+        "NONE",
+        "PREFER_EDGES",
+        "PREFER_NODES"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder",
+      "name": "Force Node Model Order",
+      "description": "The node order given by the model does not change to produce a better layout. E.g. if node A is before node B in the model this is not changed during crossing minimization. This assumes that the node model order is already respected before crossing minimization. This can be achieved by setting considerModelOrder.strategy to NODES_AND_EDGES.",
+      "group": "crossingMinimization",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.crossingMinimization.greedySwitch.activationThreshold",
+      "name": "Greedy Switch Activation Threshold",
+      "description": "By default it is decided automatically if the greedy switch is activated or not. The decision is based on whether the size of the input graph (without dummy nodes) is smaller than the value of this option. A \u00270\u0027 enforces the activation.",
+      "group": "crossingMinimization.greedySwitch",
+      "type": "INT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 40,
+      "algorithmDefault": 40,
+      "lowerBound": 0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.crossingMinimization.greedySwitch.type",
+      "name": "Greedy Switch Crossing Minimization",
+      "description": "Greedy Switch strategy for crossing minimization. The greedy switch heuristic is executed after the regular crossing minimization as a post-processor. Note that if \u0027hierarchyHandling\u0027 is set to \u0027INCLUDE_CHILDREN\u0027, the \u0027greedySwitchHierarchical.type\u0027 option must be used.",
+      "group": "crossingMinimization.greedySwitch",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "TWO_SIDED",
+      "algorithmDefault": "TWO_SIDED",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.GreedySwitchType",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "OFF",
+        "ONE_SIDED",
+        "TWO_SIDED"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.crossingMinimization.greedySwitchHierarchical.type",
+      "name": "Greedy Switch Crossing Minimization (hierarchical)",
+      "description": "Activates the greedy switch heuristic in case hierarchical layout is used. The differences to the non-hierarchical case (see \u0027greedySwitch.type\u0027) are: 1) greedy switch is inactive by default, 3) only the option value set on the node at which hierarchical layout starts is relevant, and 2) if it\u0027s activated by the user, it properly addresses hierarchy-crossing edges.",
+      "group": "crossingMinimization.greedySwitchHierarchical",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "OFF",
+      "algorithmDefault": "OFF",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.GreedySwitchType",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "OFF",
+        "ONE_SIDED",
+        "TWO_SIDED"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.crossingMinimization.hierarchicalSweepiness",
+      "name": "Hierarchical Sweepiness",
+      "description": "How likely it is to use cross-hierarchy (1) vs bottom-up (-1).",
+      "group": "crossingMinimization",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 0.1,
+      "algorithmDefault": 0.1,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.crossingMinimization.inLayerPredOf",
+      "name": "In Layer Predecessor of",
+      "description": "Allows to set a constraint which specifies of which node the current node is the predecessor. If set to \u0027s\u0027 then the node is the predecessor of \u0027s\u0027 and is in the same layer",
+      "group": "crossingMinimization",
+      "type": "STRING",
+      "targets": [
+        "NODES"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.String",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.crossingMinimization.inLayerSuccOf",
+      "name": "In Layer Successor of",
+      "description": "Allows to set a constraint which specifies of which node the current node is the successor. If set to \u0027s\u0027 then the node is the successor of \u0027s\u0027 and is in the same layer",
+      "group": "crossingMinimization",
+      "type": "STRING",
+      "targets": [
+        "NODES"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.String",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.crossingMinimization.positionChoiceConstraint",
+      "name": "Position Choice Constraint",
+      "description": "Allows to set a constraint regarding the position placement of a node in a layer. Assumed the layer in which the node placed includes n other nodes and i \u003c n. If set to i, it expresses that the node should be placed at the i-th position. Should i\u003e\u003dn be true then the node is placed at the last position in the layer. Note that this option is not part of any of ELK Layered\u0027s default configurations but is only evaluated as part of the `InteractiveLayeredGraphVisitor`, which must be applied manually or used via the `DiagramLayoutEngine.",
+      "group": "crossingMinimization",
+      "type": "INT",
+      "targets": [
+        "NODES"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": -1,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.crossingMinimization.positionId",
+      "name": "Position ID",
+      "description": "Position within a layer that was determined by ELK Layered for a node. This is only generated if interactiveLayot or generatePositionAndLayerIds is set.",
+      "group": "crossingMinimization",
+      "type": "INT",
+      "targets": [
+        "NODES"
+      ],
+      "default": -1,
+      "algorithmDefault": -1,
+      "lowerBound": -1,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "HIDDEN",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.crossingMinimization.semiInteractive",
+      "name": "Semi-Interactive Crossing Minimization",
+      "description": "Preserves the order of nodes within a layer but still minimizes crossings between edges connecting long edge dummies. Derives the desired order from positions specified by the \u0027org.eclipse.elk.position\u0027 layout option. Requires a crossing minimization strategy that is able to process \u0027in-layer\u0027 constraints.",
+      "group": "crossingMinimization",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.crossingMinimization.strategy",
+      "name": "Crossing Minimization Strategy",
+      "description": "Strategy for crossing minimization.",
+      "group": "crossingMinimization",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "LAYER_SWEEP",
+      "algorithmDefault": "LAYER_SWEEP",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.CrossingMinimizationStrategy",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "INTERACTIVE",
+        "LAYER_SWEEP",
+        "MEDIAN_LAYER_SWEEP",
+        "NONE"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.cycleBreaking.strategy",
+      "name": "Cycle Breaking Strategy",
+      "description": "Strategy for cycle breaking. Cycle breaking looks for cycles in the graph and determines which edges to reverse to break the cycles. Reversed edges will end up pointing to the opposite direction of regular edges (that is, reversed edges will point left if edges usually point right).",
+      "group": "cycleBreaking",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "GREEDY",
+      "algorithmDefault": "GREEDY",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.CycleBreakingStrategy",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "BFS_NODE_ORDER",
+        "DEPTH_FIRST",
+        "DFS_NODE_ORDER",
+        "GREEDY",
+        "GREEDY_MODEL_ORDER",
+        "INTERACTIVE",
+        "MODEL_ORDER",
+        "SCC_CONNECTIVITY",
+        "SCC_NODE_TYPE"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.directionCongruency",
+      "name": "Direction Congruency",
+      "description": "Specifies how drawings of the same graph with different layout directions compare to each other: either a natural reading direction is preserved or the drawings are rotated versions of each other.",
+      "group": "",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "READING_DIRECTION",
+      "algorithmDefault": "READING_DIRECTION",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.DirectionCongruency",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "READING_DIRECTION",
+        "ROTATION"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.edgeLabels.centerLabelPlacementStrategy",
+      "name": "Edge Center Label Placement Strategy",
+      "description": "Determines in which layer center labels of long edges should be placed.",
+      "group": "edgeLabels",
+      "type": "ENUM",
+      "targets": [
+        "LABELS",
+        "PARENTS"
+      ],
+      "default": "MEDIAN_LAYER",
+      "algorithmDefault": "MEDIAN_LAYER",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.CenterEdgeLabelPlacementStrategy",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "CENTER_LAYER",
+        "HEAD_LAYER",
+        "MEDIAN_LAYER",
+        "SPACE_EFFICIENT_LAYER",
+        "TAIL_LAYER",
+        "WIDEST_LAYER"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.edgeLabels.sideSelection",
+      "name": "Edge Label Side Selection",
+      "description": "Method to decide on edge label sides.",
+      "group": "edgeLabels",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "SMART_DOWN",
+      "algorithmDefault": "SMART_DOWN",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.EdgeLabelSideSelection",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "ALWAYS_DOWN",
+        "ALWAYS_UP",
+        "DIRECTION_DOWN",
+        "DIRECTION_UP",
+        "SMART_DOWN",
+        "SMART_UP"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.edgeRouting.polyline.slopedEdgeZoneWidth",
+      "name": "Sloped Edge Zone Width",
+      "description": "Width of the strip to the left and to the right of each layer where the polyline edge router is allowed to refrain from ensuring that edges are routed horizontally. This prevents awkward bend points for nodes that extent almost to the edge of their layer.",
+      "group": "edgeRouting.polyline",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 2.0,
+      "algorithmDefault": 2.0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.edgeRouting.selfLoopDistribution",
+      "name": "Self-Loop Distribution",
+      "description": "Alter the distribution of the loops around the node. It only takes effect for PortConstraints.FREE.",
+      "group": "edgeRouting",
+      "type": "ENUM",
+      "targets": [
+        "NODES"
+      ],
+      "default": "NORTH",
+      "algorithmDefault": "NORTH",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.SelfLoopDistributionStrategy",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "EQUALLY",
+        "NORTH",
+        "NORTH_SOUTH"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.edgeRouting.selfLoopOrdering",
+      "name": "Self-Loop Ordering",
+      "description": "Alter the ordering of the loops they can either be stacked or sequenced. It only takes effect for PortConstraints.FREE.",
+      "group": "edgeRouting",
+      "type": "ENUM",
+      "targets": [
+        "NODES"
+      ],
+      "default": "STACKED",
+      "algorithmDefault": "STACKED",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.SelfLoopOrderingStrategy",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "REVERSE_STACKED",
+        "SEQUENCED",
+        "STACKED"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.edgeRouting.splines.mode",
+      "name": "Spline Routing Mode",
+      "description": "Specifies the way control points are assembled for each individual edge. CONSERVATIVE ensures that edges are properly routed around the nodes but feels rather orthogonal at times. SLOPPY uses fewer control points to obtain curvier edge routes but may result in edges overlapping nodes.",
+      "group": "edgeRouting.splines",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "SLOPPY",
+      "algorithmDefault": "SLOPPY",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.SplineRoutingMode",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "CONSERVATIVE",
+        "CONSERVATIVE_SOFT",
+        "SLOPPY"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.edgeRouting.splines.sloppy.layerSpacingFactor",
+      "name": "Sloppy Spline Layer Spacing Factor",
+      "description": "Spacing factor for routing area between layers when using sloppy spline routing.",
+      "group": "edgeRouting.splines.sloppy",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 0.2,
+      "algorithmDefault": 0.2,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.feedbackEdges",
+      "name": "Feedback Edges",
+      "description": "Whether feedback edges should be highlighted by routing around the nodes.",
+      "group": "",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.generatePositionAndLayerIds",
+      "name": "Generate Position and Layer IDs",
+      "description": "If enabled position id and layer id are generated, which are usually only used internally when setting the interactiveLayout option. This option should be specified on the root node.",
+      "group": "",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.highDegreeNodes.threshold",
+      "name": "High Degree Node Threshold",
+      "description": "Whether a node is considered to have a high degree.",
+      "group": "highDegreeNodes",
+      "type": "INT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 16,
+      "algorithmDefault": 16,
+      "lowerBound": 0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.highDegreeNodes.treatment",
+      "name": "High Degree Node Treatment",
+      "description": "Makes room around high degree nodes to place leafs and trees.",
+      "group": "highDegreeNodes",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.highDegreeNodes.treeHeight",
+      "name": "High Degree Node Maximum Tree Height",
+      "description": "Maximum height of a subtree connected to a high degree node to be moved to separate layers.",
+      "group": "highDegreeNodes",
+      "type": "INT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 5,
+      "algorithmDefault": 5,
+      "lowerBound": 0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.interactiveReferencePoint",
+      "name": "Interactive Reference Point",
+      "description": "Determines which point of a node is considered by interactive layout phases.",
+      "group": "",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "CENTER",
+      "algorithmDefault": "CENTER",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.InteractiveReferencePoint",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "CENTER",
+        "TOP_LEFT"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.layerUnzipping.layerSplit",
+      "name": "Unzipping Layer Split",
+      "description": "Defines the number of sublayers to split a layer into. The property can be set to the nodes in a layer, which then applies the property for the layer. If multiple nodes set the value to different values, then the lowest value is chosen.",
+      "group": "layerUnzipping",
+      "type": "INT",
+      "targets": [
+        "NODES"
+      ],
+      "default": 2,
+      "algorithmDefault": 2,
+      "lowerBound": 1,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength",
+      "name": "Minimize Edge Length Heuristic",
+      "description": "Use a heuristic to decide whether or not to actually perform the layer split with the goal of minimizing the total edge length. This option only works when layerSplit is set to 2. The property can be set to the nodes in a layer, which then applies the property for the layer. If any node sets the value to true, then the value is set to true for the entire layer.",
+      "group": "layerUnzipping",
+      "type": "BOOLEAN",
+      "targets": [
+        "NODES"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.layerUnzipping.resetOnLongEdges",
+      "name": "Reset Alternation on Long Edges",
+      "description": "If set to true, nodes will always be placed in the first sublayer after a long edge when using the ALTERNATING strategy. Otherwise long edge dummies are treated the same as regular nodes. The default value is true. The property can be set to the nodes in a layer, which then applies the property for the layer. If any node sets the value to false, then the value is set to false for the entire layer.",
+      "group": "layerUnzipping",
+      "type": "BOOLEAN",
+      "targets": [
+        "NODES"
+      ],
+      "default": true,
+      "algorithmDefault": true,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.layerUnzipping.strategy",
+      "name": "Layer Unzipping Strategy",
+      "description": "The strategy to use for unzipping a layer into multiple sublayers while maintaining the existing ordering of nodes and edges after crossing minimization. The default value is \u0027NONE\u0027.",
+      "group": "layerUnzipping",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "NONE",
+      "algorithmDefault": "NONE",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.LayerUnzippingStrategy",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "ALTERNATING",
+        "NONE"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.layering.coffmanGraham.layerBound",
+      "name": "Layer Bound",
+      "description": "The maximum number of nodes allowed per layer.",
+      "group": "layering.coffmanGraham",
+      "type": "INT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 2147483647,
+      "algorithmDefault": 2147483647,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.layering.layerChoiceConstraint",
+      "name": "Layer Choice Constraint",
+      "description": "Allows to set a constraint regarding the layer placement of a node. Let i be the value of teh constraint. Assumed the drawing has n layers and i \u003c n. If set to i, it expresses that the node should be placed in i-th layer. Should i\u003e\u003dn be true then the node is placed in the last layer of the drawing. Note that this option is not part of any of ELK Layered\u0027s default configurations but is only evaluated as part of the `InteractiveLayeredGraphVisitor`, which must be applied manually or used via the `DiagramLayoutEngine.",
+      "group": "layering",
+      "type": "INT",
+      "targets": [
+        "NODES"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": -1,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.layering.layerConstraint",
+      "name": "Layer Constraint",
+      "description": "Determines a constraint on the placement of the node regarding the layering.",
+      "group": "layering",
+      "type": "ENUM",
+      "targets": [
+        "NODES"
+      ],
+      "default": "NONE",
+      "algorithmDefault": "NONE",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.LayerConstraint",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "FIRST",
+        "FIRST_SEPARATE",
+        "LAST",
+        "LAST_SEPARATE",
+        "NONE"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.layering.layerId",
+      "name": "Layer ID",
+      "description": "Layer identifier that was calculated by ELK Layered for a node. This is only generated if interactiveLayot or generatePositionAndLayerIds is set.",
+      "group": "layering",
+      "type": "INT",
+      "targets": [
+        "NODES"
+      ],
+      "default": -1,
+      "algorithmDefault": -1,
+      "lowerBound": -1,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "HIDDEN",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.layering.minWidth.upperBoundOnWidth",
+      "name": "Upper Bound On Width [MinWidth Layerer]",
+      "description": "Defines a loose upper bound on the width of the MinWidth layerer. If set to \u0027-1\u0027 multiple values are tested and the best result is selected.",
+      "group": "layering.minWidth",
+      "type": "INT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 4,
+      "algorithmDefault": 4,
+      "lowerBound": -1,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.layering.minWidth.upperLayerEstimationScalingFactor",
+      "name": "Upper Layer Estimation Scaling Factor [MinWidth Layerer]",
+      "description": "Multiplied with Upper Bound On Width for defining an upper bound on the width of layers which haven\u0027t been determined yet, but whose maximum width had been (roughly) estimated by the MinWidth algorithm. Compensates for too high estimations. If set to \u0027-1\u0027 multiple values are tested and the best result is selected.",
+      "group": "layering.minWidth",
+      "type": "INT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 2,
+      "algorithmDefault": 2,
+      "lowerBound": -1,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.layering.nodePromotion.maxIterations",
+      "name": "Max Node Promotion Iterations",
+      "description": "Limits the number of iterations for node promotion.",
+      "group": "layering.nodePromotion",
+      "type": "INT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 0,
+      "algorithmDefault": 0,
+      "lowerBound": 0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.layering.nodePromotion.strategy",
+      "name": "Node Promotion Strategy",
+      "description": "Reduces number of dummy nodes after layering phase (if possible).",
+      "group": "layering.nodePromotion",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "NONE",
+      "algorithmDefault": "NONE",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.NodePromotionStrategy",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "DUMMYNODE_PERCENTAGE",
+        "MODEL_ORDER_LEFT_TO_RIGHT",
+        "MODEL_ORDER_RIGHT_TO_LEFT",
+        "NIKOLOV",
+        "NIKOLOV_IMPROVED",
+        "NIKOLOV_IMPROVED_PIXEL",
+        "NIKOLOV_PIXEL",
+        "NODECOUNT_PERCENTAGE",
+        "NONE",
+        "NO_BOUNDARY"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.layering.strategy",
+      "name": "Node Layering Strategy",
+      "description": "Strategy for node layering.",
+      "group": "layering",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "NETWORK_SIMPLEX",
+      "algorithmDefault": "NETWORK_SIMPLEX",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.LayeringStrategy",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "BF_MODEL_ORDER",
+        "COFFMAN_GRAHAM",
+        "DF_MODEL_ORDER",
+        "INTERACTIVE",
+        "LONGEST_PATH",
+        "LONGEST_PATH_SOURCE",
+        "MIN_WIDTH",
+        "NETWORK_SIMPLEX",
+        "STRETCH_WIDTH"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.mergeEdges",
+      "name": "Merge Edges",
+      "description": "Edges that have no ports are merged so they touch the connected nodes at the same points. When this option is disabled, one port is created for each edge directly connected to a node. When it is enabled, all such incoming edges share an input port, and all outgoing edges share an output port.",
+      "group": "",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.mergeHierarchyEdges",
+      "name": "Merge Hierarchy-Crossing Edges",
+      "description": "If hierarchical layout is active, hierarchy-crossing edges use as few hierarchical ports as possible. They are broken by the algorithm, with hierarchical ports inserted as required. Usually, one such port is created for each edge at each hierarchy crossing point. With this option set to true, we try to create as few hierarchical ports as possible in the process. In particular, all edges that form a hyperedge can share a port.",
+      "group": "",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": true,
+      "algorithmDefault": true,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.nodePlacement.bk.edgeStraightening",
+      "name": "BK Edge Straightening",
+      "description": "Specifies whether the Brandes Koepf node placer tries to increase the number of straight edges at the expense of diagram size. There is a subtle difference to the \u0027favorStraightEdges\u0027 option, which decides whether a balanced placement of the nodes is desired, or not. In bk terms this means combining the four alignments into a single balanced one, or not. This option on the other hand tries to straighten additional edges during the creation of each of the four alignments.",
+      "group": "nodePlacement.bk",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "IMPROVE_STRAIGHTNESS",
+      "algorithmDefault": "IMPROVE_STRAIGHTNESS",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.EdgeStraighteningStrategy",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "IMPROVE_STRAIGHTNESS",
+        "NONE"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.nodePlacement.bk.fixedAlignment",
+      "name": "BK Fixed Alignment",
+      "description": "Tells the BK node placer to use a certain alignment (out of its four) instead of the one producing the smallest height, or the combination of all four.",
+      "group": "nodePlacement.bk",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "NONE",
+      "algorithmDefault": "NONE",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.FixedAlignment",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "BALANCED",
+        "LEFTDOWN",
+        "LEFTUP",
+        "NONE",
+        "RIGHTDOWN",
+        "RIGHTUP"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.nodePlacement.favorStraightEdges",
+      "name": "Favor Straight Edges Over Balancing",
+      "description": "Favor straight edges over a balanced node placement. The default behavior is determined automatically based on the used \u0027edgeRouting\u0027. For an orthogonal style it is set to true, for all other styles to false.",
+      "group": "nodePlacement",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.nodePlacement.linearSegments.deflectionDampening",
+      "name": "Linear Segments Deflection Dampening",
+      "description": "Dampens the movement of nodes to keep the diagram from getting too large.",
+      "group": "nodePlacement.linearSegments",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 0.3,
+      "algorithmDefault": 0.3,
+      "lowerBound": "0.0 (exclusive)",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility",
+      "name": "Node Flexibility",
+      "description": "Aims at shorter and straighter edges. Two configurations are possible: (a) allow ports to move freely on the side they are assigned to (the order is always defined beforehand), (b) additionally allow to enlarge a node wherever it helps. If this option is not configured for a node, the \u0027nodeFlexibility.default\u0027 value is used, which is specified for the node\u0027s parent.",
+      "group": "nodePlacement.networkSimplex",
+      "type": "ENUM",
+      "targets": [
+        "NODES"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.NodeFlexibility",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "NODE_SIZE",
+        "NODE_SIZE_WHERE_SPACE_PERMITS",
+        "NONE",
+        "PORT_POSITION"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default",
+      "name": "Node Flexibility Default",
+      "description": "Default value of the \u0027nodeFlexibility\u0027 option for the children of a hierarchical node.",
+      "group": "nodePlacement.networkSimplex.nodeFlexibility",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "NONE",
+      "algorithmDefault": "NONE",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.NodeFlexibility",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "NODE_SIZE",
+        "NODE_SIZE_WHERE_SPACE_PERMITS",
+        "NONE",
+        "PORT_POSITION"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.nodePlacement.strategy",
+      "name": "Node Placement Strategy",
+      "description": "Strategy for node placement.",
+      "group": "nodePlacement",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "BRANDES_KOEPF",
+      "algorithmDefault": "BRANDES_KOEPF",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.NodePlacementStrategy",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "BRANDES_KOEPF",
+        "INTERACTIVE",
+        "LINEAR_SEGMENTS",
+        "NETWORK_SIMPLEX",
+        "SIMPLE"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.portSortingStrategy",
+      "name": "Port Sorting Strategy",
+      "description": "Only relevant for nodes with FIXED_SIDE port constraints. Determines the way a node\u0027s ports are distributed on the sides of a node if their order is not prescribed. The option is set on parent nodes.",
+      "group": "",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "INPUT_ORDER",
+      "algorithmDefault": "INPUT_ORDER",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.PortSortingStrategy",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "INPUT_ORDER",
+        "PORT_DEGREE"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.priority.direction",
+      "name": "Direction Priority",
+      "description": "Defines how important it is to have a certain edge point into the direction of the overall layout. This option is evaluated during the cycle breaking phase.",
+      "group": "priority",
+      "type": "INT",
+      "targets": [
+        "EDGES"
+      ],
+      "default": 0,
+      "algorithmDefault": 0,
+      "lowerBound": 0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.priority.shortness",
+      "name": "Shortness Priority",
+      "description": "Defines how important it is to keep an edge as short as possible. This option is evaluated during the layering phase.",
+      "group": "priority",
+      "type": "INT",
+      "targets": [
+        "EDGES"
+      ],
+      "default": 0,
+      "algorithmDefault": 0,
+      "lowerBound": 0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.priority.straightness",
+      "name": "Straightness Priority",
+      "description": "Defines how important it is to keep an edge straight, i.e. aligned with one of the two axes. This option is evaluated during node placement.",
+      "group": "priority",
+      "type": "INT",
+      "targets": [
+        "EDGES"
+      ],
+      "default": 0,
+      "algorithmDefault": 0,
+      "lowerBound": 0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.spacing.baseValue",
+      "name": "Spacing Base Value",
+      "description": "An optional base value for all other layout options of the \u0027spacing\u0027 group. It can be used to conveniently alter the overall \u0027spaciousness\u0027 of the drawing. Whenever an explicit value is set for the other layout options, this base value will have no effect. The base value is not inherited, i.e. it must be set for each hierarchical node.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers",
+      "name": "Edge Edge Between Layer Spacing",
+      "description": "Spacing to be preserved between pairs of edges that are routed between the same pair of layers. Note that \u0027spacing.edgeEdge\u0027 is used for the spacing between pairs of edges crossing the same layer.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 10.0,
+      "algorithmDefault": 10.0,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers",
+      "name": "Edge Node Between Layers Spacing",
+      "description": "The spacing to be preserved between nodes and edges that are routed next to the node\u0027s layer. For the spacing between nodes and edges that cross the node\u0027s layer \u0027spacing.edgeNode\u0027 is used.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 10.0,
+      "algorithmDefault": 10.0,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers",
+      "name": "Node Node Between Layers Spacing",
+      "description": "The spacing to be preserved between any pair of nodes of two adjacent layers. Note that \u0027spacing.nodeNode\u0027 is used for the spacing between nodes within the layer itself.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 20.0,
+      "algorithmDefault": 20.0,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.thoroughness",
+      "name": "Thoroughness",
+      "description": "How much effort should be spent to produce a nice layout.",
+      "group": "",
+      "type": "INT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 7,
+      "algorithmDefault": 7,
+      "lowerBound": 1,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.unnecessaryBendpoints",
+      "name": "Add Unnecessary Bendpoints",
+      "description": "Adds bend points even if an edge does not change direction. If true, each long edge dummy will contribute a bend point to its edges and hierarchy-crossing edges will always get a bend point where they cross hierarchy boundaries. By default, bend points are only added where an edge changes direction.",
+      "group": "",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.wrapping.additionalEdgeSpacing",
+      "name": "Additional Wrapped Edges Spacing",
+      "description": "To visually separate edges that are wrapped from regularly routed edges an additional spacing value can be specified in form of this layout option. The spacing is added to the regular edgeNode spacing.",
+      "group": "wrapping",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 10.0,
+      "algorithmDefault": 10.0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.wrapping.correctionFactor",
+      "name": "Correction Factor for Wrapping",
+      "description": "At times and for certain types of graphs the executed wrapping may produce results that are consistently biased in the same fashion: either wrapping to often or to rarely. This factor can be used to correct the bias. Internally, it is simply multiplied with the \u0027aspect ratio\u0027 layout option.",
+      "group": "wrapping",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 1.0,
+      "algorithmDefault": 1.0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.wrapping.cutting.cuts",
+      "name": "Manually Specified Cuts",
+      "description": "Allows the user to specify her own cuts for a certain graph.",
+      "group": "wrapping.cutting",
+      "type": "OBJECT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.util.List",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.wrapping.cutting.msd.freedom",
+      "name": "MSD Freedom",
+      "description": "The MSD cutting strategy starts with an initial guess on the number of chunks the graph should be split into. The freedom specifies how much the strategy may deviate from this guess. E.g. if an initial number of 3 is computed, a freedom of 1 allows 2, 3, and 4 cuts.",
+      "group": "wrapping.cutting.msd",
+      "type": "INT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 1,
+      "algorithmDefault": 1,
+      "lowerBound": 0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.wrapping.cutting.strategy",
+      "name": "Cutting Strategy",
+      "description": "The strategy by which the layer indexes are determined at which the layering crumbles into chunks.",
+      "group": "wrapping.cutting",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "MSD",
+      "algorithmDefault": "MSD",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.CuttingStrategy",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "ARD",
+        "MANUAL",
+        "MSD"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.wrapping.multiEdge.distancePenalty",
+      "name": "Distance Penalty When Improving Cuts",
+      "description": null,
+      "group": "wrapping.multiEdge",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 2.0,
+      "algorithmDefault": 2.0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.wrapping.multiEdge.improveCuts",
+      "name": "Improve Cuts",
+      "description": "For general graphs it is important that not too many edges wrap backwards. Thus a compromise between evenly-distributed cuts and the total number of cut edges is sought.",
+      "group": "wrapping.multiEdge",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": true,
+      "algorithmDefault": true,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.wrapping.multiEdge.improveWrappedEdges",
+      "name": "Improve Wrapped Edges",
+      "description": "The initial wrapping is performed in a very simple way. As a consequence, edges that wrap from one chunk to another may be unnecessarily long. Activating this option tries to shorten such edges.",
+      "group": "wrapping.multiEdge",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": true,
+      "algorithmDefault": true,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.wrapping.strategy",
+      "name": "Graph Wrapping Strategy",
+      "description": "For certain graphs and certain prescribed drawing areas it may be desirable to split the laid out graph into chunks that are placed side by side. The edges that connect different chunks are \u0027wrapped\u0027 around from the end of one chunk to the start of the other chunk. The points between the chunks are referred to as \u0027cuts\u0027.",
+      "group": "wrapping",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "OFF",
+      "algorithmDefault": "OFF",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.WrappingStrategy",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "MULTI_EDGE",
+        "OFF",
+        "SINGLE_EDGE"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.layered.wrapping.validify.forbiddenIndices",
+      "name": "Valid Indices for Wrapping",
+      "description": null,
+      "group": "wrapping.validify",
+      "type": "OBJECT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.util.List",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.layered.wrapping.validify.strategy",
+      "name": "Validification Strategy",
+      "description": "When wrapping graphs, one can specify indices that are not allowed as split points. The validification strategy makes sure every computed split point is allowed.",
+      "group": "wrapping.validify",
+      "type": "ENUM",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "GREEDY",
+      "algorithmDefault": "GREEDY",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.alg.layered.options.ValidifyStrategy",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "GREEDY",
+        "LOOK_BACK",
+        "NO"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.margins",
+      "name": "Margins",
+      "description": "Margins define additional space around the actual bounds of a graph element. For instance, ports or labels being placed on the outside of a node\u0027s border might introduce such a margin. The margin is used to guarantee non-overlap of other graph elements with those ports or labels.",
+      "group": "",
+      "type": "OBJECT",
+      "targets": [
+        "NODES"
+      ],
+      "default": "[top\u003d0.0,left\u003d0.0,bottom\u003d0.0,right\u003d0.0]",
+      "algorithmDefault": "[top\u003d0.0,left\u003d0.0,bottom\u003d0.0,right\u003d0.0]",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.math.ElkMargin",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.noLayout",
+      "name": "No Layout",
+      "description": "No layout is done for the associated element. This is used to mark parts of a diagram to avoid their inclusion in the layout graph, or to mark parts of the layout graph to prevent layout engines from processing them. If you wish to exclude the contents of a compound node from automatic layout, while the node itself is still considered on its own layer, use the \u0027Fixed Layout\u0027 algorithm for that node.",
+      "group": "",
+      "type": "BOOLEAN",
+      "targets": [
+        "EDGES",
+        "LABELS",
+        "NODES",
+        "PORTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.nodeLabels.padding",
+      "name": "Node Label Padding",
+      "description": "Define padding for node labels that are placed inside of a node.",
+      "group": "nodeLabels",
+      "type": "OBJECT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "[top\u003d5.0,left\u003d5.0,bottom\u003d5.0,right\u003d5.0]",
+      "algorithmDefault": "[top\u003d5.0,left\u003d5.0,bottom\u003d5.0,right\u003d5.0]",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.math.ElkPadding",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.nodeLabels.placement",
+      "name": "Node Label Placement",
+      "description": "Hints for where node labels are to be placed; if empty, the node label\u0027s position is not modified.",
+      "group": "nodeLabels",
+      "type": "ENUMSET",
+      "targets": [
+        "LABELS",
+        "NODES"
+      ],
+      "default": [],
+      "algorithmDefault": [],
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.NodeLabelPlacement",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "H_CENTER",
+        "H_LEFT",
+        "H_PRIORITY",
+        "H_RIGHT",
+        "INSIDE",
+        "OUTSIDE",
+        "V_BOTTOM",
+        "V_CENTER",
+        "V_TOP"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.nodeSize.constraints",
+      "name": "Node Size Constraints",
+      "description": "What should be taken into account when calculating a node\u0027s size. Empty size constraints specify that a node\u0027s size is already fixed and should not be changed.",
+      "group": "nodeSize",
+      "type": "ENUMSET",
+      "targets": [
+        "NODES"
+      ],
+      "default": [],
+      "algorithmDefault": [],
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.SizeConstraint",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "MINIMUM_SIZE",
+        "NODE_LABELS",
+        "PORTS",
+        "PORT_LABELS"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.nodeSize.fixedGraphSize",
+      "name": "Fixed Graph Size",
+      "description": "By default, the fixed layout provider will enlarge a graph until it is large enough to contain its children. If this option is set, it won\u0027t do so.",
+      "group": "nodeSize",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.nodeSize.minimum",
+      "name": "Node Size Minimum",
+      "description": "The minimal size to which a node can be reduced.",
+      "group": "nodeSize",
+      "type": "OBJECT",
+      "targets": [
+        "NODES"
+      ],
+      "default": "(0.0,0.0)",
+      "algorithmDefault": "(0.0,0.0)",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.math.KVector",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.nodeSize.options",
+      "name": "Node Size Options",
+      "description": "Options modifying the behavior of the size constraints set on a node. Each member of the set specifies something that should be taken into account when calculating node sizes. The empty set corresponds to no further modifications.",
+      "group": "nodeSize",
+      "type": "ENUMSET",
+      "targets": [
+        "NODES"
+      ],
+      "default": [
+        "DEFAULT_MINIMUM_SIZE"
+      ],
+      "algorithmDefault": [
+        "DEFAULT_MINIMUM_SIZE"
+      ],
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.SizeOptions",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "ASYMMETRICAL",
+        "COMPUTE_PADDING",
+        "DEFAULT_MINIMUM_SIZE",
+        "FORCE_TABULAR_NODE_LABELS",
+        "MINIMUM_SIZE_ACCOUNTS_FOR_PADDING",
+        "OUTSIDE_NODE_LABELS_OVERHANG",
+        "PORTS_OVERHANG",
+        "SPACE_EFFICIENT_PORT_LABELS",
+        "UNIFORM_PORT_SPACING"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.padding",
+      "name": "Padding",
+      "description": "The padding to be left to a parent element\u0027s border when placing child elements. This can also serve as an output option of a layout algorithm if node size calculation is setup appropriately.",
+      "group": "",
+      "type": "OBJECT",
+      "targets": [
+        "NODES",
+        "PARENTS"
+      ],
+      "default": "[top\u003d12.0,left\u003d12.0,bottom\u003d12.0,right\u003d12.0]",
+      "algorithmDefault": "[top\u003d12.0,left\u003d12.0,bottom\u003d12.0,right\u003d12.0]",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.math.ElkPadding",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.partitioning.activate",
+      "name": "Layout Partitioning",
+      "description": "Whether to activate partitioned layout. This will allow to group nodes through the Layout Partition option. a pair of nodes with different partition indices is then placed such that the node with lower index is placed to the left of the other node (with left-to-right layout direction). Depending on the layout algorithm, this may only be guaranteed to work if all nodes have a layout partition configured, or at least if edges that cross partitions are not part of a partition-crossing cycle.",
+      "group": "partitioning",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.partitioning.partition",
+      "name": "Layout Partition",
+      "description": "Partition to which the node belongs. This requires Layout Partitioning to be active. Nodes with lower partition IDs will appear to the left of nodes with higher partition IDs (assuming a left-to-right layout direction).",
+      "group": "partitioning",
+      "type": "INT",
+      "targets": [
+        "NODES",
+        "PARENTS"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.port.anchor",
+      "name": "Port Anchor Offset",
+      "description": "The offset to the port position where connections shall be attached.",
+      "group": "port",
+      "type": "OBJECT",
+      "targets": [
+        "PORTS"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.math.KVector",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.port.borderOffset",
+      "name": "Port Border Offset",
+      "description": "The offset of ports on the node border. With a positive offset the port is moved outside of the node, while with a negative offset the port is moved towards the inside. An offset of 0 means that the port is placed directly on the node border, i.e. if the port side is north, the port\u0027s south border touches the nodes\u0027s north border; if the port side is east, the port\u0027s west border touches the nodes\u0027s east border; if the port side is south, the port\u0027s north border touches the node\u0027s south border; if the port side is west, the port\u0027s east border touches the node\u0027s west border.",
+      "group": "port",
+      "type": "DOUBLE",
+      "targets": [
+        "PORTS"
+      ],
+      "default": null,
+      "algorithmDefault": 0.0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.port.index",
+      "name": "Port Index",
+      "description": "The index of a port in the fixed order around a node. The order is assumed as clockwise, starting with the leftmost port on the top side. This option must be set if \u0027Port Constraints\u0027 is set to FIXED_ORDER and no specific positions are given for the ports. Additionally, the option \u0027Port Side\u0027 must be defined in this case.",
+      "group": "port",
+      "type": "INT",
+      "targets": [
+        "PORTS"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.port.side",
+      "name": "Port Side",
+      "description": "The side of a node on which a port is situated. This option must be set if \u0027Port Constraints\u0027 is set to FIXED_SIDE or FIXED_ORDER and no specific positions are given for the ports.",
+      "group": "port",
+      "type": "ENUM",
+      "targets": [
+        "PORTS"
+      ],
+      "default": "UNDEFINED",
+      "algorithmDefault": "UNDEFINED",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.PortSide",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "EAST",
+        "NORTH",
+        "SOUTH",
+        "UNDEFINED",
+        "WEST"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.portAlignment.default",
+      "name": "Port Alignment",
+      "description": "Defines the default port distribution for a node. May be overridden for each side individually.",
+      "group": "portAlignment",
+      "type": "ENUM",
+      "targets": [
+        "NODES"
+      ],
+      "default": "DISTRIBUTED",
+      "algorithmDefault": "JUSTIFIED",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.PortAlignment",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "BEGIN",
+        "CENTER",
+        "DISTRIBUTED",
+        "END",
+        "JUSTIFIED"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.portAlignment.east",
+      "name": "Port Alignment (East)",
+      "description": "Defines how ports on the eastern side are placed, overriding the node\u0027s general port alignment.",
+      "group": "portAlignment",
+      "type": "ENUM",
+      "targets": [
+        "NODES"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.PortAlignment",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "BEGIN",
+        "CENTER",
+        "DISTRIBUTED",
+        "END",
+        "JUSTIFIED"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.portAlignment.north",
+      "name": "Port Alignment (North)",
+      "description": "Defines how ports on the northern side are placed, overriding the node\u0027s general port alignment.",
+      "group": "portAlignment",
+      "type": "ENUM",
+      "targets": [
+        "NODES"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.PortAlignment",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "BEGIN",
+        "CENTER",
+        "DISTRIBUTED",
+        "END",
+        "JUSTIFIED"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.portAlignment.south",
+      "name": "Port Alignment (South)",
+      "description": "Defines how ports on the southern side are placed, overriding the node\u0027s general port alignment.",
+      "group": "portAlignment",
+      "type": "ENUM",
+      "targets": [
+        "NODES"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.PortAlignment",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "BEGIN",
+        "CENTER",
+        "DISTRIBUTED",
+        "END",
+        "JUSTIFIED"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.portAlignment.west",
+      "name": "Port Alignment (West)",
+      "description": "Defines how ports on the western side are placed, overriding the node\u0027s general port alignment.",
+      "group": "portAlignment",
+      "type": "ENUM",
+      "targets": [
+        "NODES"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.PortAlignment",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "BEGIN",
+        "CENTER",
+        "DISTRIBUTED",
+        "END",
+        "JUSTIFIED"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.portConstraints",
+      "name": "Port Constraints",
+      "description": "Defines constraints of the position of the ports of a node.",
+      "group": "",
+      "type": "ENUM",
+      "targets": [
+        "NODES"
+      ],
+      "default": "UNDEFINED",
+      "algorithmDefault": "UNDEFINED",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.PortConstraints",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "FIXED_ORDER",
+        "FIXED_POS",
+        "FIXED_RATIO",
+        "FIXED_SIDE",
+        "FREE",
+        "UNDEFINED"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.portLabels.nextToPortIfPossible",
+      "name": "Port Labels Next to Port",
+      "description": "Use \u0027portLabels.placement\u0027: NEXT_TO_PORT_OF_POSSIBLE.",
+      "group": "portLabels",
+      "type": "BOOLEAN",
+      "targets": [
+        "NODES"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.portLabels.placement",
+      "name": "Port Label Placement",
+      "description": "Decides on a placement method for port labels; if empty, the node label\u0027s position is not modified.",
+      "group": "portLabels",
+      "type": "ENUMSET",
+      "targets": [
+        "NODES"
+      ],
+      "default": [
+        "OUTSIDE"
+      ],
+      "algorithmDefault": [
+        "OUTSIDE"
+      ],
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.PortLabelPlacement",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": [
+        "ALWAYS_OTHER_SAME_SIDE",
+        "ALWAYS_SAME_SIDE",
+        "INSIDE",
+        "NEXT_TO_PORT_IF_POSSIBLE",
+        "OUTSIDE",
+        "SPACE_EFFICIENT"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.portLabels.treatAsGroup",
+      "name": "Treat Port Labels as Group",
+      "description": "If this option is true (default), the labels of a port will be treated as a group when it comes to centering them next to their port. If this option is false, only the first label will be centered next to the port, with the others being placed below. This only applies to labels of eastern and western ports and will have no effect if labels are not placed next to their port.",
+      "group": "portLabels",
+      "type": "BOOLEAN",
+      "targets": [
+        "NODES"
+      ],
+      "default": true,
+      "algorithmDefault": true,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.position",
+      "name": "Position",
+      "description": "The position of a node, port, or label. This is used by the \u0027Fixed Layout\u0027 algorithm to specify a pre-defined position.",
+      "group": "",
+      "type": "OBJECT",
+      "targets": [
+        "LABELS",
+        "NODES",
+        "PORTS"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.math.KVector",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.priority",
+      "name": "Priority",
+      "description": "Defines the priority of an object; its meaning depends on the specific layout algorithm and the context where it is used.",
+      "group": "",
+      "type": "INT",
+      "targets": [
+        "EDGES",
+        "NODES"
+      ],
+      "default": null,
+      "algorithmDefault": 0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.randomSeed",
+      "name": "Randomization Seed",
+      "description": "Seed used for pseudo-random number generators to control the layout algorithm. If the value is 0, the seed shall be determined pseudo-randomly (e.g. from the system time).",
+      "group": "",
+      "type": "INT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": null,
+      "algorithmDefault": 1,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Integer",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.separateConnectedComponents",
+      "name": "Separate Connected Components",
+      "description": "Whether each connected component should be processed separately.",
+      "group": "",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": null,
+      "algorithmDefault": true,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.commentComment",
+      "name": "Comment Comment Spacing",
+      "description": "Spacing to be preserved between a comment box and other comment boxes connected to the same node. The space left between comment boxes of different nodes is controlled by the node-node spacing.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 10.0,
+      "algorithmDefault": 10.0,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.commentNode",
+      "name": "Comment Node Spacing",
+      "description": "Spacing to be preserved between a node and its connected comment boxes. The space left between a node and the comments of another node is controlled by the node-node spacing.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 10.0,
+      "algorithmDefault": 10.0,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.componentComponent",
+      "name": "Components Spacing",
+      "description": "Spacing to be preserved between pairs of connected components. This option is only relevant if \u0027separateConnectedComponents\u0027 is activated.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 20.0,
+      "algorithmDefault": 20.0,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.edgeEdge",
+      "name": "Edge Spacing",
+      "description": "Spacing to be preserved between any two edges. Note that while this can somewhat easily be satisfied for the segments of orthogonally drawn edges, it is harder for general polylines or splines.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 10.0,
+      "algorithmDefault": 10.0,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.edgeLabel",
+      "name": "Edge Label Spacing",
+      "description": "The minimal distance to be preserved between a label and the edge it is associated with. Note that the placement of a label is influenced by the \u0027edgelabels.placement\u0027 option.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 2.0,
+      "algorithmDefault": 2.0,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.edgeNode",
+      "name": "Edge Node Spacing",
+      "description": "Spacing to be preserved between nodes and edges.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 10.0,
+      "algorithmDefault": 10.0,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.individual",
+      "name": "Individual Spacing",
+      "description": "Allows to specify individual spacing values for graph elements that shall be different from the value specified for the element\u0027s parent.",
+      "group": "spacing",
+      "type": "OBJECT",
+      "targets": [
+        "EDGES",
+        "LABELS",
+        "NODES",
+        "PORTS"
+      ],
+      "default": null,
+      "algorithmDefault": null,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.util.IndividualSpacings",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.labelLabel",
+      "name": "Label Spacing",
+      "description": "Determines the amount of space to be left between two labels of the same graph element.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 0.0,
+      "algorithmDefault": 0.0,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.labelNode",
+      "name": "Label Node Spacing",
+      "description": "Spacing to be preserved between labels and the border of node they are associated with. Note that the placement of a label is influenced by the \u0027nodelabels.placement\u0027 option.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 5.0,
+      "algorithmDefault": 5.0,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.labelPortHorizontal",
+      "name": "Horizontal spacing between Label and Port",
+      "description": "Horizontal spacing to be preserved between labels and the ports they are associated with. Note that the placement of a label is influenced by the \u0027portlabels.placement\u0027 option.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 1.0,
+      "algorithmDefault": 1.0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.labelPortVertical",
+      "name": "Vertical spacing between Label and Port",
+      "description": "Vertical spacing to be preserved between labels and the ports they are associated with. Note that the placement of a label is influenced by the \u0027portlabels.placement\u0027 option.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 1.0,
+      "algorithmDefault": 1.0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.nodeNode",
+      "name": "Node Spacing",
+      "description": "The minimal distance to be preserved between each two nodes.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 20.0,
+      "algorithmDefault": 20.0,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.nodeSelfLoop",
+      "name": "Node Self Loop Spacing",
+      "description": "Spacing to be preserved between a node and its self loops.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 10.0,
+      "algorithmDefault": 10.0,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.portPort",
+      "name": "Port Spacing",
+      "description": "Spacing between pairs of ports of the same node.",
+      "group": "spacing",
+      "type": "DOUBLE",
+      "targets": [
+        "NODES",
+        "PARENTS"
+      ],
+      "default": 10.0,
+      "algorithmDefault": 10.0,
+      "lowerBound": 0.0,
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "VISIBLE",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.spacing.portsSurrounding",
+      "name": "Additional Port Space",
+      "description": "Additional space around the sets of ports on each node side. For each side of a node, this option can reserve additional space before and after the ports on each side. For example, a top spacing of 20 makes sure that the first port on the western and eastern side is 20 units away from the northern border.",
+      "group": "spacing",
+      "type": "OBJECT",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": "[top\u003d0.0,left\u003d0.0,bottom\u003d0.0,right\u003d0.0]",
+      "algorithmDefault": "[top\u003d0.0,left\u003d0.0,bottom\u003d0.0,right\u003d0.0]",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.math.ElkMargin",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.topdown.hierarchicalNodeAspectRatio",
+      "name": "Topdown Hierarchical Node Aspect Ratio",
+      "description": "The fixed aspect ratio of a hierarchical node when using topdown layout. Default is 1/sqrt(2). If this value is set on a parallel node it applies to its children, when set on a hierarchical node it applies to the node itself.",
+      "group": "topdown",
+      "type": "DOUBLE",
+      "targets": [
+        "NODES",
+        "PARENTS"
+      ],
+      "default": 1.414,
+      "algorithmDefault": 1.414,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.topdown.hierarchicalNodeWidth",
+      "name": "Topdown Hierarchical Node Width",
+      "description": "The fixed size of a hierarchical node when using topdown layout. If this value is set on a parallel node it applies to its children, when set on a hierarchical node it applies to the node itself.",
+      "group": "topdown",
+      "type": "DOUBLE",
+      "targets": [
+        "NODES",
+        "PARENTS"
+      ],
+      "default": 150.0,
+      "algorithmDefault": 150.0,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.topdown.nodeType",
+      "name": "Topdown Node Type",
+      "description": "The different node types used for topdown layout. If the node type is set to {@link TopdownNodeTypes.PARALLEL_NODE} the algorithm must be set to a {@link TopdownLayoutProvider} such as {@link TopdownPacking}. The {@link nodeSize.fixedGraphSize} option is technically only required for hierarchical nodes.",
+      "group": "topdown",
+      "type": "ENUM",
+      "targets": [
+        "NODES"
+      ],
+      "default": null,
+      "algorithmDefault": "HIERARCHICAL_NODE",
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "org.eclipse.elk.core.options.TopdownNodeTypes",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": [
+        "HIERARCHICAL_NODE",
+        "PARALLEL_NODE",
+        "ROOT_NODE"
+      ]
+    },
+    {
+      "id": "org.eclipse.elk.topdown.scaleFactor",
+      "name": "Topdown Scale Factor",
+      "description": "The scaling factor to be applied to the nodes laid out within the node in recursive topdown layout. The difference to \u0027Scale Factor\u0027 is that the node itself is not scaled. This value has to be set on hierarchical nodes.",
+      "group": "topdown",
+      "type": "DOUBLE",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": 1.0,
+      "algorithmDefault": 1.0,
+      "lowerBound": "0.0 (exclusive)",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Double",
+      "visibility": "HIDDEN",
+      "legacyIds": [],
+      "enumValues": []
+    },
+    {
+      "id": "org.eclipse.elk.topdownLayout",
+      "name": "Topdown Layout",
+      "description": "Turns topdown layout on and off. If this option is enabled, hierarchical layout will be computed first for the root node and then for its children recursively. Layouts are then scaled down to fit the area provided by their parents. Graphs must follow a certain structure for topdown layout to work properly. {@link TopdownNodeTypes.PARALLEL_NODE} nodes must have children of type {@link TopdownNodeTypes.HIERARCHICAL_NODE} and must define {@link topdown.hierarchicalNodeWidth} and {@link topdown.hierarchicalNodeAspectRatio} for their children. Furthermore they need to be laid out using an algorithm that is a {@link TopdownLayoutProvider}. Hierarchical nodes can also be parents of other hierarchical nodes and can optionally use a {@link TopdownSizeApproximator} to dynamically set sizes during topdown layout. In this case {@link topdown.hierarchicalNodeWidth} and {@link topdown.hierarchicalNodeAspectRatio} should be set on the node itself rather than the parent. The values are then used by the size approximator as base values. Hierarchical nodes require the layout option {@link nodeSize.fixedGraphSize} to be true to prevent the algorithm used there from resizing the hierarchical node. This option is not supported if \u0027Hierarchy Handling\u0027 is set to \u0027INCLUDE_CHILDREN\u0027",
+      "group": "",
+      "type": "BOOLEAN",
+      "targets": [
+        "PARENTS"
+      ],
+      "default": false,
+      "algorithmDefault": false,
+      "lowerBound": "-∞",
+      "upperBound": "+∞",
+      "optionClass": "java.lang.Boolean",
+      "visibility": "ADVANCED",
+      "legacyIds": [],
+      "enumValues": []
+    }
+  ],
+  "generatedBy": "tools/java-elk-json-runner --metadata"
+}
