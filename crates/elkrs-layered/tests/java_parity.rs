@@ -76,6 +76,22 @@ fn java_elk_parity_matches_structural_metrics_for_comparable_fixtures() {
             fixture.id,
             fixture.name
         );
+        assert_eq!(
+            java_metrics.crossings, rust_metrics.crossings,
+            "fixture {} ({}) crossing parity mismatch: java={java_metrics:?}, rust={rust_metrics:?}",
+            fixture.id,
+            fixture.name
+        );
+        assert_eq!(
+            java_metrics.unrouted_edges, 0,
+            "fixture {} ({}) Java output should route every edge: {java_metrics:?}",
+            fixture.id, fixture.name
+        );
+        assert_eq!(
+            rust_metrics.unrouted_edges, 0,
+            "fixture {} ({}) Rust output should route every edge: {rust_metrics:?}",
+            fixture.id, fixture.name
+        );
         assert!(
             java_metrics.route_segments >= java_graph.edges.len(),
             "fixture {} ({}) Java output should have at least one routed segment per edge: {java_metrics:?}",

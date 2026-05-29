@@ -17,6 +17,7 @@ pub struct LayoutMetrics {
     pub node_overlaps: usize,
     pub containment_violations: usize,
     pub route_segments: usize,
+    pub unrouted_edges: usize,
     pub edges_through_nodes: usize,
     pub crossings: usize,
     pub port_anchor_mismatches: usize,
@@ -27,6 +28,7 @@ pub fn layout_metrics(graph: &ElkGraph) -> LayoutMetrics {
         node_overlaps: node_overlap_count(graph),
         containment_violations: containment_violation_count(graph),
         route_segments: route_segment_count(graph),
+        unrouted_edges: unrouted_edge_count(graph),
         edges_through_nodes: edge_through_node_count(graph),
         crossings: crossing_count(graph),
         port_anchor_mismatches: port_anchor_mismatch_count(graph),
@@ -66,6 +68,20 @@ pub fn route_segment_count(graph: &ElkGraph) -> usize {
         .flat_map(|edge| edge.sections.iter())
         .map(|section| section.points.windows(2).count())
         .sum()
+}
+
+pub fn unrouted_edge_count(graph: &ElkGraph) -> usize {
+    graph
+        .edges
+        .values()
+        .filter(|edge| {
+            edge.sections
+                .iter()
+                .map(|section| section.points.windows(2).count())
+                .sum::<usize>()
+                == 0
+        })
+        .count()
 }
 
 pub fn edge_through_node_count(graph: &ElkGraph) -> usize {

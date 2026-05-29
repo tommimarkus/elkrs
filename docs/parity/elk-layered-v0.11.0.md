@@ -65,7 +65,7 @@ The Java command must read ELK-style JSON from stdin and write ELK-style JSON to
 | LAYERED-JSON-001 | JSON | Narrow graph, port, option, and edge-section round trip | `semantic` | `cargo test -p elkrs-json --locked` | Public model and JSON parity plan |
 | LAYERED-JSON-002 | JSON | All parity matrix options round trip | `unsupported` | Narrow importer intentionally ignores unknown options | Public model and JSON parity plan |
 | LAYERED-ORACLE-001 | Parity harness | Opt-in Java comparison for chain fixture | `java-parity` | `ELKRS_JAVA_ELK_COMMAND=/path/to/java-elk-json cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | This plan |
-| LAYERED-ORACLE-002 | Parity harness | Fixture-driven Java comparison suite | `unsupported` | Single hard-coded fixture only | This plan |
+| LAYERED-ORACLE-002 | Parity harness | Fixture-driven Java comparison suite | `semantic` | `cargo test -p elkrs-layered --test parity_matrix --locked` plus ignored Java fixture runner when `ELKRS_JAVA_ELK_COMMAND` is set | Java parity fixture expansion |
 
 ## Release Rule
 

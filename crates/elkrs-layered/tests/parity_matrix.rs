@@ -31,6 +31,11 @@ fn all_declared_parity_fixtures_produce_structurally_valid_layouts() {
         });
 
         let metrics = layout_metrics(&graph);
+        assert_eq!(
+            metrics.unrouted_edges, 0,
+            "fixture {} ({}) should route every edge: {metrics:?}",
+            fixture.id, fixture.name
+        );
         assert!(
             metrics.route_segments >= graph.edges.len(),
             "fixture {} ({}) should have at least one route segment per edge: {metrics:?}",
