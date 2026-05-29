@@ -134,6 +134,22 @@ pub fn port_heavy() -> ElkGraph {
     graph
 }
 
+pub fn multi_edge_pair() -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node("a", 60.0, 30.0));
+    graph.add_node(node("b", 60.0, 30.0));
+    graph.add_edge(edge("ab-1", "a", "b"));
+    graph.add_edge(edge("ab-2", "a", "b"));
+    graph
+}
+
+pub fn self_loop() -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node("a", 80.0, 40.0));
+    graph.add_edge(edge("aa", "a", "a"));
+    graph
+}
+
 pub fn consumer_compound_ports() -> ElkGraph {
     let mut client = node("a-client", 80.0, 40.0);
     client.add_port(port(
@@ -239,6 +255,18 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             name: "chain",
             status: ParityFixtureStatus::JavaComparable,
             build: chain,
+        },
+        ParityFixture {
+            id: "LAYERED-GRAPH-002",
+            name: "multi-edge-pair",
+            status: ParityFixtureStatus::JavaComparable,
+            build: multi_edge_pair,
+        },
+        ParityFixture {
+            id: "LAYERED-GRAPH-003",
+            name: "self-loop",
+            status: ParityFixtureStatus::JavaComparable,
+            build: self_loop,
         },
         ParityFixture {
             id: "LAYERED-P3-001",
