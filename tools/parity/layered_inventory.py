@@ -51,6 +51,16 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_reports_unsupported_hierarchy_handling`",
         "Parity: compound, hierarchy, and non-plugin cluster behavior",
     ),
+    "org.eclipse.elk.insideSelfLoops.activate": (
+        "unsupported",
+        "No typed inside self-loop option model yet",
+        "#31 Parity: generated ELK Layered metadata residuals",
+    ),
+    "org.eclipse.elk.insideSelfLoops.yo": (
+        "unsupported",
+        "No typed inside self-loop option model yet",
+        "#31 Parity: generated ELK Layered metadata residuals",
+    ),
     "org.eclipse.elk.portConstraints": (
         "unsupported",
         "No public option model yet",
@@ -90,10 +100,25 @@ FEATURE_OVERRIDES = {
         "`cargo test -p elkrs-layered --test consumer_acceptance --locked consumer_compound_ports_fixture_meets_current_acceptance_metrics`",
         "Parity: compound, hierarchy, and non-plugin cluster behavior",
     ),
+    "INSIDE_SELF_LOOPS": (
+        "unsupported",
+        "Inside self-loop option semantics are not represented in typed options yet",
+        "#31 Parity: generated ELK Layered metadata residuals",
+    ),
+    "MULTI_EDGES": (
+        "java-parity",
+        '`ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete",
+    ),
     "PORTS": (
         "semantic",
         "`cargo test -p elkrs-layered --test quality --locked port_heavy_fixture_preserves_port_anchor_fidelity`",
         "Parity: port constraints and ordering",
+    ),
+    "SELF_LOOPS": (
+        "java-parity",
+        '`ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete",
     ),
 }
 

@@ -29,9 +29,9 @@ The Java command must read ELK-style JSON from stdin and write ELK-style JSON to
 | ID | Area | ELK Layered capability | Current status | Current proof | Next plan |
 | --- | --- | --- | --- | --- | --- |
 | LAYERED-GRAPH-001 | Graph model | Directed nodes and edges | `semantic` | `cargo test -p elkrs-layered --test quality --locked simple_chain_has_no_node_overlap_and_routed_edges` | Java parity fixture expansion |
-| LAYERED-GRAPH-002 | Graph model | Multi-edges between the same endpoint pair | `unsupported` | No fixture yet | Edge routing parity plan |
-| LAYERED-GRAPH-003 | Graph model | Self-loops | `unsupported` | Public model can express this, but layout rejects self-loops; no self-loop routing support yet | Edge routing parity plan |
-| LAYERED-GRAPH-004 | Graph model | Inside self-loops | `unsupported` | No public option yet | Edge routing parity plan |
+| LAYERED-GRAPH-002 | Graph model | Multi-edges between the same endpoint pair | `java-parity` | `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_routes_parallel_edges_as_distinct_sections` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete |
+| LAYERED-GRAPH-003 | Graph model | Self-loops | `java-parity` | `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_routes` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete |
+| LAYERED-GRAPH-004 | Graph model | Inside self-loops | `unsupported` | Ordinary self-loops route, but `org.eclipse.elk.insideSelfLoops.*` option semantics are not represented in typed options yet | #31 Parity: generated ELK Layered metadata residuals |
 | LAYERED-GRAPH-005 | Graph model | Edge labels | `parsed` | `ElkEdge.labels` exists but layout does not place labels | Label and sizing parity plan |
 | LAYERED-GRAPH-006 | Graph model | Node labels | `parsed` | `ElkNode.labels` exists but layout does not size or place labels | Label and sizing parity plan |
 | LAYERED-GRAPH-007 | Graph model | Ports as edge endpoints | `semantic` | `cargo test -p elkrs-layered --test quality --locked port_heavy_fixture_preserves_port_anchor_fidelity` | Port constraints parity plan |
@@ -86,10 +86,10 @@ or the metadata artifact, then regenerate the section.
 | LAYERED-META-FEATURE-001 | Graph feature metadata | `CLUSTERS` | `unsupported` | Generated from Java ELK v0.11.0 supported feature metadata; no Rust proof mapped yet | Parity inventory follow-up |
 | LAYERED-META-FEATURE-002 | Graph feature metadata | `COMPOUND` | `semantic` | `cargo test -p elkrs-layered --test quality --locked nested_group_fixture_has_contained_children` | Parity: compound, hierarchy, and non-plugin cluster behavior |
 | LAYERED-META-FEATURE-003 | Graph feature metadata | `EDGE_LABELS` | `unsupported` | Generated from Java ELK v0.11.0 supported feature metadata; no Rust proof mapped yet | Parity inventory follow-up |
-| LAYERED-META-FEATURE-004 | Graph feature metadata | `INSIDE_SELF_LOOPS` | `unsupported` | Generated from Java ELK v0.11.0 supported feature metadata; no Rust proof mapped yet | Parity inventory follow-up |
-| LAYERED-META-FEATURE-005 | Graph feature metadata | `MULTI_EDGES` | `unsupported` | Generated from Java ELK v0.11.0 supported feature metadata; no Rust proof mapped yet | Parity inventory follow-up |
+| LAYERED-META-FEATURE-004 | Graph feature metadata | `INSIDE_SELF_LOOPS` | `unsupported` | Inside self-loop option semantics are not represented in typed options yet | #31 Parity: generated ELK Layered metadata residuals |
+| LAYERED-META-FEATURE-005 | Graph feature metadata | `MULTI_EDGES` | `java-parity` | `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete |
 | LAYERED-META-FEATURE-006 | Graph feature metadata | `PORTS` | `semantic` | `cargo test -p elkrs-layered --test quality --locked port_heavy_fixture_preserves_port_anchor_fidelity` | Parity: port constraints and ordering |
-| LAYERED-META-FEATURE-007 | Graph feature metadata | `SELF_LOOPS` | `unsupported` | Generated from Java ELK v0.11.0 supported feature metadata; no Rust proof mapped yet | Parity inventory follow-up |
+| LAYERED-META-FEATURE-007 | Graph feature metadata | `SELF_LOOPS` | `java-parity` | `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete |
 
 ### Known Algorithm Options
 
@@ -107,8 +107,8 @@ or the metadata artifact, then regenerate the section.
 | LAYERED-META-OPTION-010 | Option metadata | Edge Routing (`org.eclipse.elk.edgeRouting`, ENUM, targets: PARENTS) | `unsupported` | Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet | Parity: edge routing variants, junctions, and merging |
 | LAYERED-META-OPTION-011 | Option metadata | Hierarchy Handling (`org.eclipse.elk.hierarchyHandling`, ENUM, targets: NODES, PARENTS) | `diagnostic` | `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_reports_unsupported_hierarchy_handling` | Parity: compound, hierarchy, and non-plugin cluster behavior |
 | LAYERED-META-OPTION-012 | Option metadata | Hypernode (`org.eclipse.elk.hypernode`, BOOLEAN, targets: NODES) | `unsupported` | Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet | Parity inventory follow-up |
-| LAYERED-META-OPTION-013 | Option metadata | Activate Inside Self Loops (`org.eclipse.elk.insideSelfLoops.activate`, BOOLEAN, targets: NODES) | `unsupported` | Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet | Parity inventory follow-up |
-| LAYERED-META-OPTION-014 | Option metadata | Inside Self Loop (`org.eclipse.elk.insideSelfLoops.yo`, BOOLEAN, targets: EDGES) | `unsupported` | Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet | Parity inventory follow-up |
+| LAYERED-META-OPTION-013 | Option metadata | Activate Inside Self Loops (`org.eclipse.elk.insideSelfLoops.activate`, BOOLEAN, targets: NODES) | `unsupported` | No typed inside self-loop option model yet | #31 Parity: generated ELK Layered metadata residuals |
+| LAYERED-META-OPTION-014 | Option metadata | Inside Self Loop (`org.eclipse.elk.insideSelfLoops.yo`, BOOLEAN, targets: EDGES) | `unsupported` | No typed inside self-loop option model yet | #31 Parity: generated ELK Layered metadata residuals |
 | LAYERED-META-OPTION-015 | Option metadata | interactive Layout (`org.eclipse.elk.interactiveLayout`, BOOLEAN, targets: PARENTS) | `unsupported` | Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet | Parity inventory follow-up |
 | LAYERED-META-OPTION-016 | Option metadata | Junction Points (`org.eclipse.elk.junctionPoints`, OBJECT, targets: EDGES) | `unsupported` | Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet | Parity: edge routing variants, junctions, and merging |
 | LAYERED-META-OPTION-017 | Option metadata | Allow Non-Flow Ports To Switch Sides (`org.eclipse.elk.layered.allowNonFlowPortsToSwitchSides`, BOOLEAN, targets: PORTS) | `unsupported` | Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet | Parity: port constraints and ordering |
