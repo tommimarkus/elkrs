@@ -232,7 +232,7 @@ fn detour_route(
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum LoopSide {
     North,
     East,
@@ -249,12 +249,23 @@ fn self_loop_route(
     let node = nodes
         .get(&edge.source.node)
         .ok_or_else(|| LayoutError::MissingEndpoint(edge.source.node.as_str().to_string()))?;
-    let side = loop_side(edge, node, direction)?;
-    let start = self_loop_anchor(&edge.source, node, side, true)?;
-    let end = self_loop_anchor(&edge.target, node, side, false)?;
+    let source_side = endpoint_loop_side(&edge.source, node, direction)?;
+    let target_side = endpoint_loop_side(&edge.target, node, direction)?;
+    let start = self_loop_anchor(&edge.source, node, source_side, true)?;
+    let end = self_loop_anchor(&edge.target, node, target_side, false)?;
     let distance = sibling.loop_distance();
 
-    Ok(match side {
+    if source_side != target_side {
+        return Ok(mixed_side_self_loop_route(
+            start,
+            source_side,
+            end,
+            target_side,
+            expanded_loop_rect(node, distance),
+        ));
+    }
+
+    Ok(match source_side {
         LoopSide::North => {
             let y = node.position.y - distance;
             vec![start, Point::new(start.x, y), Point::new(end.x, y), end]
@@ -274,14 +285,14 @@ fn self_loop_route(
     })
 }
 
-fn loop_side(edge: &LEdge, node: &LNode, direction: Direction) -> Result<LoopSide, LayoutError> {
-    if let Some(port_id) = &edge.source.port {
+fn endpoint_loop_side(
+    endpoint: &LEndpoint,
+    node: &LNode,
+    direction: Direction,
+) -> Result<LoopSide, LayoutError> {
+    if let Some(port_id) = &endpoint.port {
         let port = node.ports.get(port_id).ok_or_else(|| {
-            LayoutError::MissingEndpoint(format!(
-                "{}:{}",
-                edge.source.node.as_str(),
-                port_id.as_str()
-            ))
+            LayoutError::MissingEndpoint(format!("{}:{}", endpoint.node.as_str(), port_id.as_str()))
         })?;
         if let Some(side) = port.side {
             return Ok(match side {
@@ -293,11 +304,144 @@ fn loop_side(edge: &LEdge, node: &LNode, direction: Direction) -> Result<LoopSid
         }
     }
 
-    Ok(match direction {
+    Ok(direction_loop_side(direction))
+}
+
+fn direction_loop_side(direction: Direction) -> LoopSide {
+    match direction {
         Direction::Right => LoopSide::East,
         Direction::Left => LoopSide::West,
         Direction::Down => LoopSide::South,
         Direction::Up => LoopSide::North,
+    }
+}
+
+fn mixed_side_self_loop_route(
+    start: Point,
+    source_side: LoopSide,
+    end: Point,
+    target_side: LoopSide,
+    rect: Rect,
+) -> Vec<Point> {
+    let source_projection = project_to_loop_rect(start, source_side, rect);
+    let target_projection = project_to_loop_rect(end, target_side, rect);
+    let mut points = vec![start, source_projection];
+    points.extend(shortest_perimeter_path(
+        source_projection,
+        source_side,
+        target_projection,
+        target_side,
+        rect,
+    ));
+    points.push(end);
+    dedupe_consecutive_points(points)
+}
+
+fn expanded_loop_rect(node: &LNode, distance: f64) -> Rect {
+    Rect::new(
+        Point::new(node.position.x - distance, node.position.y - distance),
+        Size::new(
+            node.size.width + distance * 2.0,
+            node.size.height + distance * 2.0,
+        ),
+    )
+}
+
+fn project_to_loop_rect(point: Point, side: LoopSide, rect: Rect) -> Point {
+    match side {
+        LoopSide::North => Point::new(point.x, rect.top()),
+        LoopSide::East => Point::new(rect.right(), point.y),
+        LoopSide::South => Point::new(point.x, rect.bottom()),
+        LoopSide::West => Point::new(rect.left(), point.y),
+    }
+}
+
+fn shortest_perimeter_path(
+    start: Point,
+    start_side: LoopSide,
+    end: Point,
+    end_side: LoopSide,
+    rect: Rect,
+) -> Vec<Point> {
+    let clockwise = perimeter_distance(start, start_side, end, end_side, rect);
+    let counterclockwise = perimeter_distance(end, end_side, start, start_side, rect);
+
+    if clockwise <= counterclockwise {
+        perimeter_path(start_side, end_side, rect, true, end)
+    } else {
+        perimeter_path(start_side, end_side, rect, false, end)
+    }
+}
+
+fn perimeter_distance(
+    start: Point,
+    start_side: LoopSide,
+    end: Point,
+    end_side: LoopSide,
+    rect: Rect,
+) -> f64 {
+    let start_position = perimeter_position(start, start_side, rect);
+    let end_position = perimeter_position(end, end_side, rect);
+    let perimeter = rect.size.width * 2.0 + rect.size.height * 2.0;
+    if end_position >= start_position {
+        end_position - start_position
+    } else {
+        perimeter - start_position + end_position
+    }
+}
+
+fn perimeter_position(point: Point, side: LoopSide, rect: Rect) -> f64 {
+    match side {
+        LoopSide::North => point.x - rect.left(),
+        LoopSide::East => rect.size.width + point.y - rect.top(),
+        LoopSide::South => rect.size.width + rect.size.height + rect.right() - point.x,
+        LoopSide::West => rect.size.width * 2.0 + rect.size.height + rect.bottom() - point.y,
+    }
+}
+
+fn perimeter_path(
+    start_side: LoopSide,
+    end_side: LoopSide,
+    rect: Rect,
+    clockwise: bool,
+    end: Point,
+) -> Vec<Point> {
+    let mut points = Vec::new();
+    let mut side = start_side;
+    while side != end_side {
+        points.push(perimeter_corner(side, clockwise, rect));
+        side = next_perimeter_side(side, clockwise);
+    }
+    points.push(end);
+    points
+}
+
+fn perimeter_corner(side: LoopSide, clockwise: bool, rect: Rect) -> Point {
+    match (side, clockwise) {
+        (LoopSide::North, true) | (LoopSide::East, false) => Point::new(rect.right(), rect.top()),
+        (LoopSide::East, true) | (LoopSide::South, false) => {
+            Point::new(rect.right(), rect.bottom())
+        }
+        (LoopSide::South, true) | (LoopSide::West, false) => Point::new(rect.left(), rect.bottom()),
+        (LoopSide::West, true) | (LoopSide::North, false) => Point::new(rect.left(), rect.top()),
+    }
+}
+
+fn next_perimeter_side(side: LoopSide, clockwise: bool) -> LoopSide {
+    match (side, clockwise) {
+        (LoopSide::North, true) | (LoopSide::South, false) => LoopSide::East,
+        (LoopSide::East, true) | (LoopSide::West, false) => LoopSide::South,
+        (LoopSide::South, true) | (LoopSide::North, false) => LoopSide::West,
+        (LoopSide::West, true) | (LoopSide::East, false) => LoopSide::North,
+    }
+}
+
+fn dedupe_consecutive_points(points: Vec<Point>) -> Vec<Point> {
+    points.into_iter().fold(Vec::new(), |mut deduped, point| {
+        if deduped.last() != Some(&point) {
+            deduped.push(point);
+        }
+        deduped
     })
 }
 

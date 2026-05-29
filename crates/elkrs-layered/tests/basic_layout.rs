@@ -497,6 +497,60 @@ fn layered_layout_routes_port_self_loop_from_port_anchors() {
 }
 
 #[test]
+fn layered_layout_routes_mixed_side_port_self_loop_around_node() {
+    let mut node = node("a", 100.0, 60.0);
+    node.add_port(port_with_geometry(
+        "out",
+        PortSide::East,
+        Point::new(90.0, 10.0),
+        Size::new(10.0, 10.0),
+    ));
+    node.add_port(port_with_geometry(
+        "in",
+        PortSide::West,
+        Point::new(0.0, 40.0),
+        Size::new(10.0, 10.0),
+    ));
+
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+    graph.add_edge(ElkEdge::new(
+        "aa",
+        ElementRef::Port {
+            node: ElementId::from("a"),
+            port: ElementId::from("out"),
+        },
+        ElementRef::Port {
+            node: ElementId::from("a"),
+            port: ElementId::from("in"),
+        },
+    ));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let node = &graph.nodes[&ElementId::from("a")];
+    let section = &graph.edges[&ElementId::from("aa")].sections[0];
+
+    assert_eq!(
+        section.points[0],
+        Point::new(node.position.x + 100.0, node.position.y + 15.0)
+    );
+    assert_eq!(
+        *section.points.last().unwrap(),
+        Point::new(node.position.x, node.position.y + 45.0)
+    );
+    assert!(section
+        .points
+        .iter()
+        .any(|point| point.y > node.position.y + node.size.height || point.y < node.position.y));
+    assert!(section
+        .points
+        .iter()
+        .any(|point| point.x > node.position.x + node.size.width || point.x < node.position.x));
+    assert_no_axis_aligned_segment_through_node_interior(&section.points, node);
+}
+
+#[test]
 fn layered_layout_routes_parallel_edges_as_distinct_sections() {
     let mut graph = ElkGraph::new("root");
     graph.add_node(node("a", 60.0, 30.0));
@@ -602,6 +656,30 @@ fn assert_point_on_node(point: Point, node: &ElkNode) {
     assert!(point.x <= node.position.x + node.size.width);
     assert!(point.y >= node.position.y);
     assert!(point.y <= node.position.y + node.size.height);
+}
+
+fn assert_no_axis_aligned_segment_through_node_interior(points: &[Point], node: &ElkNode) {
+    for segment in points.windows(2) {
+        let start = segment[0];
+        let end = segment[1];
+        let crosses_interior = if (start.y - end.y).abs() < f64::EPSILON {
+            start.y > node.position.y
+                && start.y < node.position.y + node.size.height
+                && start.x.min(end.x) < node.position.x + node.size.width
+                && start.x.max(end.x) > node.position.x
+        } else if (start.x - end.x).abs() < f64::EPSILON {
+            start.x > node.position.x
+                && start.x < node.position.x + node.size.width
+                && start.y.min(end.y) < node.position.y + node.size.height
+                && start.y.max(end.y) > node.position.y
+        } else {
+            false
+        };
+        assert!(
+            !crosses_interior,
+            "segment {start:?} -> {end:?} crosses node interior"
+        );
+    }
 }
 
 fn chain_with_node_order(ids: [&str; 3]) -> ElkGraph {
