@@ -187,6 +187,8 @@ mod tests {
 
     use elkrs_core::geometry::Size;
 
+    use crate::internal::LEdgeKind;
+
     use super::*;
 
     #[test]
@@ -207,6 +209,7 @@ mod tests {
                     node: ElementId::from("target"),
                     port: None,
                 },
+                kind: LEdgeKind::Normal,
                 reversed: false,
                 points: Vec::new(),
             }],

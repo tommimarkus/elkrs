@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use elkrs_core::graph::{ElementId, ElementRef, ElkGraph, ElkNode};
 use elkrs_core::layout::LayoutError;
 
-use crate::internal::{LEdge, LEndpoint, LGraph, LNode, LPort};
+use crate::internal::{LEdge, LEdgeKind, LEndpoint, LGraph, LNode, LPort};
 
 pub(crate) fn import_graph(graph: &ElkGraph) -> Result<LGraph, LayoutError> {
     let mut nodes = Vec::new();
@@ -16,12 +16,6 @@ pub(crate) fn import_graph(graph: &ElkGraph) -> Result<LGraph, LayoutError> {
     for edge in graph.edges.values() {
         let source = endpoint_node(graph, &edge.source)?;
         let target = endpoint_node(graph, &edge.target)?;
-        if source.node == target.node {
-            return Err(LayoutError::InvalidHierarchy(format!(
-                "self-loop edge: {}",
-                edge.id.as_str()
-            )));
-        }
         if !contains_node(&nodes, &source.node) {
             return Err(LayoutError::MissingEndpoint(
                 source.node.as_str().to_string(),
@@ -32,10 +26,16 @@ pub(crate) fn import_graph(graph: &ElkGraph) -> Result<LGraph, LayoutError> {
                 target.node.as_str().to_string(),
             ));
         }
+        let kind = if source.node == target.node {
+            LEdgeKind::SelfLoop
+        } else {
+            LEdgeKind::Normal
+        };
         edges.push(LEdge {
             id: edge.id.clone(),
             source,
             target,
+            kind,
             reversed: false,
             points: Vec::new(),
         });
@@ -198,7 +198,7 @@ mod tests {
     }
 
     #[test]
-    fn import_rejects_self_loop_edges() {
+    fn import_accepts_node_self_loop_edges() {
         let mut graph = ElkGraph::new("root");
         graph.add_node(ElkNode::new("a"));
         graph.add_edge(ElkEdge::new(
@@ -207,15 +207,13 @@ mod tests {
             ElementRef::Node(ElementId::from("a")),
         ));
 
-        assert!(matches!(
-            import_graph(&graph),
-            Err(LayoutError::InvalidHierarchy(message))
-                if message.contains("self-loop edge: self")
-        ));
+        let layered = import_graph(&graph).unwrap();
+
+        assert_eq!(layered.edges[0].kind, crate::internal::LEdgeKind::SelfLoop);
     }
 
     #[test]
-    fn import_rejects_self_loop_edges_between_ports_on_same_node() {
+    fn import_accepts_port_self_loop_edges() {
         let mut node = ElkNode::new("a");
         node.add_port(ElkPort::new("out"));
         node.add_port(ElkPort::new("in"));
@@ -233,11 +231,19 @@ mod tests {
             },
         ));
 
-        assert!(matches!(
-            import_graph(&graph),
-            Err(LayoutError::InvalidHierarchy(message))
-                if message.contains("self-loop edge: self")
-        ));
+        let layered = import_graph(&graph).unwrap();
+
+        assert_eq!(layered.edges[0].kind, crate::internal::LEdgeKind::SelfLoop);
+        assert_eq!(layered.edges[0].source.node.as_str(), "a");
+        assert_eq!(
+            layered.edges[0].source.port.as_ref().map(ElementId::as_str),
+            Some("out")
+        );
+        assert_eq!(layered.edges[0].target.node.as_str(), "a");
+        assert_eq!(
+            layered.edges[0].target.port.as_ref().map(ElementId::as_str),
+            Some("in")
+        );
     }
 
     #[test]

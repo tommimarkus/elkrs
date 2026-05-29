@@ -28,10 +28,16 @@ pub(crate) struct LPort {
     pub(crate) size: Size,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) struct LEndpoint {
     pub(crate) node: ElementId,
     pub(crate) port: Option<ElementId>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum LEdgeKind {
+    Normal,
+    SelfLoop,
 }
 
 #[derive(Debug, Clone)]
@@ -39,6 +45,7 @@ pub(crate) struct LEdge {
     pub(crate) id: ElementId,
     pub(crate) source: LEndpoint,
     pub(crate) target: LEndpoint,
+    pub(crate) kind: LEdgeKind,
     pub(crate) reversed: bool,
     pub(crate) points: Vec<Point>,
 }
