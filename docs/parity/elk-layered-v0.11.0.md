@@ -27,9 +27,9 @@ The Java command must read ELK-style JSON from stdin and write ELK-style JSON to
 
 | ID | Area | ELK Layered capability | Current status | Current proof | Next plan |
 | --- | --- | --- | --- | --- | --- |
-| LAYERED-GRAPH-001 | Graph model | Directed nodes and edges | `semantic` | `cargo test -p elkrs-layered --test quality --locked simple_chain_has_no_node_overlap_and_routed_edges` | Done |
+| LAYERED-GRAPH-001 | Graph model | Directed nodes and edges | `semantic` | `cargo test -p elkrs-layered --test quality --locked simple_chain_has_no_node_overlap_and_routed_edges` | Java parity fixture expansion |
 | LAYERED-GRAPH-002 | Graph model | Multi-edges between the same endpoint pair | `unsupported` | No fixture yet | Edge routing parity plan |
-| LAYERED-GRAPH-003 | Graph model | Self-loops | `unsupported` | Import currently rejects self-loops | Edge routing parity plan |
+| LAYERED-GRAPH-003 | Graph model | Self-loops | `unsupported` | Public model can express this, but layout rejects self-loops; no self-loop routing support yet | Edge routing parity plan |
 | LAYERED-GRAPH-004 | Graph model | Inside self-loops | `unsupported` | No public option yet | Edge routing parity plan |
 | LAYERED-GRAPH-005 | Graph model | Edge labels | `parsed` | `ElkEdge.labels` exists but layout does not place labels | Label and sizing parity plan |
 | LAYERED-GRAPH-006 | Graph model | Node labels | `parsed` | `ElkNode.labels` exists but layout does not size or place labels | Label and sizing parity plan |
@@ -37,10 +37,10 @@ The Java command must read ELK-style JSON from stdin and write ELK-style JSON to
 | LAYERED-GRAPH-008 | Graph model | Compound nodes | `semantic` | `cargo test -p elkrs-layered --test quality --locked nested_group_fixture_has_contained_children` | Compound parity plan |
 | LAYERED-GRAPH-009 | Graph model | Hierarchy-crossing edges | `semantic` | `cargo test -p elkrs-layered --test consumer_acceptance --locked` | Compound parity plan |
 | LAYERED-GRAPH-010 | Graph model | Clusters | `unsupported` | No public cluster model yet | Compound parity plan |
-| LAYERED-OPT-001 | Options | `org.eclipse.elk.algorithm` layered selection | `semantic` | `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_non_layered_algorithm_option` | Done |
-| LAYERED-OPT-002 | Options | Direction right, left, down, up | `semantic` | `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_respects_left_direction` | Done |
-| LAYERED-OPT-003 | Options | Node-node spacing | `semantic` | `cargo test -p elkrs-layered --test quality --locked custom_node_spacing_separates_same_layer_nodes` | Done |
-| LAYERED-OPT-004 | Options | Layer node-node spacing | `semantic` | `cargo test -p elkrs-layered --test quality --locked custom_layer_spacing_separates_connected_layers` | Done |
+| LAYERED-OPT-001 | Options | `org.eclipse.elk.algorithm` layered selection | `semantic` | `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_non_layered_algorithm_option` | Java parity fixture expansion |
+| LAYERED-OPT-002 | Options | Direction right, left, down, up | `semantic` | `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_respects_left_direction` | Java parity fixture expansion |
+| LAYERED-OPT-003 | Options | Node-node spacing | `semantic` | `cargo test -p elkrs-layered --test quality --locked custom_node_spacing_separates_same_layer_nodes` | Java parity fixture expansion |
+| LAYERED-OPT-004 | Options | Layer node-node spacing | `semantic` | `cargo test -p elkrs-layered --test quality --locked custom_layer_spacing_separates_connected_layers` | Java parity fixture expansion |
 | LAYERED-OPT-005 | Options | Edge-node spacing | `diagnostic` | `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_reports_unimplemented_edge_spacing_options` | Edge routing parity plan |
 | LAYERED-OPT-006 | Options | Edge-edge spacing | `diagnostic` | `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_reports_unimplemented_edge_spacing_options` | Edge routing parity plan |
 | LAYERED-OPT-007 | Options | Hierarchy handling include vs separate | `diagnostic` | `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_reports_unsupported_hierarchy_handling` | Compound parity plan |
