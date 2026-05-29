@@ -25,6 +25,76 @@ fn layered_layout_respects_down_direction() {
 }
 
 #[test]
+fn layered_layout_respects_left_direction() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_direction(Direction::Left);
+    graph.add_node(node("source", 60.0, 30.0));
+    graph.add_node(node("target", 60.0, 30.0));
+    graph.add_edge(ElkEdge::new(
+        "edge",
+        ElementRef::Node(ElementId::from("source")),
+        ElementRef::Node(ElementId::from("target")),
+    ));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let source = &graph.nodes[&ElementId::from("source")];
+    let target = &graph.nodes[&ElementId::from("target")];
+    let section = &graph.edges[&ElementId::from("edge")].sections[0];
+
+    assert!(target.position.x < source.position.x);
+    assert_eq!(
+        section.points[0],
+        Point::new(
+            source.position.x,
+            source.position.y + source.size.height / 2.0
+        )
+    );
+    assert_eq!(
+        *section.points.last().unwrap(),
+        Point::new(
+            target.position.x + target.size.width,
+            target.position.y + target.size.height / 2.0
+        )
+    );
+}
+
+#[test]
+fn layered_layout_respects_up_direction() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_direction(Direction::Up);
+    graph.add_node(node("source", 60.0, 30.0));
+    graph.add_node(node("target", 60.0, 30.0));
+    graph.add_edge(ElkEdge::new(
+        "edge",
+        ElementRef::Node(ElementId::from("source")),
+        ElementRef::Node(ElementId::from("target")),
+    ));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let source = &graph.nodes[&ElementId::from("source")];
+    let target = &graph.nodes[&ElementId::from("target")];
+    let section = &graph.edges[&ElementId::from("edge")].sections[0];
+
+    assert!(target.position.y < source.position.y);
+    assert_eq!(
+        section.points[0],
+        Point::new(
+            source.position.x + source.size.width / 2.0,
+            source.position.y
+        )
+    );
+    assert_eq!(
+        *section.points.last().unwrap(),
+        Point::new(
+            target.position.x + target.size.width / 2.0,
+            target.position.y + target.size.height
+        )
+    );
+}
+
+#[test]
 fn layered_layout_is_stable_across_node_insertion_order() {
     let mut forward = chain_with_node_order(["a", "b", "c"]);
     let mut reverse = chain_with_node_order(["c", "b", "a"]);
@@ -233,6 +303,55 @@ fn layered_layout_routes_from_port_anchor_geometry() {
     assert_eq!(
         *section.points.last().unwrap(),
         Point::new(target.position.x, target.position.y + 30.0)
+    );
+}
+
+#[test]
+fn layered_layout_routes_from_north_and_south_port_anchor_geometry() {
+    let mut source = node("source", 100.0, 40.0);
+    source.add_port(port_with_geometry(
+        "out",
+        PortSide::South,
+        Point::new(45.0, 30.0),
+        Size::new(10.0, 10.0),
+    ));
+    let mut target = node("target", 100.0, 40.0);
+    target.add_port(port_with_geometry(
+        "in",
+        PortSide::North,
+        Point::new(45.0, 0.0),
+        Size::new(10.0, 10.0),
+    ));
+
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(source);
+    graph.add_node(target);
+    graph.add_edge(ElkEdge::new(
+        "edge",
+        ElementRef::Port {
+            node: ElementId::from("source"),
+            port: ElementId::from("out"),
+        },
+        ElementRef::Port {
+            node: ElementId::from("target"),
+            port: ElementId::from("in"),
+        },
+    ));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let source = &graph.nodes[&ElementId::from("source")];
+    let target = &graph.nodes[&ElementId::from("target")];
+    let section = &graph.edges[&ElementId::from("edge")].sections[0];
+
+    assert!(section.points.len() >= 2);
+    assert_eq!(
+        section.points[0],
+        Point::new(source.position.x + 50.0, source.position.y + 40.0)
+    );
+    assert_eq!(
+        *section.points.last().unwrap(),
+        Point::new(target.position.x + 50.0, target.position.y)
     );
 }
 
