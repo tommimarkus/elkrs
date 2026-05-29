@@ -47,7 +47,7 @@ cargo doc --workspace --locked --no-deps
 
 Parity tracking:
 
-- ELK Layered parity is tracked in `docs/parity/elk-layered-v0.11.0.md`.
+- ELK Layered parity is tracked in [docs/parity/elk-layered-v0.11.0.md](docs/parity/elk-layered-v0.11.0.md).
 - Current releases are narrow clean-room subsets until that matrix reaches `java-parity` for the included feature surface.
 
 The Java ELK parity harness is opt-in and ignored by default. Run it only when a
