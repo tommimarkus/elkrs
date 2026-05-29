@@ -2,10 +2,10 @@
 
 ## Project Structure & Module Organization
 
-`elkrs` is a Rust workspace targeting clean-room ELK Layered behavior. Workspace crates live under `crates/`:
+`elkrs` is a Rust workspace targeting clean-room layered graph-layout behavior. Workspace crates live under `crates/`:
 
 - `crates/elkrs-core`: graph, geometry, options, diagnostics, and layout types.
-- `crates/elkrs-json`: narrow ELK-style JSON import/export support.
+- `crates/elkrs-json`: narrow layout JSON import/export support.
 - `crates/elkrs-layered`: layered layout implementation and layout-quality tests.
 
 Integration tests live in each crate's `tests/` directory. Shared layered helpers are in `crates/elkrs-layered/tests/support/`. Parity tracking is in `docs/parity/elk-layered-v0.11.0.md`. The optional Java oracle runner lives in `tools/java-elk-json-runner/`.
@@ -48,4 +48,4 @@ PRs should include a concise summary, verification commands run, and any skipped
 
 ## Clean-Room & Security Notes
 
-Follow `CLEANROOM.md`: do not copy Eclipse ELK source, comments, or line-by-line Java processor structure. Use public docs, option metadata, hand-authored fixtures, and black-box Java output only. Report vulnerabilities through GitHub Security Advisories.
+Follow `CLEANROOM.md`: do not copy upstream implementation source, comments, or line-by-line Java processor structure. Use public docs, option metadata, hand-authored fixtures, and black-box Java output only. Report vulnerabilities through GitHub Security Advisories.
