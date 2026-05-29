@@ -2,7 +2,7 @@ mod support;
 
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
-use support::fixtures::parity_fixtures;
+use support::fixtures::{parity_fixtures, ParityFixtureStatus};
 use support::quality::layout_metrics;
 
 #[test]
@@ -12,6 +12,12 @@ fn all_declared_parity_fixtures_produce_structurally_valid_layouts() {
     assert!(
         !fixtures.is_empty(),
         "expected at least one declared parity fixture"
+    );
+    assert!(
+        fixtures
+            .iter()
+            .any(|fixture| fixture.status == ParityFixtureStatus::RustOnly),
+        "expected at least one Rust-only parity fixture"
     );
 
     for fixture in fixtures {
@@ -25,6 +31,17 @@ fn all_declared_parity_fixtures_produce_structurally_valid_layouts() {
         });
 
         let metrics = layout_metrics(&graph);
+        assert!(
+            metrics.route_segments >= graph.edges.len(),
+            "fixture {} ({}) should have at least one route segment per edge: {metrics:?}",
+            fixture.id,
+            fixture.name
+        );
+        assert_eq!(
+            metrics.containment_violations, 0,
+            "fixture {} ({}) should not violate compound containment: {metrics:?}",
+            fixture.id, fixture.name
+        );
         assert_eq!(
             metrics.node_overlaps, 0,
             "fixture {} ({}) should not overlap nodes: {metrics:?}",
