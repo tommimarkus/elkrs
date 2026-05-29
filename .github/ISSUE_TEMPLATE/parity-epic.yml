@@ -1,0 +1,36 @@
+name: Parity epic
+description: Track a major elkrs 1.0.0 parity workstream.
+title: "EPIC: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for elkrs 1.0.0 parity workstreams. The parity target is ELK v0.11.0 excluding external plugins. Distribution remains GitHub Releases and pinned Git dependencies.
+  - type: input
+    id: parity_area
+    attributes:
+      label: Parity area
+      description: Major parity area covered by this epic.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Matrix rows, feature families, or evidence areas owned by this epic.
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done condition
+      description: Completion criteria for the epic.
+      value: |
+        - Every covered in-scope row is updated to `java-parity`.
+        - Every excluded row has an explicit documented rationale.
+        - Rust semantic tests and Java oracle evidence are linked.
+        - Docs and release claims match the matrix.
+        - Clean-room evidence is based on public docs, option metadata, hand-authored fixtures, or black-box Java output.
+    validations:
+      required: true

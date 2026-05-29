@@ -1,0 +1,51 @@
+name: Parity row or row group
+description: Track one parity matrix row or a tightly coupled row group.
+title: "Parity: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for row-level elkrs 1.0.0 parity work. The parity target is ELK v0.11.0 excluding external plugins. crates.io publication is excluded.
+  - type: input
+    id: matrix_rows
+    attributes:
+      label: Matrix row IDs
+      description: Exact row IDs covered by this issue.
+    validations:
+      required: true
+  - type: dropdown
+    id: current_status
+    attributes:
+      label: Current status
+      options:
+        - unsupported
+        - parsed
+        - diagnostic
+        - semantic
+        - java-parity
+        - excluded
+    validations:
+      required: true
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation requirements
+      description: Public API, Rust tests, JSON behavior, Java oracle evidence, docs, and clean-room evidence required to close this issue.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification commands
+      value: |
+        ```bash
+        cargo fmt --all --check
+        cargo clippy --workspace --all-targets --locked -- -D warnings
+        cargo test --workspace --locked
+        cargo doc --workspace --locked --no-deps
+        tools/java-elk-json-runner/bin/build
+        ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored
+        ```
+    validations:
+      required: true
