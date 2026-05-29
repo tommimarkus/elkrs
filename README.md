@@ -44,3 +44,10 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo doc --workspace --locked --no-deps
 ```
+
+The Java ELK parity harness is opt-in and ignored by default. Run it only when a
+Java ELK JSON command is available:
+
+```bash
+ELKRS_JAVA_ELK_COMMAND=/path/to/java-elk-json cargo test -p elkrs-layered --test java_parity --locked -- --ignored
+```
