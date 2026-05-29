@@ -82,3 +82,11 @@ The first backlog slice should create these child issues:
 - `Parity: complete ELK JSON option and graph round trip`
 - `Parity: Java oracle fixture suite expansion`
 - `Release: 1.0.0 GitHub release readiness`
+- `#31 Parity: generated ELK Layered metadata residuals`
+
+## Executed Inventory Issues
+
+- `#17 Parity inventory: expand ELK v0.11.0 non-plugin matrix`
+  - Adds pinned Java ELK `0.11.0` metadata export.
+  - Adds generated Layered graph-feature and algorithm-option inventory rows.
+  - Leaves row-group implementation to linked parity child issues, including residual issue `#31`.
