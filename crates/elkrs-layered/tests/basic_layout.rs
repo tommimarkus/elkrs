@@ -206,8 +206,17 @@ fn layered_layout_accepts_parent_child_edge_endpoints() {
     let section = &graph.edges[&ElementId::from("edge")].sections[0];
 
     assert!(section.points.len() >= 2);
-    assert_point_on_node(section.points[0], group);
-    assert_point_on_node(*section.points.last().unwrap(), child);
+    assert_eq!(
+        section.points[0],
+        Point::new(group.position.x, group.position.y + group.size.height / 2.0)
+    );
+    assert_eq!(
+        *section.points.last().unwrap(),
+        Point::new(
+            child.position.x + child.size.width,
+            child.position.y + child.size.height / 2.0
+        )
+    );
 }
 
 #[test]
