@@ -3,7 +3,9 @@ use std::collections::BTreeMap;
 use elkrs_core::geometry::{Point, Rect, Size};
 use elkrs_core::graph::ElementId;
 use elkrs_core::layout::LayoutError;
-use elkrs_core::options::{Direction, PortSide, DEFAULT_EDGE_NODE_SPACING};
+use elkrs_core::options::{
+    Direction, PortSide, DEFAULT_EDGE_EDGE_SPACING, DEFAULT_EDGE_NODE_SPACING,
+};
 
 use crate::internal::{LEdge, LEndpoint, LGraph, LNode, LPort};
 use crate::pipeline::{LayeredContext, LayeredProcessor};
@@ -29,10 +31,87 @@ impl LayeredProcessor for EdgeRouting {
             .iter()
             .map(|node| (node.id.clone(), node.clone()))
             .collect::<BTreeMap<_, _>>();
+        let siblings = sibling_routes(&graph.edges);
         for edge in &mut graph.edges {
-            route_edge(edge, &nodes, self.direction)?;
+            route_edge(
+                edge,
+                &nodes,
+                self.direction,
+                siblings
+                    .get(&edge.id)
+                    .copied()
+                    .unwrap_or_else(SiblingRoute::single),
+            )?;
         }
         Ok(())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+enum EdgeRouteKey {
+    Normal {
+        source: LEndpoint,
+        target: LEndpoint,
+    },
+    SelfLoop {
+        node: ElementId,
+    },
+}
+
+#[derive(Debug, Clone, Copy)]
+struct SiblingRoute {
+    index: usize,
+    count: usize,
+}
+
+impl SiblingRoute {
+    fn single() -> Self {
+        Self { index: 0, count: 1 }
+    }
+
+    fn centered_offset(self) -> f64 {
+        if self.count <= 1 {
+            0.0
+        } else {
+            (self.index as f64 - (self.count - 1) as f64 / 2.0) * DEFAULT_EDGE_EDGE_SPACING
+        }
+    }
+
+    fn loop_distance(self) -> f64 {
+        DEFAULT_EDGE_NODE_SPACING + self.index as f64 * DEFAULT_EDGE_EDGE_SPACING
+    }
+}
+
+fn sibling_routes(edges: &[LEdge]) -> BTreeMap<ElementId, SiblingRoute> {
+    let mut groups = BTreeMap::<EdgeRouteKey, Vec<ElementId>>::new();
+    for edge in edges {
+        groups
+            .entry(route_key(edge))
+            .or_default()
+            .push(edge.id.clone());
+    }
+
+    let mut routes = BTreeMap::new();
+    for mut ids in groups.into_values() {
+        ids.sort();
+        let count = ids.len();
+        for (index, id) in ids.into_iter().enumerate() {
+            routes.insert(id, SiblingRoute { index, count });
+        }
+    }
+    routes
+}
+
+fn route_key(edge: &LEdge) -> EdgeRouteKey {
+    if edge.kind.is_self_loop() {
+        EdgeRouteKey::SelfLoop {
+            node: edge.source.node.clone(),
+        }
+    } else {
+        EdgeRouteKey::Normal {
+            source: edge.source.clone(),
+            target: edge.target.clone(),
+        }
     }
 }
 
@@ -40,25 +119,54 @@ fn route_edge(
     edge: &mut LEdge,
     nodes: &BTreeMap<ElementId, LNode>,
     direction: Direction,
+    sibling: SiblingRoute,
 ) -> Result<(), LayoutError> {
+    if edge.kind.is_self_loop() {
+        edge.points = self_loop_route(edge, nodes, direction, sibling)?;
+        return Ok(());
+    }
+
     let start = endpoint_anchor(&edge.source, nodes, direction, true)?;
     let end = endpoint_anchor(&edge.target, nodes, direction, false)?;
+    let offset = sibling.centered_offset();
 
-    let mut points = orthogonal_route(start, end, direction);
+    let mut points = orthogonal_route(start, end, direction, offset);
     if let Some(obstacle) = first_intersecting_obstacle(&points, edge, nodes) {
-        points = detour_route(start, end, obstacle, direction);
+        points = detour_route(start, end, obstacle, direction, offset);
     }
     edge.points = points;
     Ok(())
 }
 
-fn orthogonal_route(start: Point, end: Point, direction: Direction) -> Vec<Point> {
+fn orthogonal_route(start: Point, end: Point, direction: Direction, offset: f64) -> Vec<Point> {
     if direction.is_horizontal() {
         let x = (start.x + end.x) / 2.0;
-        vec![start, Point::new(x, start.y), Point::new(x, end.y), end]
+        if offset.abs() < f64::EPSILON {
+            vec![start, Point::new(x, start.y), Point::new(x, end.y), end]
+        } else {
+            vec![
+                start,
+                Point::new(x, start.y),
+                Point::new(x, start.y + offset),
+                Point::new(x, end.y + offset),
+                Point::new(x, end.y),
+                end,
+            ]
+        }
     } else {
         let y = (start.y + end.y) / 2.0;
-        vec![start, Point::new(start.x, y), Point::new(end.x, y), end]
+        if offset.abs() < f64::EPSILON {
+            vec![start, Point::new(start.x, y), Point::new(end.x, y), end]
+        } else {
+            vec![
+                start,
+                Point::new(start.x, y),
+                Point::new(start.x + offset, y),
+                Point::new(end.x + offset, y),
+                Point::new(end.x, y),
+                end,
+            ]
+        }
     }
 }
 
@@ -78,21 +186,157 @@ fn first_intersecting_obstacle(
         })
 }
 
-fn detour_route(start: Point, end: Point, obstacle: Rect, direction: Direction) -> Vec<Point> {
+fn detour_route(
+    start: Point,
+    end: Point,
+    obstacle: Rect,
+    direction: Direction,
+    offset: f64,
+) -> Vec<Point> {
     if direction.is_horizontal() {
         let x = if end.x >= start.x {
             obstacle.right() + DEFAULT_EDGE_NODE_SPACING
         } else {
             obstacle.left() - DEFAULT_EDGE_NODE_SPACING
         };
-        vec![start, Point::new(x, start.y), Point::new(x, end.y), end]
+        if offset.abs() < f64::EPSILON {
+            vec![start, Point::new(x, start.y), Point::new(x, end.y), end]
+        } else {
+            vec![
+                start,
+                Point::new(x, start.y),
+                Point::new(x, start.y + offset),
+                Point::new(x, end.y + offset),
+                Point::new(x, end.y),
+                end,
+            ]
+        }
     } else {
         let y = if end.y >= start.y {
             obstacle.bottom() + DEFAULT_EDGE_NODE_SPACING
         } else {
             obstacle.top() - DEFAULT_EDGE_NODE_SPACING
         };
-        vec![start, Point::new(start.x, y), Point::new(end.x, y), end]
+        if offset.abs() < f64::EPSILON {
+            vec![start, Point::new(start.x, y), Point::new(end.x, y), end]
+        } else {
+            vec![
+                start,
+                Point::new(start.x, y),
+                Point::new(start.x + offset, y),
+                Point::new(end.x + offset, y),
+                Point::new(end.x, y),
+                end,
+            ]
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum LoopSide {
+    North,
+    East,
+    South,
+    West,
+}
+
+fn self_loop_route(
+    edge: &LEdge,
+    nodes: &BTreeMap<ElementId, LNode>,
+    direction: Direction,
+    sibling: SiblingRoute,
+) -> Result<Vec<Point>, LayoutError> {
+    let node = nodes
+        .get(&edge.source.node)
+        .ok_or_else(|| LayoutError::MissingEndpoint(edge.source.node.as_str().to_string()))?;
+    let side = loop_side(edge, node, direction)?;
+    let start = self_loop_anchor(&edge.source, node, side, true)?;
+    let end = self_loop_anchor(&edge.target, node, side, false)?;
+    let distance = sibling.loop_distance();
+
+    Ok(match side {
+        LoopSide::North => {
+            let y = node.position.y - distance;
+            vec![start, Point::new(start.x, y), Point::new(end.x, y), end]
+        }
+        LoopSide::East => {
+            let x = node.position.x + node.size.width + distance;
+            vec![start, Point::new(x, start.y), Point::new(x, end.y), end]
+        }
+        LoopSide::South => {
+            let y = node.position.y + node.size.height + distance;
+            vec![start, Point::new(start.x, y), Point::new(end.x, y), end]
+        }
+        LoopSide::West => {
+            let x = node.position.x - distance;
+            vec![start, Point::new(x, start.y), Point::new(x, end.y), end]
+        }
+    })
+}
+
+fn loop_side(edge: &LEdge, node: &LNode, direction: Direction) -> Result<LoopSide, LayoutError> {
+    if let Some(port_id) = &edge.source.port {
+        let port = node.ports.get(port_id).ok_or_else(|| {
+            LayoutError::MissingEndpoint(format!(
+                "{}:{}",
+                edge.source.node.as_str(),
+                port_id.as_str()
+            ))
+        })?;
+        if let Some(side) = port.side {
+            return Ok(match side {
+                PortSide::North => LoopSide::North,
+                PortSide::East => LoopSide::East,
+                PortSide::South => LoopSide::South,
+                PortSide::West => LoopSide::West,
+            });
+        }
+    }
+
+    Ok(match direction {
+        Direction::Right => LoopSide::East,
+        Direction::Left => LoopSide::West,
+        Direction::Down => LoopSide::South,
+        Direction::Up => LoopSide::North,
+    })
+}
+
+fn self_loop_anchor(
+    endpoint: &LEndpoint,
+    node: &LNode,
+    side: LoopSide,
+    source: bool,
+) -> Result<Point, LayoutError> {
+    if let Some(port_id) = &endpoint.port {
+        let port = node.ports.get(port_id).ok_or_else(|| {
+            LayoutError::MissingEndpoint(format!("{}:{}", endpoint.node.as_str(), port_id.as_str()))
+        })?;
+        debug_assert_eq!(&port.id, port_id);
+        return Ok(port_anchor(node, port));
+    }
+
+    Ok(node_self_loop_anchor(
+        node.position,
+        node.size,
+        side,
+        source,
+    ))
+}
+
+fn node_self_loop_anchor(position: Point, size: Size, side: LoopSide, source: bool) -> Point {
+    let first_ratio = if source { 0.35 } else { 0.65 };
+    let second_ratio = if source { 0.65 } else { 0.35 };
+    match side {
+        LoopSide::North => Point::new(position.x + size.width * first_ratio, position.y),
+        LoopSide::East => Point::new(
+            position.x + size.width,
+            position.y + size.height * first_ratio,
+        ),
+        LoopSide::South => Point::new(
+            position.x + size.width * second_ratio,
+            position.y + size.height,
+        ),
+        LoopSide::West => Point::new(position.x, position.y + size.height * second_ratio),
     }
 }
 

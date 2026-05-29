@@ -412,6 +412,117 @@ fn layered_layout_routes_from_north_and_south_port_anchor_geometry() {
 }
 
 #[test]
+fn layered_layout_routes_node_self_loop_outside_node() {
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node("a", 80.0, 40.0));
+    graph.add_edge(ElkEdge::new(
+        "aa",
+        ElementRef::Node(ElementId::from("a")),
+        ElementRef::Node(ElementId::from("a")),
+    ));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let node = &graph.nodes[&ElementId::from("a")];
+    let section = &graph.edges[&ElementId::from("aa")].sections[0];
+
+    assert!(section.points.len() >= 4);
+    assert!(section
+        .points
+        .iter()
+        .any(|point| point.x > node.position.x + node.size.width));
+    assert_eq!(
+        section.points[0],
+        Point::new(
+            node.position.x + node.size.width,
+            node.position.y + node.size.height * 0.35
+        )
+    );
+    assert_eq!(
+        *section.points.last().unwrap(),
+        Point::new(
+            node.position.x + node.size.width,
+            node.position.y + node.size.height * 0.65
+        )
+    );
+}
+
+#[test]
+fn layered_layout_routes_port_self_loop_from_port_anchors() {
+    let mut node = node("a", 100.0, 60.0);
+    node.add_port(port_with_geometry(
+        "out",
+        PortSide::East,
+        Point::new(90.0, 10.0),
+        Size::new(10.0, 10.0),
+    ));
+    node.add_port(port_with_geometry(
+        "in",
+        PortSide::East,
+        Point::new(90.0, 40.0),
+        Size::new(10.0, 10.0),
+    ));
+
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+    graph.add_edge(ElkEdge::new(
+        "aa",
+        ElementRef::Port {
+            node: ElementId::from("a"),
+            port: ElementId::from("out"),
+        },
+        ElementRef::Port {
+            node: ElementId::from("a"),
+            port: ElementId::from("in"),
+        },
+    ));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let node = &graph.nodes[&ElementId::from("a")];
+    let section = &graph.edges[&ElementId::from("aa")].sections[0];
+
+    assert_eq!(
+        section.points[0],
+        Point::new(node.position.x + 100.0, node.position.y + 15.0)
+    );
+    assert_eq!(
+        *section.points.last().unwrap(),
+        Point::new(node.position.x + 100.0, node.position.y + 45.0)
+    );
+    assert!(section
+        .points
+        .iter()
+        .any(|point| point.x > node.position.x + node.size.width));
+}
+
+#[test]
+fn layered_layout_routes_parallel_edges_as_distinct_sections() {
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node("a", 60.0, 30.0));
+    graph.add_node(node("b", 60.0, 30.0));
+    graph.add_edge(ElkEdge::new(
+        "ab-1",
+        ElementRef::Node(ElementId::from("a")),
+        ElementRef::Node(ElementId::from("b")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "ab-2",
+        ElementRef::Node(ElementId::from("a")),
+        ElementRef::Node(ElementId::from("b")),
+    ));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let first = &graph.edges[&ElementId::from("ab-1")].sections[0].points;
+    let second = &graph.edges[&ElementId::from("ab-2")].sections[0].points;
+
+    assert_ne!(first, second);
+    assert_eq!(first[0], second[0]);
+    assert_eq!(first.last(), second.last());
+}
+
+#[test]
 fn layered_layout_rejects_non_layered_algorithm_option() {
     let mut graph = ElkGraph::new("root");
     graph
