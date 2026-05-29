@@ -12,6 +12,27 @@ struct NodeBounds<'a> {
     ancestors: Vec<&'a ElementId>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LayoutMetrics {
+    pub node_overlaps: usize,
+    pub containment_violations: usize,
+    pub route_segments: usize,
+    pub edges_through_nodes: usize,
+    pub crossings: usize,
+    pub port_anchor_mismatches: usize,
+}
+
+pub fn layout_metrics(graph: &ElkGraph) -> LayoutMetrics {
+    LayoutMetrics {
+        node_overlaps: node_overlap_count(graph),
+        containment_violations: containment_violation_count(graph),
+        route_segments: route_segment_count(graph),
+        edges_through_nodes: edge_through_node_count(graph),
+        crossings: crossing_count(graph),
+        port_anchor_mismatches: port_anchor_mismatch_count(graph),
+    }
+}
+
 pub fn node_overlap_count(graph: &ElkGraph) -> usize {
     let nodes = node_bounds(graph);
     let mut count = 0;
