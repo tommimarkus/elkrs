@@ -185,7 +185,7 @@ fn port_anchor(node: &LNode, port: &LPort) -> Point {
 mod tests {
     use std::collections::BTreeMap;
 
-    use elkrs_core::geometry::{Rect, Size};
+    use elkrs_core::geometry::Size;
 
     use super::*;
 
@@ -216,11 +216,15 @@ mod tests {
             .run(&mut graph, &mut LayeredContext::new())
             .unwrap();
 
-        let obstacle = Rect::new(Point::new(100.0, 40.0), Size::new(40.0, 80.0));
-        assert!(!graph.edges[0]
-            .points
-            .windows(2)
-            .any(|segment| segment_intersects_rect_interior(segment[0], segment[1], obstacle)));
+        assert_eq!(
+            graph.edges[0].points,
+            vec![
+                Point::new(40.0, 20.0),
+                Point::new(160.0, 20.0),
+                Point::new(160.0, 140.0),
+                Point::new(200.0, 140.0),
+            ]
+        );
     }
 
     fn node(id: &str, position: Point, size: Size) -> LNode {
@@ -231,22 +235,6 @@ mod tests {
             layer: 0,
             parent: None,
             ports: BTreeMap::new(),
-        }
-    }
-
-    fn segment_intersects_rect_interior(start: Point, end: Point, rect: Rect) -> bool {
-        if (start.y - end.y).abs() < f64::EPSILON {
-            start.y > rect.top()
-                && start.y < rect.bottom()
-                && start.x.min(end.x) < rect.right()
-                && start.x.max(end.x) > rect.left()
-        } else if (start.x - end.x).abs() < f64::EPSILON {
-            start.x > rect.left()
-                && start.x < rect.right()
-                && start.y.min(end.y) < rect.bottom()
-                && start.y.max(end.y) > rect.top()
-        } else {
-            false
         }
     }
 }
