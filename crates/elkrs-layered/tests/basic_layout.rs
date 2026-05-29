@@ -201,12 +201,13 @@ fn layered_layout_accepts_parent_child_edge_endpoints() {
 
     LayeredLayout.layout(&mut graph).unwrap();
 
-    assert_eq!(
-        graph.edges[&ElementId::from("edge")].sections[0]
-            .points
-            .len(),
-        4
-    );
+    let group = &graph.nodes[&ElementId::from("group")];
+    let child = &group.children[&ElementId::from("child")];
+    let section = &graph.edges[&ElementId::from("edge")].sections[0];
+
+    assert!(section.points.len() >= 2);
+    assert_point_on_node(section.points[0], group);
+    assert_point_on_node(*section.points.last().unwrap(), child);
 }
 
 #[test]
@@ -229,9 +230,19 @@ fn layered_layout_rejects_duplicate_nested_node_ids() {
 #[test]
 fn layered_layout_accepts_edges_connected_to_ports() {
     let mut source = node("source", 60.0, 30.0);
-    source.add_port(port("out", PortSide::East));
+    source.add_port(port_with_geometry(
+        "out",
+        PortSide::East,
+        Point::new(60.0, 15.0),
+        Size::new(0.0, 0.0),
+    ));
     let mut target = node("target", 60.0, 30.0);
-    target.add_port(port("in", PortSide::West));
+    target.add_port(port_with_geometry(
+        "in",
+        PortSide::West,
+        Point::new(0.0, 15.0),
+        Size::new(0.0, 0.0),
+    ));
 
     let mut graph = ElkGraph::new("root");
     graph.add_node(source);
@@ -250,11 +261,18 @@ fn layered_layout_accepts_edges_connected_to_ports() {
 
     LayeredLayout.layout(&mut graph).unwrap();
 
+    let source = &graph.nodes[&ElementId::from("source")];
+    let target = &graph.nodes[&ElementId::from("target")];
+    let section = &graph.edges[&ElementId::from("edge")].sections[0];
+
+    assert!(section.points.len() >= 2);
     assert_eq!(
-        graph.edges[&ElementId::from("edge")].sections[0]
-            .points
-            .len(),
-        4
+        section.points[0],
+        Point::new(source.position.x + 60.0, source.position.y + 15.0)
+    );
+    assert_eq!(
+        *section.points.last().unwrap(),
+        Point::new(target.position.x, target.position.y + 15.0)
     );
 }
 
@@ -420,12 +438,6 @@ fn node(id: &str, width: f64, height: f64) -> ElkNode {
     let mut node = ElkNode::new(id);
     node.size = Size::new(width, height);
     node
-}
-
-fn port(id: &str, side: PortSide) -> ElkPort {
-    let mut port = ElkPort::new(id);
-    port.side = Some(side);
-    port
 }
 
 fn port_with_geometry(id: &str, side: PortSide, position: Point, size: Size) -> ElkPort {
