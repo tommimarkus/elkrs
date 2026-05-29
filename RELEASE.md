@@ -3,7 +3,11 @@
 Before publishing a crate version:
 
 1. Confirm `README.md`, `CLEANROOM.md`, `CONTRIBUTING.md`, and `CHANGELOG.md` match the actual supported behavior.
-2. Run the local gate:
+2. Review `docs/parity/elk-layered-v0.11.0.md`. Release notes may claim only
+   the matrix rows that are currently `semantic` or `java-parity`. Do not claim
+   full ELK Layered parity until every included row is `java-parity`, or the row
+   is excluded by a documented compatibility decision.
+3. Run the local gate:
 
    ```bash
    cargo install cargo-audit --locked
@@ -14,7 +18,7 @@ Before publishing a crate version:
    cargo doc --workspace --locked --no-deps
    ```
 
-3. Run the release evidence workflow on the commit that will be tagged:
+4. Run the release evidence workflow on the commit that will be tagged:
 
    ```bash
    gh workflow run release-evidence.yml --ref main
@@ -33,7 +37,7 @@ Before publishing a crate version:
 
    Do not publish if the workflow fails or the artifact is missing.
 
-4. For the first release, verify and publish in dependency order. Dependent
+5. For the first release, verify and publish in dependency order. Dependent
    crate package verification cannot complete until its local `elkrs-*`
    dependency version exists in the registry.
    The `.crate` archives are produced during this dependency-order publish step
@@ -51,12 +55,12 @@ Before publishing a crate version:
    cargo publish -p elkrs-layered --locked
    ```
 
-5. If Java ELK is available, set `ELKRS_JAVA_ELK_COMMAND` to a command that
-   reads ELK-style JSON from stdin and writes ELK-style JSON to stdout, then run
-   the ignored optional parity harness before publishing:
+6. Build the repo-local Java ELK runner, then run the ignored optional parity
+   harness before publishing:
 
    ```bash
-   ELKRS_JAVA_ELK_COMMAND=/path/to/java-elk-json cargo test -p elkrs-layered --test java_parity --locked -- --ignored
+   tools/java-elk-json-runner/bin/build
+   ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored
    ```
 
 Do not publish if any release notes imply full ELK coverage, Dediren adapter support, CLI support, or Java coordinate parity.

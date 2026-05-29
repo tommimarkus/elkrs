@@ -1,0 +1,23 @@
+# This is a Gradle generated file for dependency locking.
+# Manual edits can break the build and are not advised.
+# This file is expected to be part of source control.
+com.google.code.findbugs:jsr305:3.0.2=compileClasspath,runtimeClasspath
+com.google.code.gson:gson:2.14.0=compileClasspath,runtimeClasspath
+com.google.errorprone:error_prone_annotations:2.48.0=compileClasspath,runtimeClasspath
+com.google.guava:failureaccess:1.0.2=compileClasspath,runtimeClasspath
+com.google.guava:guava:33.3.0-jre=compileClasspath,runtimeClasspath
+com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava=compileClasspath,runtimeClasspath
+com.google.j2objc:j2objc-annotations:3.0.0=compileClasspath
+org.checkerframework:checker-qual:3.43.0=compileClasspath,runtimeClasspath
+org.eclipse.elk:org.eclipse.elk.alg.common:0.11.0=compileClasspath,runtimeClasspath
+org.eclipse.elk:org.eclipse.elk.alg.layered:0.11.0=compileClasspath,runtimeClasspath
+org.eclipse.elk:org.eclipse.elk.core:0.11.0=compileClasspath,runtimeClasspath
+org.eclipse.elk:org.eclipse.elk.graph.json:0.11.0=compileClasspath,runtimeClasspath
+org.eclipse.elk:org.eclipse.elk.graph:0.11.0=compileClasspath,runtimeClasspath
+org.eclipse.emf:org.eclipse.emf.common:2.12.0=compileClasspath,runtimeClasspath
+org.eclipse.emf:org.eclipse.emf.ecore.xmi:2.12.0=compileClasspath,runtimeClasspath
+org.eclipse.emf:org.eclipse.emf.ecore:2.12.0=compileClasspath,runtimeClasspath
+org.eclipse.xtend:org.eclipse.xtend.lib.macro:2.36.0=compileClasspath,runtimeClasspath
+org.eclipse.xtend:org.eclipse.xtend.lib:2.36.0=compileClasspath,runtimeClasspath
+org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.36.0=compileClasspath,runtimeClasspath
+empty=annotationProcessor

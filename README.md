@@ -45,9 +45,16 @@ cargo test --workspace --locked
 cargo doc --workspace --locked --no-deps
 ```
 
+Parity tracking:
+
+- ELK Layered parity is tracked in [docs/parity/elk-layered-v0.11.0.md](docs/parity/elk-layered-v0.11.0.md).
+- Current releases are narrow clean-room subsets until that matrix reaches `java-parity` for the included feature surface.
+
 The Java ELK parity harness is opt-in and ignored by default. Run it only when a
-Java ELK JSON command is available:
+Java ELK JSON command is available. This repository includes a pinned SDKMAN
+test runner for that command:
 
 ```bash
-ELKRS_JAVA_ELK_COMMAND=/path/to/java-elk-json cargo test -p elkrs-layered --test java_parity --locked -- --ignored
+tools/java-elk-json-runner/bin/build
+ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored
 ```

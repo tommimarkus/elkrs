@@ -23,8 +23,9 @@ cargo doc --workspace --locked --no-deps
 
 The Java ELK comparison harness is opt-in and ignored by default. Run it only
 when `ELKRS_JAVA_ELK_COMMAND` points to a command that reads ELK-style JSON from
-stdin and writes ELK-style JSON to stdout:
+stdin and writes ELK-style JSON to stdout. The repo-local runner uses SDKMAN:
 
 ```bash
-ELKRS_JAVA_ELK_COMMAND=/path/to/java-elk-json cargo test -p elkrs-layered --test java_parity --locked -- --ignored
+tools/java-elk-json-runner/bin/build
+ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored
 ```
