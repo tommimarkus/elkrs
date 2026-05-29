@@ -218,3 +218,51 @@ pub fn port(id: &str, side: PortSide, position: Point, size: Size) -> ElkPort {
     port.size = size;
     port
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ParityFixtureStatus {
+    RustOnly,
+    JavaComparable,
+}
+
+pub struct ParityFixture {
+    pub id: &'static str,
+    pub name: &'static str,
+    pub status: ParityFixtureStatus,
+    pub build: fn() -> ElkGraph,
+}
+
+pub fn parity_fixtures() -> Vec<ParityFixture> {
+    vec![
+        ParityFixture {
+            id: "LAYERED-GRAPH-001",
+            name: "chain",
+            status: ParityFixtureStatus::JavaComparable,
+            build: chain,
+        },
+        ParityFixture {
+            id: "LAYERED-P3-001",
+            name: "two-layer-crossing",
+            status: ParityFixtureStatus::JavaComparable,
+            build: two_layer_crossing,
+        },
+        ParityFixture {
+            id: "LAYERED-GRAPH-008",
+            name: "nested-group",
+            status: ParityFixtureStatus::RustOnly,
+            build: nested_group,
+        },
+        ParityFixture {
+            id: "LAYERED-GRAPH-009",
+            name: "consumer-compound-ports",
+            status: ParityFixtureStatus::RustOnly,
+            build: consumer_compound_ports,
+        },
+        ParityFixture {
+            id: "LAYERED-P5-002",
+            name: "port-heavy",
+            status: ParityFixtureStatus::RustOnly,
+            build: port_heavy,
+        },
+    ]
+}
