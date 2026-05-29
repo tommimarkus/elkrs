@@ -1,0 +1,154 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      github_release:
+        description: "Create or update the GitHub Release assets. The selected ref must be a v* tag."
+        required: false
+        type: boolean
+        default: false
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Validate release ref
+        id: version
+        run: |
+          set -euo pipefail
+
+          version_for() {
+            cargo pkgid -p "$1" | sed 's/.*#//'
+          }
+
+          version="$(version_for elkrs-core)"
+          for package in elkrs-json elkrs-layered; do
+            package_version="$(version_for "$package")"
+            if [[ "$package_version" != "$version" ]]; then
+              echo "$package version $package_version does not match elkrs-core $version" >&2
+              exit 1
+            fi
+          done
+
+          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "v$version" ]]; then
+            echo "tag $GITHUB_REF_NAME does not match crate version $version" >&2
+            exit 1
+          fi
+
+          if [[ "$GITHUB_REF_TYPE" != "tag" && "${{ github.event.inputs.github_release || 'false' }}" == "true" ]]; then
+            echo "GitHub release assets require selecting a v* tag ref" >&2
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@39fdf500b386709a9a4a769f717dad447ac345b9 # v6
+        with:
+          gradle-version: "8.14.4"
+          cache-provider: basic
+
+      - name: Verify Rust workspace
+        run: |
+          cargo fmt --all --check
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+          cargo test --workspace --locked
+          cargo doc --workspace --locked --no-deps
+
+      - name: Verify Java parity oracle
+        run: |
+          gradle --no-daemon -p tools/java-elk-json-runner installDist
+          ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/build/install/java-elk-json-runner/bin/java-elk-json-runner" \
+            cargo test -p elkrs-layered --test java_parity --locked -- --ignored
+
+      - name: Install release tools
+        run: |
+          cargo install cargo-audit --locked
+          cargo install cargo-cyclonedx --locked
+
+      - name: Audit dependencies
+        run: cargo audit
+
+      - name: Build source distribution
+        run: |
+          set -euo pipefail
+
+          version="${{ steps.version.outputs.version }}"
+          dist_dir="target/elkrs-dist"
+          mkdir -p "$dist_dir"
+
+          git ls-files > "$dist_dir/elkrs-source-files.txt"
+          git ls-files crates/elkrs-core Cargo.lock Cargo.toml README.md LICENSE \
+            > "$dist_dir/elkrs-core-source-files.txt"
+          git ls-files crates/elkrs-json Cargo.lock Cargo.toml README.md LICENSE \
+            > "$dist_dir/elkrs-json-source-files.txt"
+          git ls-files crates/elkrs-layered Cargo.lock Cargo.toml README.md LICENSE \
+            > "$dist_dir/elkrs-layered-source-files.txt"
+
+          git archive --format=tar --prefix="elkrs-${version}/" HEAD \
+            | gzip -n > "$dist_dir/elkrs-${version}-source.tar.gz"
+
+          cargo cyclonedx --format json --spec-version 1.5
+          cp crates/elkrs-core/elkrs-core.cdx.json "$dist_dir/elkrs-core-bom.json"
+          cp crates/elkrs-json/elkrs-json.cdx.json "$dist_dir/elkrs-json-bom.json"
+          cp crates/elkrs-layered/elkrs-layered.cdx.json "$dist_dir/elkrs-layered-bom.json"
+          cargo metadata --locked --format-version 1 > "$dist_dir/cargo-metadata.json"
+
+          (
+            cd "$dist_dir"
+            sha256sum * > SHA256SUMS
+          )
+
+      - name: Upload distribution artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: elkrs-dist-${{ steps.version.outputs.version }}
+          path: target/elkrs-dist/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+      - name: Attest source artifact
+        uses: actions/attest-build-provenance@43d14bc2b83dec42d39ecae14e916627a18bb661 # v3
+        with:
+          subject-path: target/elkrs-dist/elkrs-${{ steps.version.outputs.version }}-source.tar.gz
+
+      - name: Publish GitHub Release assets
+        if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || github.event.inputs.github_release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" target/elkrs-dist/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              target/elkrs-dist/* \
+              --verify-tag \
+              --title "elkrs $GITHUB_REF_NAME" \
+              --notes "elkrs source distribution artifacts."
+          fi

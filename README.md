@@ -45,6 +45,21 @@ cargo test --workspace --locked
 cargo doc --workspace --locked --no-deps
 ```
 
+Distribution:
+
+- Version tags (`v0.1.0`, etc.) run the release workflow.
+- Current distribution is GitHub Releases and pinned Git dependencies, not
+  crates.io.
+- Downstream Cargo projects can depend on a release tag, for example:
+
+  ```toml
+  elkrs-json = { git = "https://github.com/tommimarkus/elkrs", tag = "v0.1.0" }
+  elkrs-layered = { git = "https://github.com/tommimarkus/elkrs", tag = "v0.1.0" }
+  ```
+
+- The release workflow attaches a source archive, source file manifests, SBOMs,
+  checksums, and build provenance to the GitHub Release.
+
 Parity tracking:
 
 - ELK Layered parity is tracked in [docs/parity/elk-layered-v0.11.0.md](docs/parity/elk-layered-v0.11.0.md).
