@@ -21,6 +21,10 @@ cargo test --workspace --locked
 cargo doc --workspace --locked --no-deps
 ```
 
-The Java ELK comparison harness is opt-in. It is skipped by default unless
-`ELKRS_JAVA_ELK_COMMAND` points to a command that reads ELK-style JSON from
-stdin and writes ELK-style JSON to stdout.
+The Java ELK comparison harness is opt-in and ignored by default. Run it only
+when `ELKRS_JAVA_ELK_COMMAND` points to a command that reads ELK-style JSON from
+stdin and writes ELK-style JSON to stdout:
+
+```bash
+ELKRS_JAVA_ELK_COMMAND=/path/to/java-elk-json cargo test -p elkrs-layered --test java_parity --locked -- --ignored
+```
