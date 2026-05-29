@@ -27,3 +27,16 @@ ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" \
 
 The wrapper suppresses SDKMAN stdout before launching the generated Gradle
 distribution script so stdout remains valid JSON for the Rust test harness.
+
+## Metadata Export
+
+Build the installed runner, then invoke it with `--metadata`:
+
+```bash
+tools/java-elk-json-runner/bin/build
+tools/java-elk-json-runner/build/install/java-elk-json-runner/bin/java-elk-json-runner --metadata
+```
+
+The export prints pretty JSON for the pinned ELK Layered `0.11.0` metadata.
+Use this as a clean-room inventory input for parity planning and tests. It is
+not implementation source for Rust algorithm logic.
