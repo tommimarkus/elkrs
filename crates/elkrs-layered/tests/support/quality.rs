@@ -74,12 +74,16 @@ pub fn edge_through_node_count(graph: &ElkGraph) -> usize {
     for edge in graph.edges.values() {
         let source_id = endpoint_node_id(&edge.source);
         let target_id = endpoint_node_id(&edge.target);
+        let source_ancestors = endpoint_ancestors(&nodes, source_id);
+        let target_ancestors = endpoint_ancestors(&nodes, target_id);
         for section in &edge.sections {
             for segment in section.points.windows(2) {
                 let start = segment[0];
                 let end = segment[1];
                 for node in &nodes {
-                    if node.id == source_id || node.id == target_id {
+                    if is_endpoint_or_ancestor(node, source_id, source_ancestors)
+                        || is_endpoint_or_ancestor(node, target_id, target_ancestors)
+                    {
                         continue;
                     }
                     if segment_intersects_rect_interior(start, end, rect(node.node)) {
@@ -138,6 +142,25 @@ fn collect_node_bounds<'a>(
 
 fn is_ancestor(id: &ElementId, node: &NodeBounds<'_>) -> bool {
     node.ancestors.contains(&id)
+}
+
+fn endpoint_ancestors<'nodes, 'graph>(
+    nodes: &'nodes [NodeBounds<'graph>],
+    id: &ElementId,
+) -> &'nodes [&'graph ElementId] {
+    nodes
+        .iter()
+        .find(|node| node.id == id)
+        .map(|node| node.ancestors.as_slice())
+        .unwrap_or(&[])
+}
+
+fn is_endpoint_or_ancestor(
+    candidate: &NodeBounds<'_>,
+    endpoint_id: &ElementId,
+    endpoint_ancestors: &[&ElementId],
+) -> bool {
+    candidate.id == endpoint_id || endpoint_ancestors.contains(&candidate.id)
 }
 
 fn containment_violations_in_subtree(node: &ElkNode) -> usize {
