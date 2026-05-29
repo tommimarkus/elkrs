@@ -38,12 +38,14 @@ fn java_elk_parity_matches_structural_metrics_for_comparable_fixtures() {
         });
 
         let mut rust_graph = fixture_graph;
-        LayeredLayout.layout(&mut rust_graph).unwrap_or_else(|error| {
-            panic!(
-                "Rust layout for fixture {} ({}) should succeed: {error}",
-                fixture.id, fixture.name
-            )
-        });
+        LayeredLayout
+            .layout(&mut rust_graph)
+            .unwrap_or_else(|error| {
+                panic!(
+                    "Rust layout for fixture {} ({}) should succeed: {error}",
+                    fixture.id, fixture.name
+                )
+            });
 
         assert_eq!(
             java_graph.nodes.len(),
