@@ -1,0 +1,126 @@
+use elkrs_json::{from_str, JsonError};
+
+#[test]
+fn malformed_json_returns_json_error() {
+    let error = from_str("{").unwrap_err();
+
+    assert!(matches!(error, JsonError::Json(_)));
+}
+
+#[test]
+fn unknown_edge_endpoint_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [{ "id": "source" }],
+          "edges": [{ "id": "edge", "sources": ["source"], "targets": ["missing"] }]
+        }"#,
+        "unknown endpoint id: missing",
+    );
+}
+
+#[test]
+fn ambiguous_port_endpoint_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            { "id": "left", "ports": [{ "id": "p" }] },
+            { "id": "right", "ports": [{ "id": "p" }] },
+            { "id": "target" }
+          ],
+          "edges": [{ "id": "edge", "sources": ["p"], "targets": ["target"] }]
+        }"#,
+        "ambiguous port endpoint id: p",
+    );
+}
+
+#[test]
+fn edge_with_multiple_sources_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [{ "id": "a" }, { "id": "b" }, { "id": "target" }],
+          "edges": [{ "id": "edge", "sources": ["a", "b"], "targets": ["target"] }]
+        }"#,
+        "edge sources must contain exactly one endpoint",
+    );
+}
+
+#[test]
+fn edge_with_multiple_targets_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [{ "id": "source" }, { "id": "a" }, { "id": "b" }],
+          "edges": [{ "id": "edge", "sources": ["source"], "targets": ["a", "b"] }]
+        }"#,
+        "edge targets must contain exactly one endpoint",
+    );
+}
+
+#[test]
+fn unsupported_direction_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "elk.direction": "SIDEWAYS" }
+        }"#,
+        "unsupported elk.direction value: SIDEWAYS",
+    );
+}
+
+#[test]
+fn non_string_direction_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "elk.direction": 7 }
+        }"#,
+        "elk.direction must be a string",
+    );
+}
+
+#[test]
+fn non_number_node_spacing_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "elk.spacing.nodeNode": "wide" }
+        }"#,
+        "elk.spacing.nodeNode must be a number",
+    );
+}
+
+#[test]
+fn non_number_layer_spacing_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "elk.spacing.layerNodeNode": false }
+        }"#,
+        "elk.spacing.layerNodeNode must be a number",
+    );
+}
+
+#[test]
+fn unsupported_port_side_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            { "id": "source", "ports": [{ "id": "out", "side": "DIAGONAL" }] }
+          ]
+        }"#,
+        "unsupported port side value: DIAGONAL",
+    );
+}
+
+fn assert_invalid_contains(input: &str, expected: &str) {
+    let error = from_str(input).unwrap_err();
+
+    assert!(
+        matches!(error, JsonError::Invalid(ref message) if message.contains(expected)),
+        "expected JsonError::Invalid containing {expected:?}, got {error:?}",
+    );
+}
