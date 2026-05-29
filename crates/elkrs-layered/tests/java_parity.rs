@@ -77,6 +77,12 @@ fn java_elk_parity_matches_structural_metrics_for_comparable_fixtures() {
             fixture.name
         );
         assert!(
+            java_metrics.route_segments >= java_graph.edges.len(),
+            "fixture {} ({}) Java output should have at least one routed segment per edge: {java_metrics:?}",
+            fixture.id,
+            fixture.name
+        );
+        assert!(
             rust_metrics.route_segments >= rust_graph.edges.len(),
             "fixture {} ({}) should have at least one routed segment per edge: {rust_metrics:?}",
             fixture.id,
