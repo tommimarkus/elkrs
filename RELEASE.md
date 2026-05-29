@@ -51,10 +51,12 @@ Before publishing a crate version:
    cargo publish -p elkrs-layered --locked
    ```
 
-5. If Java ELK is available, run the optional parity harness before publishing:
+5. If Java ELK is available, set `ELKRS_JAVA_ELK_COMMAND` to a command that
+   reads ELK-style JSON from stdin and writes ELK-style JSON to stdout, then run
+   the ignored optional parity harness before publishing:
 
    ```bash
-   ELKRS_JAVA_ELK_COMMAND=/path/to/java-elk-command cargo test -p elkrs-layered --test java_parity --locked
+   ELKRS_JAVA_ELK_COMMAND=/path/to/java-elk-json cargo test -p elkrs-layered --test java_parity --locked -- --ignored
    ```
 
 Do not publish if any release notes imply full ELK coverage, Dediren adapter support, CLI support, or Java coordinate parity.
