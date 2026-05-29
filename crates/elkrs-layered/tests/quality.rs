@@ -145,13 +145,23 @@ fn custom_layer_spacing_separates_connected_layers() {
 }
 
 #[test]
-fn structural_metrics_cover_common_fixture_shapes() {
-    for mut graph in [diamond(), fan_in(), fan_out(), cross_group_edge()] {
-        LayeredLayout.layout(&mut graph).unwrap();
+fn diamond_fixture_has_structural_metrics() {
+    assert_structural_metrics(diamond());
+}
 
-        assert_eq!(node_overlap_count(&graph), 0);
-        assert!(route_segment_count(&graph) >= graph.edges.len());
-    }
+#[test]
+fn fan_in_fixture_has_structural_metrics() {
+    assert_structural_metrics(fan_in());
+}
+
+#[test]
+fn fan_out_fixture_has_structural_metrics() {
+    assert_structural_metrics(fan_out());
+}
+
+#[test]
+fn cross_group_edge_fixture_has_structural_metrics() {
+    assert_structural_metrics(cross_group_edge());
 }
 
 #[test]
@@ -193,6 +203,13 @@ fn port_heavy_fixture_preserves_port_anchor_fidelity() {
     LayeredLayout.layout(&mut graph).unwrap();
 
     assert_eq!(port_anchor_mismatch_count(&graph), 0);
+    assert!(route_segment_count(&graph) >= graph.edges.len());
+}
+
+fn assert_structural_metrics(mut graph: ElkGraph) {
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    assert_eq!(node_overlap_count(&graph), 0);
     assert!(route_segment_count(&graph) >= graph.edges.len());
 }
 
