@@ -72,6 +72,9 @@ fn barycenter(
     let mut total = 0.0;
     let mut count = 0usize;
     for edge in &graph.edges {
+        if edge.kind.is_self_loop() {
+            continue;
+        }
         if edge.target.node == *node_id {
             if let Some(order) = previous_order.get(&edge.source.node) {
                 total += *order as f64;

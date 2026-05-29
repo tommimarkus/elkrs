@@ -213,6 +213,22 @@ mod tests {
     }
 
     #[test]
+    fn import_classifies_inter_node_edges_as_normal() {
+        let mut graph = ElkGraph::new("root");
+        graph.add_node(ElkNode::new("source"));
+        graph.add_node(ElkNode::new("target"));
+        graph.add_edge(ElkEdge::new(
+            "edge",
+            ElementRef::Node(ElementId::from("source")),
+            ElementRef::Node(ElementId::from("target")),
+        ));
+
+        let layered = import_graph(&graph).unwrap();
+
+        assert_eq!(layered.edges[0].kind, crate::internal::LEdgeKind::Normal);
+    }
+
+    #[test]
     fn import_accepts_port_self_loop_edges() {
         let mut node = ElkNode::new("a");
         node.add_port(ElkPort::new("out"));

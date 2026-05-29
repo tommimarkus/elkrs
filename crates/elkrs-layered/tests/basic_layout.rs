@@ -145,6 +145,35 @@ fn layered_layout_routes_multi_node_cycle_in_original_edge_directions() {
 }
 
 #[test]
+fn self_loop_does_not_change_connected_node_layers() {
+    let mut baseline = ElkGraph::new("root");
+    baseline.add_node(node("source", 60.0, 30.0));
+    baseline.add_node(node("target", 60.0, 30.0));
+    baseline.add_edge(ElkEdge::new(
+        "edge",
+        ElementRef::Node(ElementId::from("source")),
+        ElementRef::Node(ElementId::from("target")),
+    ));
+
+    let mut with_self_loop = baseline.clone();
+    with_self_loop.add_edge(ElkEdge::new(
+        "self",
+        ElementRef::Node(ElementId::from("source")),
+        ElementRef::Node(ElementId::from("source")),
+    ));
+
+    LayeredLayout.layout(&mut baseline).unwrap();
+    LayeredLayout.layout(&mut with_self_loop).unwrap();
+
+    for id in ["source", "target"] {
+        assert_eq!(
+            baseline.nodes[&ElementId::from(id)].position,
+            with_self_loop.nodes[&ElementId::from(id)].position
+        );
+    }
+}
+
+#[test]
 fn layered_layout_returns_missing_endpoint_error() {
     let mut graph = ElkGraph::new("root");
     graph.add_node(node("source", 60.0, 30.0));

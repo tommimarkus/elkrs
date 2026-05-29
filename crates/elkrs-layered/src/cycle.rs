@@ -25,6 +25,9 @@ impl LayeredProcessor for CycleBreaking {
             .map(|(index, id)| (id, index))
             .collect::<BTreeMap<_, _>>();
         for edge in &mut graph.edges {
+            if edge.kind.is_self_loop() {
+                continue;
+            }
             let source = order.get(&edge.source.node).copied().unwrap_or(0);
             let target = order.get(&edge.target.node).copied().unwrap_or(0);
             if source > target {

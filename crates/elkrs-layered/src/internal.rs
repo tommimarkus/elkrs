@@ -40,6 +40,12 @@ pub(crate) enum LEdgeKind {
     SelfLoop,
 }
 
+impl LEdgeKind {
+    pub(crate) fn is_self_loop(self) -> bool {
+        matches!(self, Self::SelfLoop)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub(crate) struct LEdge {
     pub(crate) id: ElementId,

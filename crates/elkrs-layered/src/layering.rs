@@ -21,6 +21,9 @@ impl LayeredProcessor for LayerAssignment {
         for _ in 0..graph.nodes.len() {
             let mut changed = false;
             for edge in &graph.edges {
+                if edge.kind.is_self_loop() {
+                    continue;
+                }
                 let source_layer = *layers.get(&edge.source.node).unwrap_or(&0);
                 let target_layer = *layers.get(&edge.target.node).unwrap_or(&0);
                 if target_layer <= source_layer {
