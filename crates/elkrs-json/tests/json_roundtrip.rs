@@ -4,6 +4,60 @@ use elkrs_core::options::Direction;
 use elkrs_json::{from_str, to_string_pretty};
 
 #[test]
+fn round_trips_self_loop_edge() {
+    let input = r#"{
+      "id": "root",
+      "children": [
+        { "id": "a" }
+      ],
+      "edges": [
+        { "id": "aa", "sources": ["a"], "targets": ["a"] }
+      ]
+    }"#;
+
+    let graph = from_str(input).unwrap();
+    let edge = &graph.edges[&ElementId::from("aa")];
+
+    assert_eq!(edge.source, ElementRef::Node(ElementId::from("a")));
+    assert_eq!(edge.target, ElementRef::Node(ElementId::from("a")));
+
+    let output = to_string_pretty(&graph).unwrap();
+    let reparsed = from_str(&output).unwrap();
+
+    assert_eq!(reparsed, graph);
+}
+
+#[test]
+fn round_trips_parallel_edges() {
+    let input = r#"{
+      "id": "root",
+      "children": [
+        { "id": "a" },
+        { "id": "b" }
+      ],
+      "edges": [
+        { "id": "ab-1", "sources": ["a"], "targets": ["b"] },
+        { "id": "ab-2", "sources": ["a"], "targets": ["b"] }
+      ]
+    }"#;
+
+    let graph = from_str(input).unwrap();
+    let first = &graph.edges[&ElementId::from("ab-1")];
+    let second = &graph.edges[&ElementId::from("ab-2")];
+
+    assert_eq!(graph.edges.len(), 2);
+    assert_eq!(first.source, ElementRef::Node(ElementId::from("a")));
+    assert_eq!(first.target, ElementRef::Node(ElementId::from("b")));
+    assert_eq!(second.source, first.source);
+    assert_eq!(second.target, first.target);
+
+    let output = to_string_pretty(&graph).unwrap();
+    let reparsed = from_str(&output).unwrap();
+
+    assert_eq!(reparsed, graph);
+}
+
+#[test]
 fn round_trips_graph_with_ports_options_and_edge_sections() {
     let input = r#"{
       "id": "root",
