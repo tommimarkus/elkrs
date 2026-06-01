@@ -72,6 +72,7 @@ pub enum CoreOption {
     DebugMode,
     Direction,
     EdgeRouting,
+    FeedbackEdges,
     HierarchyHandling,
     SpacingNodeNode,
     SpacingLayerNodeNode,
@@ -105,6 +106,11 @@ impl Properties {
             CoreOption::EdgeRouting,
             PropertyValue::EdgeRouting(edge_routing),
         )
+    }
+
+    pub fn set_feedback_edges(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::FeedbackEdges, PropertyValue::Bool(enabled))
     }
 
     pub fn set_hierarchy_handling(
@@ -172,6 +178,16 @@ impl Properties {
             Some(PropertyValue::EdgeRouting(edge_routing)) => *edge_routing,
             Some(value) => unreachable!("edge routing option stored incompatible value: {value:?}"),
             _ => EdgeRouting::Orthogonal,
+        }
+    }
+
+    pub fn feedback_edges(&self) -> bool {
+        match self.get(CoreOption::FeedbackEdges) {
+            Some(PropertyValue::Bool(enabled)) => *enabled,
+            Some(value) => {
+                unreachable!("feedback edges option stored incompatible value: {value:?}")
+            }
+            _ => false,
         }
     }
 
@@ -257,6 +273,16 @@ mod tests {
         properties.set_debug_mode(true);
 
         assert!(properties.debug_mode());
+    }
+
+    #[test]
+    fn feedback_edges_defaults_to_false_and_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert!(!properties.feedback_edges());
+        properties.set_feedback_edges(true);
+
+        assert!(properties.feedback_edges());
     }
 
     #[test]

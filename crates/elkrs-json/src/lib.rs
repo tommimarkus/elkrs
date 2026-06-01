@@ -18,6 +18,7 @@ const DEBUG_MODE_KEY: &str = "org.eclipse.elk.debugMode";
 const DIRECTION_KEY: &str = "org.eclipse.elk.direction";
 const LEGACY_DIRECTION_KEY: &str = "elk.direction";
 const EDGE_ROUTING_KEY: &str = "org.eclipse.elk.edgeRouting";
+const FEEDBACK_EDGES_KEY: &str = "org.eclipse.elk.layered.feedbackEdges";
 const HIERARCHY_HANDLING_KEY: &str = "org.eclipse.elk.hierarchyHandling";
 const NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.nodeNode";
 const LEGACY_NODE_NODE_SPACING_KEY: &str = "elk.spacing.nodeNode";
@@ -355,6 +356,7 @@ fn apply_layout_options(
                     None
                 }
             }
+            FEEDBACK_EDGES_KEY => graph.properties.set_feedback_edges(boolean(value, key)?),
             HIERARCHY_HANDLING_KEY => {
                 if let Some(hierarchy_handling) = parse_hierarchy_handling(value, key)? {
                     graph.properties.set_hierarchy_handling(hierarchy_handling)
@@ -411,6 +413,14 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
             serde_json::Value::String(format_edge_routing(*edge_routing).to_string()),
         );
     }
+    if let Some(PropertyValue::Bool(feedback_edges)) =
+        graph.properties.get(CoreOption::FeedbackEdges)
+    {
+        options.insert(
+            FEEDBACK_EDGES_KEY.to_string(),
+            serde_json::Value::Bool(*feedback_edges),
+        );
+    }
     if let Some(PropertyValue::HierarchyHandling(hierarchy_handling)) =
         graph.properties.get(CoreOption::HierarchyHandling)
     {
@@ -450,6 +460,9 @@ fn apply_node_layout_options(
                     node.properties.set_edge_routing(edge_routing);
                 }
             }
+            FEEDBACK_EDGES_KEY => {
+                node.properties.set_feedback_edges(boolean(value, key)?);
+            }
             HIERARCHY_HANDLING_KEY => {
                 if let Some(hierarchy_handling) = parse_hierarchy_handling(value, key)? {
                     node.properties.set_hierarchy_handling(hierarchy_handling);
@@ -475,6 +488,14 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         options.insert(
             EDGE_ROUTING_KEY.to_string(),
             serde_json::Value::String(format_edge_routing(*edge_routing).to_string()),
+        );
+    }
+    if let Some(PropertyValue::Bool(feedback_edges)) =
+        node.properties.get(CoreOption::FeedbackEdges)
+    {
+        options.insert(
+            FEEDBACK_EDGES_KEY.to_string(),
+            serde_json::Value::Bool(*feedback_edges),
         );
     }
     if let Some(PropertyValue::HierarchyHandling(hierarchy_handling)) =

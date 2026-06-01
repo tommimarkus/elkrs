@@ -120,6 +120,33 @@ fn non_bool_node_debug_mode_returns_invalid_error() {
 }
 
 #[test]
+fn non_bool_feedback_edges_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.layered.feedbackEdges": "true" }
+        }"#,
+        "org.eclipse.elk.layered.feedbackEdges must be a boolean",
+    );
+}
+
+#[test]
+fn non_bool_node_feedback_edges_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.layered.feedbackEdges": "true" }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.layered.feedbackEdges must be a boolean",
+    );
+}
+
+#[test]
 fn unsupported_edge_routing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

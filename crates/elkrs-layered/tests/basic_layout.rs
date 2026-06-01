@@ -848,6 +848,52 @@ fn layered_layout_reports_node_unsupported_debug_mode() {
     }));
 }
 
+#[test]
+fn layered_layout_reports_unsupported_feedback_edges() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_feedback_edges(true);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("feedback edges")
+    }));
+}
+
+#[test]
+fn layered_layout_accepts_disabled_feedback_edges_without_diagnostic() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_feedback_edges(false);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().all(|diagnostic| {
+        diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            || !diagnostic.message.contains("feedback edges")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_node_unsupported_feedback_edges() {
+    let mut graph = ElkGraph::new("root");
+    let mut child = node("child", 60.0, 30.0);
+    child.properties.set_feedback_edges(true);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("feedback edges")
+            && diagnostic.message.contains("child")
+    }));
+}
+
 fn node(id: &str, width: f64, height: f64) -> ElkNode {
     let mut node = ElkNode::new(id);
     node.size = Size::new(width, height);

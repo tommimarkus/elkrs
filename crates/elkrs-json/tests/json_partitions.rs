@@ -145,6 +145,71 @@ fn serializes_node_debug_mode_with_java_key() {
 }
 
 #[test]
+fn imports_feedback_edges_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.layered.feedbackEdges": true }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.properties.get(CoreOption::FeedbackEdges),
+        Some(&PropertyValue::Bool(true))
+    );
+}
+
+#[test]
+fn serializes_feedback_edges_with_java_key() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_feedback_edges(true);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.layered.feedbackEdges"],
+        Value::Bool(true)
+    );
+}
+
+#[test]
+fn imports_node_feedback_edges_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "parent",
+              "layoutOptions": { "org.eclipse.elk.layered.feedbackEdges": true }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.nodes[&ElementId::from("parent")]
+            .properties
+            .get(CoreOption::FeedbackEdges),
+        Some(&PropertyValue::Bool(true))
+    );
+}
+
+#[test]
+fn serializes_node_feedback_edges_with_java_key() {
+    let mut node = ElkNode::new("node");
+    node.properties.set_feedback_edges(true);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["children"][0]["layoutOptions"]["org.eclipse.elk.layered.feedbackEdges"],
+        Value::Bool(true)
+    );
+}
+
+#[test]
 fn imports_left_direction_layout_option() {
     let graph = from_str(
         r#"{

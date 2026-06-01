@@ -29,6 +29,9 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
         EdgeRouting::Orthogonal => {}
         edge_routing => diagnostics.push(unsupported_edge_routing_diagnostic(edge_routing, None)),
     }
+    if properties.feedback_edges() {
+        diagnostics.push(unsupported_feedback_edges_diagnostic(None));
+    }
     if matches!(
         properties.hierarchy_handling(),
         HierarchyHandling::SeparateChildren
@@ -68,6 +71,17 @@ fn unsupported_edge_routing_diagnostic(
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
 
+fn unsupported_feedback_edges_diagnostic(node_id: Option<&str>) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "feedback edges on node {node_id} are recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        "feedback edges are recognized but not implemented by elkrs-layered yet".to_owned()
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
 fn collect_node_hierarchy_diagnostics(node: &ElkNode, diagnostics: &mut Vec<Diagnostic>) {
     if node.properties.debug_mode() {
         diagnostics.push(unsupported_debug_mode_diagnostic(Some(node.id.as_str())));
@@ -80,6 +94,11 @@ fn collect_node_hierarchy_diagnostics(node: &ElkNode, diagnostics: &mut Vec<Diag
                 Some(node.id.as_str()),
             ));
         }
+    }
+    if node.properties.feedback_edges() {
+        diagnostics.push(unsupported_feedback_edges_diagnostic(Some(
+            node.id.as_str(),
+        )));
     }
     if matches!(
         node.properties.hierarchy_handling(),
