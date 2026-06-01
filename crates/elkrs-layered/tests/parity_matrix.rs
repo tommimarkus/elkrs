@@ -5,6 +5,8 @@ use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 use support::fixtures::{parity_fixtures, ParityFixtureStatus};
 use support::quality::layout_metrics;
 
+const PARITY_MATRIX: &str = include_str!("../../../docs/parity/elk-layered-v0.11.0.md");
+
 #[test]
 fn all_declared_parity_fixtures_produce_structurally_valid_layouts() {
     let fixtures = parity_fixtures();
@@ -63,4 +65,42 @@ fn all_declared_parity_fixtures_produce_structurally_valid_layouts() {
             fixture.id, fixture.name
         );
     }
+}
+
+#[test]
+fn java_backed_fixture_rows_are_marked_java_parity() {
+    let fixtures = parity_fixtures();
+    let java_comparable = fixtures
+        .iter()
+        .filter(|fixture| fixture.status == ParityFixtureStatus::JavaComparable)
+        .collect::<Vec<_>>();
+
+    assert!(
+        !java_comparable.is_empty(),
+        "expected at least one Java-comparable parity fixture"
+    );
+
+    for fixture in java_comparable {
+        assert_eq!(
+            row_status(PARITY_MATRIX, fixture.id),
+            Some("java-parity"),
+            "{} ({}) should be marked as java-parity in the parity matrix",
+            fixture.id,
+            fixture.name
+        );
+    }
+}
+
+fn row_status<'a>(matrix: &'a str, row_id: &str) -> Option<&'a str> {
+    matrix.lines().find_map(|line| {
+        let mut columns = line.split('|').map(str::trim);
+        columns.next()?;
+        let id = columns.next()?;
+        if id != row_id {
+            return None;
+        }
+        columns.next()?;
+        columns.next()?;
+        Some(columns.next()?.trim_matches('`'))
+    })
 }

@@ -28,7 +28,7 @@ The Java command must read ELK-style JSON from stdin and write ELK-style JSON to
 
 | ID | Area | ELK Layered capability | Current status | Current proof | Next plan |
 | --- | --- | --- | --- | --- | --- |
-| LAYERED-GRAPH-001 | Graph model | Directed nodes and edges | `semantic` | `cargo test -p elkrs-layered --test quality --locked simple_chain_has_no_node_overlap_and_routed_edges` | Java parity fixture expansion |
+| LAYERED-GRAPH-001 | Graph model | Directed nodes and edges | `java-parity` | `cargo test -p elkrs-layered --test quality --locked simple_chain_has_no_node_overlap_and_routed_edges` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete |
 | LAYERED-GRAPH-002 | Graph model | Multi-edges between the same endpoint pair | `java-parity` | `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_routes_parallel_edges_as_distinct_sections` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete |
 | LAYERED-GRAPH-003 | Graph model | Self-loops | `java-parity` | `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_routes` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete |
 | LAYERED-GRAPH-004 | Graph model | Inside self-loops | `unsupported` | Ordinary self-loops route, but `org.eclipse.elk.insideSelfLoops.*` option semantics are not represented in typed options yet | Parity: edge routing variants, junctions, and merging |
@@ -52,7 +52,7 @@ The Java command must read ELK-style JSON from stdin and write ELK-style JSON to
 | LAYERED-P2-001 | Layering | Stable layer normalization | `semantic` | `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_is_stable_across_node_insertion_order` | Cycle and layering parity plan |
 | LAYERED-P2-002 | Layering | Network simplex default strategy | `unsupported` | Current layerer is a narrow implementation | Cycle and layering parity plan |
 | LAYERED-P2-003 | Layering | Layer constraints and layer IDs | `unsupported` | No public option model yet | Cycle and layering parity plan |
-| LAYERED-P3-001 | Crossing minimization | Adjacent-layer barycenter style ordering | `semantic` | `cargo test -p elkrs-layered --test quality --locked crossing_minimization_reorders_two_layer_targets` | Crossing parity plan |
+| LAYERED-P3-001 | Crossing minimization | Adjacent-layer barycenter style ordering | `java-parity` | `cargo test -p elkrs-layered --test quality --locked crossing_minimization_reorders_two_layer_targets` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete |
 | LAYERED-P3-002 | Crossing minimization | Greedy switch and model-order constraints | `unsupported` | No public option model yet | Crossing parity plan |
 | LAYERED-P4-001 | Node placement | Non-overlap for basic graphs | `semantic` | `cargo test -p elkrs-layered --test quality --locked same_layer_large_nodes_do_not_overlap` | Node placement parity plan |
 | LAYERED-P4-002 | Node placement | Brandes-Koepf placement options | `unsupported` | Current placement is a narrow implementation | Node placement parity plan |
@@ -66,7 +66,7 @@ The Java command must read ELK-style JSON from stdin and write ELK-style JSON to
 | LAYERED-JSON-001 | JSON | Narrow graph, port, option, and edge-section round trip | `semantic` | `cargo test -p elkrs-json --locked` | Public model and JSON parity plan |
 | LAYERED-JSON-002 | JSON | All parity matrix options round trip | `unsupported` | Narrow importer intentionally ignores unknown options | Public model and JSON parity plan |
 | LAYERED-ORACLE-001 | Parity harness | Opt-in Java comparison for chain fixture | `java-parity` | `tools/java-elk-json-runner/bin/build` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | This plan |
-| LAYERED-ORACLE-002 | Parity harness | Fixture-driven Java comparison suite | `semantic` | `cargo test -p elkrs-layered --test parity_matrix --locked` plus ignored Java fixture runner when `ELKRS_JAVA_ELK_COMMAND` is set | Java parity fixture expansion |
+| LAYERED-ORACLE-002 | Parity harness | Fixture-driven Java comparison suite | `java-parity` | `cargo test -p elkrs-layered --test parity_matrix --locked java_backed_fixture_rows_are_marked_java_parity` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete for current JavaComparable fixtures; continue catalog expansion under issue #29 |
 
 <!-- elkrs-generated-layered-metadata:start -->
 
