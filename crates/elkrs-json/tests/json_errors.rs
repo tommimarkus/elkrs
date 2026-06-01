@@ -147,6 +147,37 @@ fn non_bool_node_feedback_edges_returns_invalid_error() {
 }
 
 #[test]
+fn non_bool_parent_boolean_layout_options_return_invalid_errors() {
+    for key in parent_boolean_option_keys() {
+        let json = format!(
+            r#"{{
+              "id": "root",
+              "layoutOptions": {{ "{key}": "true" }}
+            }}"#
+        );
+        assert_invalid_contains(&json, &format!("{key} must be a boolean"));
+    }
+}
+
+#[test]
+fn non_bool_node_parent_boolean_layout_options_return_invalid_errors() {
+    for key in parent_boolean_option_keys() {
+        let json = format!(
+            r#"{{
+              "id": "root",
+              "children": [
+                {{
+                  "id": "node",
+                  "layoutOptions": {{ "{key}": "true" }}
+                }}
+              ]
+            }}"#
+        );
+        assert_invalid_contains(&json, &format!("{key} must be a boolean"));
+    }
+}
+
+#[test]
 fn unsupported_edge_routing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{
@@ -371,4 +402,15 @@ fn assert_invalid_contains(input: &str, expected: &str) {
         matches!(error, JsonError::Invalid(ref message) if message.contains(expected)),
         "expected JsonError::Invalid containing {expected:?}, got {error:?}",
     );
+}
+
+fn parent_boolean_option_keys() -> [&'static str; 6] {
+    [
+        "org.eclipse.elk.interactiveLayout",
+        "org.eclipse.elk.layered.generatePositionAndLayerIds",
+        "org.eclipse.elk.layered.mergeEdges",
+        "org.eclipse.elk.layered.unnecessaryBendpoints",
+        "org.eclipse.elk.partitioning.activate",
+        "org.eclipse.elk.topdownLayout",
+    ]
 }

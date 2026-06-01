@@ -1,9 +1,24 @@
 use elkrs_core::diagnostic::Diagnostic;
 use elkrs_core::graph::{ElkGraph, ElkNode};
 use elkrs_core::layout::LayoutError;
-use elkrs_core::options::{Algorithm, CoreOption, EdgeRouting, HierarchyHandling, Properties};
+use elkrs_core::options::{
+    Algorithm, CoreOption, EdgeRouting, HierarchyHandling, Properties, PropertyValue,
+};
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
+const UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
+    (CoreOption::DebugMode, "debug mode"),
+    (CoreOption::FeedbackEdges, "feedback edges"),
+    (
+        CoreOption::GeneratePositionAndLayerIds,
+        "generate position and layer IDs",
+    ),
+    (CoreOption::InteractiveLayout, "interactive layout"),
+    (CoreOption::LayoutPartitioning, "layout partitioning"),
+    (CoreOption::MergeEdges, "merge edges"),
+    (CoreOption::TopdownLayout, "topdown layout"),
+    (CoreOption::UnnecessaryBendpoints, "unnecessary bendpoints"),
+];
 
 pub(crate) fn validate_options(graph: &ElkGraph) -> Result<Vec<Diagnostic>, LayoutError> {
     let mut diagnostics = validate_graph_properties(&graph.properties)?;
@@ -22,15 +37,10 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
     }
 
     let mut diagnostics = Vec::new();
-    if properties.debug_mode() {
-        diagnostics.push(unsupported_debug_mode_diagnostic(None));
-    }
+    collect_unsupported_boolean_option_diagnostics(properties, None, &mut diagnostics);
     match properties.edge_routing() {
         EdgeRouting::Orthogonal => {}
         edge_routing => diagnostics.push(unsupported_edge_routing_diagnostic(edge_routing, None)),
-    }
-    if properties.feedback_edges() {
-        diagnostics.push(unsupported_feedback_edges_diagnostic(None));
     }
     if matches!(
         properties.hierarchy_handling(),
@@ -42,17 +52,6 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
     validate_non_negative_spacing(properties, CoreOption::SpacingEdgeEdge, "edge-edge spacing")?;
 
     Ok(diagnostics)
-}
-
-fn unsupported_debug_mode_diagnostic(node_id: Option<&str>) -> Diagnostic {
-    let message = if let Some(node_id) = node_id {
-        format!(
-            "debug mode on node {node_id} is recognized but not implemented by elkrs-layered yet"
-        )
-    } else {
-        "debug mode is recognized but not implemented by elkrs-layered yet".to_owned()
-    };
-    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
 
 fn unsupported_edge_routing_diagnostic(
@@ -71,21 +70,35 @@ fn unsupported_edge_routing_diagnostic(
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
 
-fn unsupported_feedback_edges_diagnostic(node_id: Option<&str>) -> Diagnostic {
+fn collect_unsupported_boolean_option_diagnostics(
+    properties: &Properties,
+    node_id: Option<&str>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    for (option, name) in UNSUPPORTED_BOOLEAN_OPTIONS {
+        if matches!(properties.get(*option), Some(PropertyValue::Bool(true))) {
+            diagnostics.push(unsupported_boolean_option_diagnostic(name, node_id));
+        }
+    }
+}
+
+fn unsupported_boolean_option_diagnostic(name: &str, node_id: Option<&str>) -> Diagnostic {
     let message = if let Some(node_id) = node_id {
         format!(
-            "feedback edges on node {node_id} are recognized but not implemented by elkrs-layered yet"
+            "layout option {name} on node {node_id} is recognized but not implemented by elkrs-layered yet"
         )
     } else {
-        "feedback edges are recognized but not implemented by elkrs-layered yet".to_owned()
+        format!("layout option {name} is recognized but not implemented by elkrs-layered yet")
     };
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
 
 fn collect_node_hierarchy_diagnostics(node: &ElkNode, diagnostics: &mut Vec<Diagnostic>) {
-    if node.properties.debug_mode() {
-        diagnostics.push(unsupported_debug_mode_diagnostic(Some(node.id.as_str())));
-    }
+    collect_unsupported_boolean_option_diagnostics(
+        &node.properties,
+        Some(node.id.as_str()),
+        diagnostics,
+    );
     match node.properties.edge_routing() {
         EdgeRouting::Orthogonal => {}
         edge_routing => {
@@ -94,11 +107,6 @@ fn collect_node_hierarchy_diagnostics(node: &ElkNode, diagnostics: &mut Vec<Diag
                 Some(node.id.as_str()),
             ));
         }
-    }
-    if node.properties.feedback_edges() {
-        diagnostics.push(unsupported_feedback_edges_diagnostic(Some(
-            node.id.as_str(),
-        )));
     }
     if matches!(
         node.properties.hierarchy_handling(),

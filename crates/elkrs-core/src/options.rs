@@ -73,11 +73,17 @@ pub enum CoreOption {
     Direction,
     EdgeRouting,
     FeedbackEdges,
+    GeneratePositionAndLayerIds,
     HierarchyHandling,
+    InteractiveLayout,
+    LayoutPartitioning,
+    MergeEdges,
     SpacingNodeNode,
     SpacingLayerNodeNode,
     SpacingEdgeNode,
     SpacingEdgeEdge,
+    TopdownLayout,
+    UnnecessaryBendpoints,
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -92,8 +98,7 @@ impl Properties {
     }
 
     pub fn set_debug_mode(&mut self, enabled: bool) -> Option<PropertyValue> {
-        self.values
-            .insert(CoreOption::DebugMode, PropertyValue::Bool(enabled))
+        self.set_bool_option(CoreOption::DebugMode, enabled)
     }
 
     pub fn set_direction(&mut self, direction: Direction) -> Option<PropertyValue> {
@@ -109,8 +114,11 @@ impl Properties {
     }
 
     pub fn set_feedback_edges(&mut self, enabled: bool) -> Option<PropertyValue> {
-        self.values
-            .insert(CoreOption::FeedbackEdges, PropertyValue::Bool(enabled))
+        self.set_bool_option(CoreOption::FeedbackEdges, enabled)
+    }
+
+    pub fn set_generate_position_and_layer_ids(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::GeneratePositionAndLayerIds, enabled)
     }
 
     pub fn set_hierarchy_handling(
@@ -121,6 +129,18 @@ impl Properties {
             CoreOption::HierarchyHandling,
             PropertyValue::HierarchyHandling(hierarchy_handling),
         )
+    }
+
+    pub fn set_interactive_layout(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::InteractiveLayout, enabled)
+    }
+
+    pub fn set_layout_partitioning(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::LayoutPartitioning, enabled)
+    }
+
+    pub fn set_merge_edges(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::MergeEdges, enabled)
     }
 
     pub fn set_spacing_node_node(&mut self, spacing: f64) -> Option<PropertyValue> {
@@ -145,6 +165,14 @@ impl Properties {
             .insert(CoreOption::SpacingEdgeEdge, PropertyValue::Number(spacing))
     }
 
+    pub fn set_topdown_layout(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::TopdownLayout, enabled)
+    }
+
+    pub fn set_unnecessary_bendpoints(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::UnnecessaryBendpoints, enabled)
+    }
+
     pub fn get(&self, option: CoreOption) -> Option<&PropertyValue> {
         self.values.get(&option)
     }
@@ -158,11 +186,7 @@ impl Properties {
     }
 
     pub fn debug_mode(&self) -> bool {
-        match self.get(CoreOption::DebugMode) {
-            Some(PropertyValue::Bool(enabled)) => *enabled,
-            Some(value) => unreachable!("debug mode option stored incompatible value: {value:?}"),
-            _ => false,
-        }
+        self.bool_option(CoreOption::DebugMode, "debug mode")
     }
 
     pub fn direction(&self) -> Direction {
@@ -182,13 +206,14 @@ impl Properties {
     }
 
     pub fn feedback_edges(&self) -> bool {
-        match self.get(CoreOption::FeedbackEdges) {
-            Some(PropertyValue::Bool(enabled)) => *enabled,
-            Some(value) => {
-                unreachable!("feedback edges option stored incompatible value: {value:?}")
-            }
-            _ => false,
-        }
+        self.bool_option(CoreOption::FeedbackEdges, "feedback edges")
+    }
+
+    pub fn generate_position_and_layer_ids(&self) -> bool {
+        self.bool_option(
+            CoreOption::GeneratePositionAndLayerIds,
+            "generate position and layer ids",
+        )
     }
 
     pub fn hierarchy_handling(&self) -> HierarchyHandling {
@@ -199,6 +224,18 @@ impl Properties {
             }
             _ => HierarchyHandling::IncludeChildren,
         }
+    }
+
+    pub fn interactive_layout(&self) -> bool {
+        self.bool_option(CoreOption::InteractiveLayout, "interactive layout")
+    }
+
+    pub fn layout_partitioning(&self) -> bool {
+        self.bool_option(CoreOption::LayoutPartitioning, "layout partitioning")
+    }
+
+    pub fn merge_edges(&self) -> bool {
+        self.bool_option(CoreOption::MergeEdges, "merge edges")
     }
 
     pub fn spacing_node_node(&self) -> f64 {
@@ -232,6 +269,26 @@ impl Properties {
             Some(PropertyValue::Number(spacing)) => *spacing,
             Some(value) => unreachable!("edge-edge spacing stored incompatible value: {value:?}"),
             _ => DEFAULT_EDGE_EDGE_SPACING,
+        }
+    }
+
+    pub fn topdown_layout(&self) -> bool {
+        self.bool_option(CoreOption::TopdownLayout, "topdown layout")
+    }
+
+    pub fn unnecessary_bendpoints(&self) -> bool {
+        self.bool_option(CoreOption::UnnecessaryBendpoints, "unnecessary bendpoints")
+    }
+
+    fn set_bool_option(&mut self, option: CoreOption, enabled: bool) -> Option<PropertyValue> {
+        self.values.insert(option, PropertyValue::Bool(enabled))
+    }
+
+    fn bool_option(&self, option: CoreOption, name: &str) -> bool {
+        match self.get(option) {
+            Some(PropertyValue::Bool(enabled)) => *enabled,
+            Some(value) => unreachable!("{name} option stored incompatible value: {value:?}"),
+            _ => false,
         }
     }
 }
@@ -283,6 +340,32 @@ mod tests {
         properties.set_feedback_edges(true);
 
         assert!(properties.feedback_edges());
+    }
+
+    #[test]
+    fn parent_boolean_options_default_to_false_and_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert!(!properties.generate_position_and_layer_ids());
+        assert!(!properties.interactive_layout());
+        assert!(!properties.layout_partitioning());
+        assert!(!properties.merge_edges());
+        assert!(!properties.topdown_layout());
+        assert!(!properties.unnecessary_bendpoints());
+
+        properties.set_generate_position_and_layer_ids(true);
+        properties.set_interactive_layout(true);
+        properties.set_layout_partitioning(true);
+        properties.set_merge_edges(true);
+        properties.set_topdown_layout(true);
+        properties.set_unnecessary_bendpoints(true);
+
+        assert!(properties.generate_position_and_layer_ids());
+        assert!(properties.interactive_layout());
+        assert!(properties.layout_partitioning());
+        assert!(properties.merge_edges());
+        assert!(properties.topdown_layout());
+        assert!(properties.unnecessary_bendpoints());
     }
 
     #[test]

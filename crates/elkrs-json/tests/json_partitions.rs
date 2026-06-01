@@ -210,6 +210,178 @@ fn serializes_node_feedback_edges_with_java_key() {
 }
 
 #[test]
+fn imports_parent_boolean_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.interactiveLayout": true,
+            "org.eclipse.elk.layered.generatePositionAndLayerIds": true,
+            "org.eclipse.elk.layered.mergeEdges": true,
+            "org.eclipse.elk.layered.unnecessaryBendpoints": true,
+            "org.eclipse.elk.partitioning.activate": true,
+            "org.eclipse.elk.topdownLayout": true
+          }
+        }"#,
+    )
+    .unwrap();
+
+    for (key, option) in parent_boolean_options() {
+        assert_eq!(
+            graph.properties.get(option),
+            Some(&PropertyValue::Bool(true)),
+            "{key}"
+        );
+    }
+}
+
+#[test]
+fn imports_disabled_parent_boolean_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.interactiveLayout": false,
+            "org.eclipse.elk.layered.generatePositionAndLayerIds": false,
+            "org.eclipse.elk.layered.mergeEdges": false,
+            "org.eclipse.elk.layered.unnecessaryBendpoints": false,
+            "org.eclipse.elk.partitioning.activate": false,
+            "org.eclipse.elk.topdownLayout": false
+          }
+        }"#,
+    )
+    .unwrap();
+
+    for (key, option) in parent_boolean_options() {
+        assert_eq!(
+            graph.properties.get(option),
+            Some(&PropertyValue::Bool(false)),
+            "{key}"
+        );
+    }
+}
+
+#[test]
+fn serializes_parent_boolean_layout_options() {
+    let mut graph = ElkGraph::new("root");
+    set_parent_boolean_options(&mut graph, true);
+
+    let json = serialized_value(&graph);
+    for (key, _) in parent_boolean_options() {
+        assert_eq!(json["layoutOptions"][key], Value::Bool(true), "{key}");
+    }
+}
+
+#[test]
+fn serializes_disabled_parent_boolean_layout_options() {
+    let mut graph = ElkGraph::new("root");
+    set_parent_boolean_options(&mut graph, false);
+
+    let json = serialized_value(&graph);
+    for (key, _) in parent_boolean_options() {
+        assert_eq!(json["layoutOptions"][key], Value::Bool(false), "{key}");
+    }
+}
+
+#[test]
+fn imports_node_parent_boolean_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "parent",
+              "layoutOptions": {
+                "org.eclipse.elk.interactiveLayout": true,
+                "org.eclipse.elk.layered.generatePositionAndLayerIds": true,
+                "org.eclipse.elk.layered.mergeEdges": true,
+                "org.eclipse.elk.layered.unnecessaryBendpoints": true,
+                "org.eclipse.elk.partitioning.activate": true,
+                "org.eclipse.elk.topdownLayout": true
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let properties = &graph.nodes[&ElementId::from("parent")].properties;
+    for (key, option) in parent_boolean_options() {
+        assert_eq!(
+            properties.get(option),
+            Some(&PropertyValue::Bool(true)),
+            "{key}"
+        );
+    }
+}
+
+#[test]
+fn imports_disabled_node_parent_boolean_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "parent",
+              "layoutOptions": {
+                "org.eclipse.elk.interactiveLayout": false,
+                "org.eclipse.elk.layered.generatePositionAndLayerIds": false,
+                "org.eclipse.elk.layered.mergeEdges": false,
+                "org.eclipse.elk.layered.unnecessaryBendpoints": false,
+                "org.eclipse.elk.partitioning.activate": false,
+                "org.eclipse.elk.topdownLayout": false
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let properties = &graph.nodes[&ElementId::from("parent")].properties;
+    for (key, option) in parent_boolean_options() {
+        assert_eq!(
+            properties.get(option),
+            Some(&PropertyValue::Bool(false)),
+            "{key}"
+        );
+    }
+}
+
+#[test]
+fn serializes_node_parent_boolean_layout_options() {
+    let mut node = ElkNode::new("node");
+    set_parent_boolean_node_options(&mut node, true);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    for (key, _) in parent_boolean_options() {
+        assert_eq!(
+            json["children"][0]["layoutOptions"][key],
+            Value::Bool(true),
+            "{key}"
+        );
+    }
+}
+
+#[test]
+fn serializes_disabled_node_parent_boolean_layout_options() {
+    let mut node = ElkNode::new("node");
+    set_parent_boolean_node_options(&mut node, false);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    for (key, _) in parent_boolean_options() {
+        assert_eq!(
+            json["children"][0]["layoutOptions"][key],
+            Value::Bool(false),
+            "{key}"
+        );
+    }
+}
+
+#[test]
 fn imports_left_direction_layout_option() {
     let graph = from_str(
         r#"{
@@ -943,6 +1115,49 @@ fn serializes_port_sides_with_java_key() {
 
 fn serialized_value(graph: &ElkGraph) -> Value {
     serde_json::from_str(&to_string_pretty(graph).unwrap()).unwrap()
+}
+
+fn parent_boolean_options() -> [(&'static str, CoreOption); 6] {
+    [
+        (
+            "org.eclipse.elk.interactiveLayout",
+            CoreOption::InteractiveLayout,
+        ),
+        (
+            "org.eclipse.elk.layered.generatePositionAndLayerIds",
+            CoreOption::GeneratePositionAndLayerIds,
+        ),
+        ("org.eclipse.elk.layered.mergeEdges", CoreOption::MergeEdges),
+        (
+            "org.eclipse.elk.layered.unnecessaryBendpoints",
+            CoreOption::UnnecessaryBendpoints,
+        ),
+        (
+            "org.eclipse.elk.partitioning.activate",
+            CoreOption::LayoutPartitioning,
+        ),
+        ("org.eclipse.elk.topdownLayout", CoreOption::TopdownLayout),
+    ]
+}
+
+fn set_parent_boolean_options(graph: &mut ElkGraph, enabled: bool) {
+    graph.properties.set_interactive_layout(enabled);
+    graph
+        .properties
+        .set_generate_position_and_layer_ids(enabled);
+    graph.properties.set_merge_edges(enabled);
+    graph.properties.set_unnecessary_bendpoints(enabled);
+    graph.properties.set_layout_partitioning(enabled);
+    graph.properties.set_topdown_layout(enabled);
+}
+
+fn set_parent_boolean_node_options(node: &mut ElkNode, enabled: bool) {
+    node.properties.set_interactive_layout(enabled);
+    node.properties.set_generate_position_and_layer_ids(enabled);
+    node.properties.set_merge_edges(enabled);
+    node.properties.set_unnecessary_bendpoints(enabled);
+    node.properties.set_layout_partitioning(enabled);
+    node.properties.set_topdown_layout(enabled);
 }
 
 fn port_value<'a>(node: &'a Value, id: &str) -> &'a Value {

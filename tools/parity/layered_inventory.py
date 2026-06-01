@@ -56,10 +56,30 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked edge_routing`; `cargo test -p elkrs-json --test json_partitions --locked edge_routing`; `cargo test -p elkrs-json --test json_errors --locked edge_routing`",
         "Orthogonal routing is Java-backed; POLYLINE and SPLINES are parsed and diagnosed until route geometry parity is implemented",
     ),
+    "org.eclipse.elk.interactiveLayout": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Interactive layout is parsed and diagnosed; interactive placement constraints are not implemented yet",
+    ),
     "org.eclipse.elk.layered.feedbackEdges": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked feedback_edges`; `cargo test -p elkrs-json --test json_partitions --locked feedback_edges`; `cargo test -p elkrs-json --test json_errors --locked feedback_edges`",
         "Feedback-edge highlighting is parsed and diagnosed; cycle-breaking strategy semantics remain open",
+    ),
+    "org.eclipse.elk.layered.generatePositionAndLayerIds": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Position and layer ID generation is parsed and diagnosed; generated IDs are not emitted yet",
+    ),
+    "org.eclipse.elk.layered.mergeEdges": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Edge merging is parsed and diagnosed; merged routing and implicit ports are not implemented yet",
+    ),
+    "org.eclipse.elk.layered.unnecessaryBendpoints": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Unnecessary bendpoint generation is parsed and diagnosed; extra bendpoints are not emitted yet",
     ),
     "org.eclipse.elk.hierarchyHandling": (
         "diagnostic",
@@ -100,6 +120,16 @@ STATUS_OVERRIDES = {
         "unsupported",
         "No public option model yet",
         "Parity: labels and node sizing model",
+    ),
+    "org.eclipse.elk.partitioning.activate": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Layout partitioning is parsed and diagnosed; partition-aware layer assignment is not implemented yet",
+    ),
+    "org.eclipse.elk.topdownLayout": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Topdown layout is parsed and diagnosed; topdown hierarchy semantics are not implemented yet",
     ),
 }
 

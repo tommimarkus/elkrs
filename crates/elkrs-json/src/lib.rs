@@ -19,7 +19,12 @@ const DIRECTION_KEY: &str = "org.eclipse.elk.direction";
 const LEGACY_DIRECTION_KEY: &str = "elk.direction";
 const EDGE_ROUTING_KEY: &str = "org.eclipse.elk.edgeRouting";
 const FEEDBACK_EDGES_KEY: &str = "org.eclipse.elk.layered.feedbackEdges";
+const GENERATE_POSITION_AND_LAYER_IDS_KEY: &str =
+    "org.eclipse.elk.layered.generatePositionAndLayerIds";
 const HIERARCHY_HANDLING_KEY: &str = "org.eclipse.elk.hierarchyHandling";
+const INTERACTIVE_LAYOUT_KEY: &str = "org.eclipse.elk.interactiveLayout";
+const LAYOUT_PARTITIONING_KEY: &str = "org.eclipse.elk.partitioning.activate";
+const MERGE_EDGES_KEY: &str = "org.eclipse.elk.layered.mergeEdges";
 const NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.nodeNode";
 const LEGACY_NODE_NODE_SPACING_KEY: &str = "elk.spacing.nodeNode";
 const LAYER_NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers";
@@ -30,6 +35,8 @@ const EDGE_EDGE_SPACING_KEY: &str = "org.eclipse.elk.spacing.edgeEdge";
 const LEGACY_EDGE_EDGE_SPACING_KEY: &str = "elk.spacing.edgeEdge";
 const PORT_SIDE_KEY: &str = "org.eclipse.elk.port.side";
 const LEGACY_PORT_SIDE_KEY: &str = "side";
+const TOPDOWN_LAYOUT_KEY: &str = "org.eclipse.elk.topdownLayout";
+const UNNECESSARY_BENDPOINTS_KEY: &str = "org.eclipse.elk.layered.unnecessaryBendpoints";
 
 #[derive(Debug, Error)]
 pub enum JsonError {
@@ -357,6 +364,9 @@ fn apply_layout_options(
                 }
             }
             FEEDBACK_EDGES_KEY => graph.properties.set_feedback_edges(boolean(value, key)?),
+            GENERATE_POSITION_AND_LAYER_IDS_KEY => graph
+                .properties
+                .set_generate_position_and_layer_ids(boolean(value, key)?),
             HIERARCHY_HANDLING_KEY => {
                 if let Some(hierarchy_handling) = parse_hierarchy_handling(value, key)? {
                     graph.properties.set_hierarchy_handling(hierarchy_handling)
@@ -364,6 +374,13 @@ fn apply_layout_options(
                     None
                 }
             }
+            INTERACTIVE_LAYOUT_KEY => graph
+                .properties
+                .set_interactive_layout(boolean(value, key)?),
+            LAYOUT_PARTITIONING_KEY => graph
+                .properties
+                .set_layout_partitioning(boolean(value, key)?),
+            MERGE_EDGES_KEY => graph.properties.set_merge_edges(boolean(value, key)?),
             DIRECTION_KEY | LEGACY_DIRECTION_KEY => {
                 graph.properties.set_direction(parse_direction(value, key)?)
             }
@@ -379,6 +396,10 @@ fn apply_layout_options(
             EDGE_EDGE_SPACING_KEY | LEGACY_EDGE_EDGE_SPACING_KEY => graph
                 .properties
                 .set_spacing_edge_edge(non_negative_number(value, key)?),
+            TOPDOWN_LAYOUT_KEY => graph.properties.set_topdown_layout(boolean(value, key)?),
+            UNNECESSARY_BENDPOINTS_KEY => graph
+                .properties
+                .set_unnecessary_bendpoints(boolean(value, key)?),
             _ => continue,
         };
     }
@@ -421,11 +442,35 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
             serde_json::Value::Bool(*feedback_edges),
         );
     }
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
+        CoreOption::GeneratePositionAndLayerIds,
+        GENERATE_POSITION_AND_LAYER_IDS_KEY,
+    );
     if let Some(PropertyValue::HierarchyHandling(hierarchy_handling)) =
         graph.properties.get(CoreOption::HierarchyHandling)
     {
         insert_hierarchy_handling(&mut options, *hierarchy_handling);
     }
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
+        CoreOption::InteractiveLayout,
+        INTERACTIVE_LAYOUT_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
+        CoreOption::LayoutPartitioning,
+        LAYOUT_PARTITIONING_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
+        CoreOption::MergeEdges,
+        MERGE_EDGES_KEY,
+    );
     if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingNodeNode)
     {
         options.insert(NODE_NODE_SPACING_KEY.to_string(), (*spacing).into());
@@ -443,6 +488,18 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     {
         options.insert(EDGE_EDGE_SPACING_KEY.to_string(), (*spacing).into());
     }
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
+        CoreOption::TopdownLayout,
+        TOPDOWN_LAYOUT_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
+        CoreOption::UnnecessaryBendpoints,
+        UNNECESSARY_BENDPOINTS_KEY,
+    );
     options
 }
 
@@ -463,10 +520,31 @@ fn apply_node_layout_options(
             FEEDBACK_EDGES_KEY => {
                 node.properties.set_feedback_edges(boolean(value, key)?);
             }
+            GENERATE_POSITION_AND_LAYER_IDS_KEY => {
+                node.properties
+                    .set_generate_position_and_layer_ids(boolean(value, key)?);
+            }
             HIERARCHY_HANDLING_KEY => {
                 if let Some(hierarchy_handling) = parse_hierarchy_handling(value, key)? {
                     node.properties.set_hierarchy_handling(hierarchy_handling);
                 }
+            }
+            INTERACTIVE_LAYOUT_KEY => {
+                node.properties.set_interactive_layout(boolean(value, key)?);
+            }
+            LAYOUT_PARTITIONING_KEY => {
+                node.properties
+                    .set_layout_partitioning(boolean(value, key)?);
+            }
+            MERGE_EDGES_KEY => {
+                node.properties.set_merge_edges(boolean(value, key)?);
+            }
+            TOPDOWN_LAYOUT_KEY => {
+                node.properties.set_topdown_layout(boolean(value, key)?);
+            }
+            UNNECESSARY_BENDPOINTS_KEY => {
+                node.properties
+                    .set_unnecessary_bendpoints(boolean(value, key)?);
             }
             _ => continue,
         }
@@ -498,12 +576,59 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
             serde_json::Value::Bool(*feedback_edges),
         );
     }
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::GeneratePositionAndLayerIds,
+        GENERATE_POSITION_AND_LAYER_IDS_KEY,
+    );
     if let Some(PropertyValue::HierarchyHandling(hierarchy_handling)) =
         node.properties.get(CoreOption::HierarchyHandling)
     {
         insert_hierarchy_handling(&mut options, *hierarchy_handling);
     }
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::InteractiveLayout,
+        INTERACTIVE_LAYOUT_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::LayoutPartitioning,
+        LAYOUT_PARTITIONING_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::MergeEdges,
+        MERGE_EDGES_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::TopdownLayout,
+        TOPDOWN_LAYOUT_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::UnnecessaryBendpoints,
+        UNNECESSARY_BENDPOINTS_KEY,
+    );
     options
+}
+
+fn insert_boolean_option(
+    options: &mut BTreeMap<String, serde_json::Value>,
+    properties: &elkrs_core::options::Properties,
+    option: CoreOption,
+    key: &str,
+) {
+    if let Some(PropertyValue::Bool(enabled)) = properties.get(option) {
+        options.insert(key.to_string(), serde_json::Value::Bool(*enabled));
+    }
 }
 
 fn insert_hierarchy_handling(

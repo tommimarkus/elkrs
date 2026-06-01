@@ -4,7 +4,9 @@ use elkrs_core::diagnostic::Severity;
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
-use elkrs_core::options::{Algorithm, Direction, EdgeRouting, HierarchyHandling, PortSide};
+use elkrs_core::options::{
+    Algorithm, Direction, EdgeRouting, HierarchyHandling, PortSide, Properties, PropertyValue,
+};
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
 use support::quality::major_axis_edge_node_clearance;
@@ -894,10 +896,111 @@ fn layered_layout_reports_node_unsupported_feedback_edges() {
     }));
 }
 
+#[test]
+fn layered_layout_reports_unsupported_parent_boolean_options() {
+    for (name, setter) in parent_boolean_option_cases() {
+        let mut graph = ElkGraph::new("root");
+        setter(&mut graph.properties, true);
+        graph.add_node(node("source", 60.0, 30.0));
+
+        let report = LayeredLayout.layout(&mut graph).unwrap();
+
+        assert!(
+            report.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+                    && diagnostic.severity == Severity::Warning
+                    && diagnostic.message.contains(name)
+            }),
+            "{name}"
+        );
+    }
+}
+
+#[test]
+fn layered_layout_accepts_disabled_parent_boolean_options_without_diagnostic() {
+    for (name, setter) in parent_boolean_option_cases() {
+        let mut graph = ElkGraph::new("root");
+        setter(&mut graph.properties, false);
+        graph.add_node(node("source", 60.0, 30.0));
+
+        let report = LayeredLayout.layout(&mut graph).unwrap();
+
+        assert!(
+            report.diagnostics.iter().all(|diagnostic| {
+                diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+                    || !diagnostic.message.contains(name)
+            }),
+            "{name}"
+        );
+    }
+}
+
+#[test]
+fn layered_layout_accepts_disabled_node_parent_boolean_options_without_diagnostic() {
+    for (name, setter) in parent_boolean_option_cases() {
+        let mut graph = ElkGraph::new("root");
+        let mut child = node("child", 60.0, 30.0);
+        setter(&mut child.properties, false);
+        graph.add_node(child);
+
+        let report = LayeredLayout.layout(&mut graph).unwrap();
+
+        assert!(
+            report.diagnostics.iter().all(|diagnostic| {
+                diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+                    || !diagnostic.message.contains(name)
+                    || !diagnostic.message.contains("child")
+            }),
+            "{name}"
+        );
+    }
+}
+
+#[test]
+fn layered_layout_reports_node_unsupported_parent_boolean_options() {
+    for (name, setter) in parent_boolean_option_cases() {
+        let mut graph = ElkGraph::new("root");
+        let mut child = node("child", 60.0, 30.0);
+        setter(&mut child.properties, true);
+        graph.add_node(child);
+
+        let report = LayeredLayout.layout(&mut graph).unwrap();
+
+        assert!(
+            report.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+                    && diagnostic.severity == Severity::Warning
+                    && diagnostic.message.contains(name)
+                    && diagnostic.message.contains("child")
+            }),
+            "{name}"
+        );
+    }
+}
+
 fn node(id: &str, width: f64, height: f64) -> ElkNode {
     let mut node = ElkNode::new(id);
     node.size = Size::new(width, height);
     node
+}
+
+type BoolOptionSetter = fn(&mut Properties, bool) -> Option<PropertyValue>;
+
+fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 6] {
+    [
+        ("interactive layout", Properties::set_interactive_layout),
+        (
+            "generate position and layer IDs",
+            Properties::set_generate_position_and_layer_ids,
+        ),
+        ("merge edges", Properties::set_merge_edges),
+        (
+            "unnecessary bendpoints",
+            Properties::set_unnecessary_bendpoints,
+        ),
+        ("layout partitioning", Properties::set_layout_partitioning),
+        ("topdown layout", Properties::set_topdown_layout),
+    ]
 }
 
 fn port_with_geometry(id: &str, side: PortSide, position: Point, size: Size) -> ElkPort {
