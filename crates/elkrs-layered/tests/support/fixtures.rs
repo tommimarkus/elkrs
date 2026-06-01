@@ -624,5 +624,12 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             build: port_heavy,
             assertions: &[],
         },
+        ParityFixture {
+            id: "LAYERED-META-OPTION-119",
+            name: "port-side",
+            status: ParityFixtureStatus::JavaComparable,
+            build: port_heavy,
+            assertions: &[],
+        },
     ]
 }

@@ -72,9 +72,9 @@ STATUS_OVERRIDES = {
         "Parity: port constraints and ordering",
     ),
     "org.eclipse.elk.port.side": (
-        "unsupported",
-        "No public option model yet",
-        "Parity: port constraints and ordering",
+        "java-parity",
+        '`cargo test -p elkrs-json --test json_partitions --locked port_side`, `cargo test -p elkrs-json --test json_errors --locked port_side`, `cargo test -p elkrs-layered --test quality --locked port_heavy_fixture_preserves_port_anchor_fidelity`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for explicit port side anchors; broader port constraints remain open",
     ),
     "org.eclipse.elk.nodeSize.options": (
         "unsupported",

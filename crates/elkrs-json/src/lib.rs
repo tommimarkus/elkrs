@@ -23,6 +23,8 @@ const EDGE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.edgeNode";
 const LEGACY_EDGE_NODE_SPACING_KEY: &str = "elk.spacing.edgeNode";
 const EDGE_EDGE_SPACING_KEY: &str = "org.eclipse.elk.spacing.edgeEdge";
 const LEGACY_EDGE_EDGE_SPACING_KEY: &str = "elk.spacing.edgeEdge";
+const PORT_SIDE_KEY: &str = "org.eclipse.elk.port.side";
+const LEGACY_PORT_SIDE_KEY: &str = "side";
 
 #[derive(Debug, Error)]
 pub enum JsonError {
@@ -400,20 +402,20 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
 }
 
 fn port_side_from_json(port: &JsonPort) -> Result<Option<PortSide>, JsonError> {
-    if let Some(value) = port.layout_options.get("org.eclipse.elk.port.side") {
-        return Ok(Some(parse_port_side(string(
-            value,
-            "org.eclipse.elk.port.side",
-        )?)?));
+    if let Some(value) = port.layout_options.get(PORT_SIDE_KEY) {
+        return parse_port_side(string(value, PORT_SIDE_KEY)?, PORT_SIDE_KEY);
     }
-    port.side.as_deref().map(parse_port_side).transpose()
+    if let Some(side) = port.side.as_deref() {
+        return parse_port_side(side, LEGACY_PORT_SIDE_KEY);
+    }
+    Ok(None)
 }
 
 fn layout_options_from_port(port: &ElkPort) -> BTreeMap<String, serde_json::Value> {
     let mut options = BTreeMap::new();
     if let Some(side) = port.side {
         options.insert(
-            "org.eclipse.elk.port.side".to_string(),
+            PORT_SIDE_KEY.to_string(),
             serde_json::Value::String(format_port_side(side)),
         );
     }
@@ -523,14 +525,15 @@ fn format_direction(direction: Direction) -> &'static str {
     }
 }
 
-fn parse_port_side(value: &str) -> Result<PortSide, JsonError> {
+fn parse_port_side(value: &str, key: &str) -> Result<Option<PortSide>, JsonError> {
     match value {
-        "NORTH" => Ok(PortSide::North),
-        "EAST" => Ok(PortSide::East),
-        "SOUTH" => Ok(PortSide::South),
-        "WEST" => Ok(PortSide::West),
+        "NORTH" => Ok(Some(PortSide::North)),
+        "EAST" => Ok(Some(PortSide::East)),
+        "SOUTH" => Ok(Some(PortSide::South)),
+        "WEST" => Ok(Some(PortSide::West)),
+        "UNDEFINED" => Ok(None),
         other => Err(JsonError::Invalid(format!(
-            "unsupported port side value: {other}"
+            "unsupported {key} value: {other}"
         ))),
     }
 }

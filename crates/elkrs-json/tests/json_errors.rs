@@ -178,7 +178,49 @@ fn unsupported_port_side_returns_invalid_error() {
             { "id": "source", "ports": [{ "id": "out", "side": "DIAGONAL" }] }
           ]
         }"#,
-        "unsupported port side value: DIAGONAL",
+        "unsupported side value: DIAGONAL",
+    );
+}
+
+#[test]
+fn unsupported_port_side_layout_option_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "source",
+              "ports": [
+                {
+                  "id": "out",
+                  "layoutOptions": { "org.eclipse.elk.port.side": "DIAGONAL" }
+                }
+              ]
+            }
+          ]
+        }"#,
+        "unsupported org.eclipse.elk.port.side value: DIAGONAL",
+    );
+}
+
+#[test]
+fn non_string_port_side_layout_option_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "source",
+              "ports": [
+                {
+                  "id": "out",
+                  "layoutOptions": { "org.eclipse.elk.port.side": 7 }
+                }
+              ]
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.port.side must be a string",
     );
 }
 

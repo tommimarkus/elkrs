@@ -366,6 +366,86 @@ fn imports_port_side_from_layout_options() {
 }
 
 #[test]
+fn imports_all_defined_port_side_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "ports": [
+                {
+                  "id": "north",
+                  "layoutOptions": { "org.eclipse.elk.port.side": "NORTH" }
+                },
+                {
+                  "id": "east",
+                  "layoutOptions": { "org.eclipse.elk.port.side": "EAST" }
+                },
+                {
+                  "id": "south",
+                  "layoutOptions": { "org.eclipse.elk.port.side": "SOUTH" }
+                },
+                {
+                  "id": "west",
+                  "layoutOptions": { "org.eclipse.elk.port.side": "WEST" }
+                }
+              ]
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let node = &graph.nodes[&ElementId::from("node")];
+    assert_eq!(
+        node.ports[&ElementId::from("north")].side,
+        Some(PortSide::North)
+    );
+    assert_eq!(
+        node.ports[&ElementId::from("east")].side,
+        Some(PortSide::East)
+    );
+    assert_eq!(
+        node.ports[&ElementId::from("south")].side,
+        Some(PortSide::South)
+    );
+    assert_eq!(
+        node.ports[&ElementId::from("west")].side,
+        Some(PortSide::West)
+    );
+}
+
+#[test]
+fn imports_undefined_port_side_as_unset() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "ports": [
+                {
+                  "id": "canonical",
+                  "layoutOptions": { "org.eclipse.elk.port.side": "UNDEFINED" }
+                },
+                {
+                  "id": "legacy",
+                  "side": "UNDEFINED"
+                }
+              ]
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let node = &graph.nodes[&ElementId::from("node")];
+    assert_eq!(node.ports[&ElementId::from("canonical")].side, None);
+    assert_eq!(node.ports[&ElementId::from("legacy")].side, None);
+}
+
+#[test]
 fn port_side_layout_option_takes_precedence_over_side_field() {
     let graph = from_str(
         r#"{
@@ -394,7 +474,7 @@ fn port_side_layout_option_takes_precedence_over_side_field() {
 }
 
 #[test]
-fn serializes_north_and_south_port_sides() {
+fn serializes_port_sides_with_java_key() {
     let mut node = ElkNode::new("node");
     node.add_port(port(
         "north",
@@ -403,9 +483,21 @@ fn serializes_north_and_south_port_sides() {
         Size::new(10.0, 10.0),
     ));
     node.add_port(port(
+        "east",
+        PortSide::East,
+        Point::new(40.0, 20.0),
+        Size::new(10.0, 10.0),
+    ));
+    node.add_port(port(
         "south",
         PortSide::South,
         Point::new(20.0, 40.0),
+        Size::new(10.0, 10.0),
+    ));
+    node.add_port(port(
+        "west",
+        PortSide::West,
+        Point::new(0.0, 20.0),
         Size::new(10.0, 10.0),
     ));
     let mut graph = ElkGraph::new("root");
@@ -424,8 +516,21 @@ fn serializes_north_and_south_port_sides() {
         Value::String("NORTH".to_owned())
     );
     assert_eq!(
+        port_value(node, "east")["layoutOptions"]["org.eclipse.elk.port.side"],
+        Value::String("EAST".to_owned())
+    );
+    assert_eq!(
         port_value(node, "south")["layoutOptions"]["org.eclipse.elk.port.side"],
         Value::String("SOUTH".to_owned())
+    );
+    assert_eq!(
+        port_value(node, "west")["layoutOptions"]["org.eclipse.elk.port.side"],
+        Value::String("WEST".to_owned())
+    );
+    assert_eq!(
+        port_value(node, "north").get("side"),
+        None,
+        "legacy top-level port side should not be emitted"
     );
 }
 
