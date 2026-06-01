@@ -423,6 +423,7 @@ fn imports_node_boolean_layout_options() {
                 "org.eclipse.elk.insideSelfLoops.activate": true,
                 "org.eclipse.elk.layered.considerModelOrder.noModelOrder": true,
                 "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength": true,
+                "org.eclipse.elk.noLayout": true,
                 "org.eclipse.elk.portLabels.nextToPortIfPossible": true
               }
             }
@@ -455,6 +456,7 @@ fn imports_disabled_node_boolean_layout_options() {
                 "org.eclipse.elk.insideSelfLoops.activate": false,
                 "org.eclipse.elk.layered.considerModelOrder.noModelOrder": false,
                 "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength": false,
+                "org.eclipse.elk.noLayout": false,
                 "org.eclipse.elk.portLabels.nextToPortIfPossible": false
               }
             }
@@ -1294,7 +1296,7 @@ fn parent_boolean_options() -> [(&'static str, CoreOption); 13] {
     ]
 }
 
-fn node_boolean_options() -> [(&'static str, CoreOption); 6] {
+fn node_boolean_options() -> [(&'static str, CoreOption); 7] {
     [
         ("org.eclipse.elk.commentBox", CoreOption::CommentBox),
         ("org.eclipse.elk.hypernode", CoreOption::Hypernode),
@@ -1310,6 +1312,7 @@ fn node_boolean_options() -> [(&'static str, CoreOption); 6] {
             "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength",
             CoreOption::LayerUnzippingMinimizeEdgeLength,
         ),
+        ("org.eclipse.elk.noLayout", CoreOption::NoLayout),
         (
             "org.eclipse.elk.portLabels.nextToPortIfPossible",
             CoreOption::PortLabelsNextToPortIfPossible,
@@ -1361,6 +1364,7 @@ fn set_node_boolean_options(node: &mut ElkNode, enabled: bool) {
     node.properties.set_hypernode(enabled);
     node.properties.set_inside_self_loops(enabled);
     node.properties.set_no_model_order(enabled);
+    node.properties.set_no_layout(enabled);
     node.properties
         .set_layer_unzipping_minimize_edge_length(enabled);
     node.properties

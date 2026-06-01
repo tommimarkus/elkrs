@@ -88,6 +88,7 @@ pub enum CoreOption {
     LayerUnzippingMinimizeEdgeLength,
     LayoutPartitioning,
     MergeEdges,
+    NoLayout,
     NoModelOrder,
     PortLabelsNextToPortIfPossible,
     SemiInteractiveCrossingMinimization,
@@ -197,6 +198,10 @@ impl Properties {
 
     pub fn set_merge_edges(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::MergeEdges, enabled)
+    }
+
+    pub fn set_no_layout(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::NoLayout, enabled)
     }
 
     pub fn set_no_model_order(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -359,6 +364,10 @@ impl Properties {
 
     pub fn merge_edges(&self) -> bool {
         self.bool_option(CoreOption::MergeEdges, "merge edges")
+    }
+
+    pub fn no_layout(&self) -> bool {
+        self.bool_option(CoreOption::NoLayout, "no layout")
     }
 
     pub fn no_model_order(&self) -> bool {
@@ -538,6 +547,7 @@ mod tests {
         assert!(!properties.hypernode());
         assert!(!properties.inside_self_loops());
         assert!(!properties.no_model_order());
+        assert!(!properties.no_layout());
         assert!(!properties.layer_unzipping_minimize_edge_length());
         assert!(!properties.port_labels_next_to_port_if_possible());
 
@@ -545,6 +555,7 @@ mod tests {
         properties.set_hypernode(true);
         properties.set_inside_self_loops(true);
         properties.set_no_model_order(true);
+        properties.set_no_layout(true);
         properties.set_layer_unzipping_minimize_edge_length(true);
         properties.set_port_labels_next_to_port_if_possible(true);
 
@@ -552,6 +563,7 @@ mod tests {
         assert!(properties.hypernode());
         assert!(properties.inside_self_loops());
         assert!(properties.no_model_order());
+        assert!(properties.no_layout());
         assert!(properties.layer_unzipping_minimize_edge_length());
         assert!(properties.port_labels_next_to_port_if_possible());
     }

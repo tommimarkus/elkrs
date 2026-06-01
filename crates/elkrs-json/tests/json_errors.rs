@@ -440,13 +440,14 @@ fn parent_boolean_option_keys() -> [&'static str; 13] {
     ]
 }
 
-fn node_boolean_option_keys() -> [&'static str; 6] {
+fn node_boolean_option_keys() -> [&'static str; 7] {
     [
         "org.eclipse.elk.commentBox",
         "org.eclipse.elk.hypernode",
         "org.eclipse.elk.insideSelfLoops.activate",
         "org.eclipse.elk.layered.considerModelOrder.noModelOrder",
         "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength",
+        "org.eclipse.elk.noLayout",
         "org.eclipse.elk.portLabels.nextToPortIfPossible",
     ]
 }

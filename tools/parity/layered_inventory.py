@@ -181,6 +181,11 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "Fixed graph size is parsed and diagnosed; node-size semantics are not implemented yet",
     ),
+    "org.eclipse.elk.noLayout": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
+        "Node no-layout is parsed and diagnosed; edge, label, and port target support awaits element property storage, and layout suppression semantics are not implemented yet",
+    ),
     "org.eclipse.elk.partitioning.activate": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",

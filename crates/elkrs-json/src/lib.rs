@@ -38,6 +38,7 @@ const LAYER_UNZIPPING_MINIMIZE_EDGE_LENGTH_KEY: &str =
     "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength";
 const LAYOUT_PARTITIONING_KEY: &str = "org.eclipse.elk.partitioning.activate";
 const MERGE_EDGES_KEY: &str = "org.eclipse.elk.layered.mergeEdges";
+const NO_LAYOUT_KEY: &str = "org.eclipse.elk.noLayout";
 const NO_MODEL_ORDER_KEY: &str = "org.eclipse.elk.layered.considerModelOrder.noModelOrder";
 const NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.nodeNode";
 const LEGACY_NODE_NODE_SPACING_KEY: &str = "elk.spacing.nodeNode";
@@ -654,6 +655,9 @@ fn apply_node_layout_options(
             MERGE_EDGES_KEY => {
                 node.properties.set_merge_edges(boolean(value, key)?);
             }
+            NO_LAYOUT_KEY => {
+                node.properties.set_no_layout(boolean(value, key)?);
+            }
             NO_MODEL_ORDER_KEY => {
                 node.properties.set_no_model_order(boolean(value, key)?);
             }
@@ -790,6 +794,12 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         &node.properties,
         CoreOption::MergeEdges,
         MERGE_EDGES_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::NoLayout,
+        NO_LAYOUT_KEY,
     );
     insert_boolean_option(
         &mut options,

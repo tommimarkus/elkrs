@@ -1065,12 +1065,13 @@ fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 13] {
     ]
 }
 
-fn node_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 6] {
+fn node_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 7] {
     [
         ("comment box", Properties::set_comment_box),
         ("hypernode", Properties::set_hypernode),
         ("inside self-loops", Properties::set_inside_self_loops),
         ("no model order", Properties::set_no_model_order),
+        ("no layout", Properties::set_no_layout),
         (
             "layer unzipping minimize edge length",
             Properties::set_layer_unzipping_minimize_edge_length,
