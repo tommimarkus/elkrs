@@ -54,12 +54,12 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.insideSelfLoops.activate": (
         "unsupported",
         "No typed inside self-loop option model yet",
-        "#31 Parity: generated ELK Layered metadata residuals",
+        "Parity: edge routing variants, junctions, and merging",
     ),
     "org.eclipse.elk.insideSelfLoops.yo": (
         "unsupported",
         "No typed inside self-loop option model yet",
-        "#31 Parity: generated ELK Layered metadata residuals",
+        "Parity: edge routing variants, junctions, and merging",
     ),
     "org.eclipse.elk.portConstraints": (
         "unsupported",
@@ -90,10 +90,20 @@ STATUS_OVERRIDES = {
 
 
 FEATURE_OVERRIDES = {
+    "CLUSTERS": (
+        "unsupported",
+        "Generated from Java ELK v0.11.0 supported feature metadata; no Rust proof mapped yet",
+        "Parity: compound, hierarchy, and non-plugin cluster behavior",
+    ),
     "COMPOUND": (
         "semantic",
         "`cargo test -p elkrs-layered --test quality --locked nested_group_fixture_has_contained_children`",
         "Parity: compound, hierarchy, and non-plugin cluster behavior",
+    ),
+    "EDGE_LABELS": (
+        "unsupported",
+        "Generated from Java ELK v0.11.0 supported feature metadata; no Rust proof mapped yet",
+        "Parity: labels and node sizing model",
     ),
     "HIERARCHY": (
         "semantic",
@@ -103,7 +113,7 @@ FEATURE_OVERRIDES = {
     "INSIDE_SELF_LOOPS": (
         "unsupported",
         "Inside self-loop option semantics are not represented in typed options yet",
-        "#31 Parity: generated ELK Layered metadata residuals",
+        "Parity: edge routing variants, junctions, and merging",
     ),
     "MULTI_EDGES": (
         "java-parity",
@@ -120,6 +130,80 @@ FEATURE_OVERRIDES = {
         '`ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete",
     ),
+}
+
+
+OPTION_NEXT_PLAN_GROUPS = {
+    "Parity: node placement and component compaction": (
+        "org.eclipse.elk.alignment",
+        "org.eclipse.elk.aspectRatio",
+        "org.eclipse.elk.contentAlignment",
+        "org.eclipse.elk.interactiveLayout",
+        "org.eclipse.elk.layered.interactiveReferencePoint",
+        "org.eclipse.elk.layered.wrapping.correctionFactor",
+        "org.eclipse.elk.layered.wrapping.cutting.cuts",
+        "org.eclipse.elk.layered.wrapping.cutting.msd.freedom",
+        "org.eclipse.elk.layered.wrapping.cutting.strategy",
+        "org.eclipse.elk.layered.wrapping.multiEdge.distancePenalty",
+        "org.eclipse.elk.layered.wrapping.multiEdge.improveCuts",
+        "org.eclipse.elk.layered.wrapping.multiEdge.improveWrappedEdges",
+        "org.eclipse.elk.layered.wrapping.strategy",
+        "org.eclipse.elk.layered.wrapping.validify.forbiddenIndices",
+        "org.eclipse.elk.layered.wrapping.validify.strategy",
+        "org.eclipse.elk.margins",
+        "org.eclipse.elk.padding",
+        "org.eclipse.elk.position",
+        "org.eclipse.elk.separateConnectedComponents",
+    ),
+    "Parity: labels and node sizing model": (
+        "org.eclipse.elk.commentBox",
+    ),
+    "Parity: compound, hierarchy, and non-plugin cluster behavior": (
+        "org.eclipse.elk.hypernode",
+        "org.eclipse.elk.topdown.hierarchicalNodeAspectRatio",
+        "org.eclipse.elk.topdown.hierarchicalNodeWidth",
+        "org.eclipse.elk.topdown.nodeType",
+        "org.eclipse.elk.topdown.scaleFactor",
+        "org.eclipse.elk.topdownLayout",
+    ),
+    "Parity: layer assignment strategies and constraints": (
+        "org.eclipse.elk.layered.directionCongruency",
+        "org.eclipse.elk.layered.generatePositionAndLayerIds",
+        "org.eclipse.elk.layered.highDegreeNodes.threshold",
+        "org.eclipse.elk.layered.highDegreeNodes.treatment",
+        "org.eclipse.elk.layered.highDegreeNodes.treeHeight",
+        "org.eclipse.elk.layered.layerUnzipping.layerSplit",
+        "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength",
+        "org.eclipse.elk.layered.layerUnzipping.resetOnLongEdges",
+        "org.eclipse.elk.layered.layerUnzipping.strategy",
+        "org.eclipse.elk.partitioning.activate",
+        "org.eclipse.elk.partitioning.partition",
+        "org.eclipse.elk.priority",
+    ),
+    "Parity: cycle breaking strategies": (
+        "org.eclipse.elk.layered.feedbackEdges",
+    ),
+    "Parity: edge routing variants, junctions, and merging": (
+        "org.eclipse.elk.layered.priority.direction",
+        "org.eclipse.elk.layered.priority.shortness",
+        "org.eclipse.elk.layered.priority.straightness",
+        "org.eclipse.elk.layered.unnecessaryBendpoints",
+    ),
+    "Parity: crossing minimization constraints": (
+        "org.eclipse.elk.layered.thoroughness",
+        "org.eclipse.elk.randomSeed",
+    ),
+    "Parity: complete ELK JSON option and graph round trip": (
+        "org.eclipse.elk.debugMode",
+        "org.eclipse.elk.noLayout",
+    ),
+}
+
+
+OPTION_NEXT_PLAN_OVERRIDES = {
+    option_id: next_plan
+    for next_plan, option_ids in OPTION_NEXT_PLAN_GROUPS.items()
+    for option_id in option_ids
 }
 
 
@@ -216,6 +300,9 @@ def option_sort_key(option: dict[str, Any]) -> str:
 
 
 def next_plan_for_option(option_id: str) -> str:
+    if option_id in OPTION_NEXT_PLAN_OVERRIDES:
+        return OPTION_NEXT_PLAN_OVERRIDES[option_id]
+
     lowered = option_id.lower()
     if ".cyclebreaking." in lowered:
         return "Parity: cycle breaking strategies"
