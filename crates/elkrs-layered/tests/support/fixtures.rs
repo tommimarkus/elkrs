@@ -471,6 +471,17 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             }],
         },
         ParityFixture {
+            id: "LAYERED-P5-003",
+            name: "obstacle-detour",
+            status: ParityFixtureStatus::JavaComparable,
+            build: edge_node_spacing_obstacle,
+            assertions: &[ParityAssertion::EdgeNodeClearance {
+                edge_id: "direct",
+                node_id: "b-obstacle",
+                minimum: 48.0,
+            }],
+        },
+        ParityFixture {
             id: "LAYERED-OPT-003",
             name: "node-node-spacing",
             status: ParityFixtureStatus::JavaComparable,
