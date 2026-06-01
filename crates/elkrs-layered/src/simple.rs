@@ -28,7 +28,7 @@ impl LayoutAlgorithm for LayeredLayout {
             Box::new(LayerAssignment),
             Box::new(CrossingMinimization),
             Box::new(node_placement),
-            Box::new(EdgeRouting::new(direction)),
+            Box::new(EdgeRouting::from_properties(direction, &graph.properties)),
         ]);
         let context = pipeline.run(&mut layered)?;
         write_back(graph, &layered);

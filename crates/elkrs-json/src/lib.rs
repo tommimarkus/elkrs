@@ -273,6 +273,12 @@ fn apply_layout_options(
             "elk.spacing.layerNodeNode" => graph
                 .properties
                 .set_spacing_layer_node_node(number(value, key)?),
+            "elk.spacing.edgeNode" => graph
+                .properties
+                .set_spacing_edge_node(non_negative_number(value, key)?),
+            "elk.spacing.edgeEdge" => graph
+                .properties
+                .set_spacing_edge_edge(non_negative_number(value, key)?),
             _ => continue,
         };
     }
@@ -295,6 +301,14 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         graph.properties.get(CoreOption::SpacingLayerNodeNode)
     {
         options.insert("elk.spacing.layerNodeNode".to_string(), (*spacing).into());
+    }
+    if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingEdgeNode)
+    {
+        options.insert("elk.spacing.edgeNode".to_string(), (*spacing).into());
+    }
+    if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingEdgeEdge)
+    {
+        options.insert("elk.spacing.edgeEdge".to_string(), (*spacing).into());
     }
     options
 }
@@ -419,6 +433,15 @@ fn number(value: &serde_json::Value, key: &str) -> Result<f64, JsonError> {
     value
         .as_f64()
         .ok_or_else(|| JsonError::Invalid(format!("{key} must be a number")))
+}
+
+fn non_negative_number(value: &serde_json::Value, key: &str) -> Result<f64, JsonError> {
+    let number = number(value, key)?;
+    if number >= 0.0 {
+        Ok(number)
+    } else {
+        Err(JsonError::Invalid(format!("{key} must be non-negative")))
+    }
 }
 
 fn is_default_f64(value: &f64) -> bool {

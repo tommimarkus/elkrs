@@ -3,20 +3,50 @@ use std::collections::BTreeMap;
 use elkrs_core::geometry::{Point, Rect, Size};
 use elkrs_core::graph::ElementId;
 use elkrs_core::layout::LayoutError;
-use elkrs_core::options::{
-    Direction, PortSide, DEFAULT_EDGE_EDGE_SPACING, DEFAULT_EDGE_NODE_SPACING,
-};
+use elkrs_core::options::{Direction, PortSide, Properties};
+#[cfg(test)]
+use elkrs_core::options::{DEFAULT_EDGE_EDGE_SPACING, DEFAULT_EDGE_NODE_SPACING};
 
 use crate::internal::{LEdge, LEndpoint, LGraph, LNode, LPort};
 use crate::pipeline::{LayeredContext, LayeredProcessor};
 
 pub(crate) struct EdgeRouting {
     direction: Direction,
+    spacing: EdgeRoutingSpacing,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct EdgeRoutingSpacing {
+    edge_node: f64,
+    edge_edge: f64,
+}
+
+impl EdgeRoutingSpacing {
+    fn from_properties(properties: &Properties) -> Self {
+        Self {
+            edge_node: properties.spacing_edge_node(),
+            edge_edge: properties.spacing_edge_edge(),
+        }
+    }
 }
 
 impl EdgeRouting {
+    #[cfg(test)]
     pub(crate) fn new(direction: Direction) -> Self {
-        Self { direction }
+        Self {
+            direction,
+            spacing: EdgeRoutingSpacing {
+                edge_node: DEFAULT_EDGE_NODE_SPACING,
+                edge_edge: DEFAULT_EDGE_EDGE_SPACING,
+            },
+        }
+    }
+
+    pub(crate) fn from_properties(direction: Direction, properties: &Properties) -> Self {
+        Self {
+            direction,
+            spacing: EdgeRoutingSpacing::from_properties(properties),
+        }
     }
 }
 
@@ -37,6 +67,7 @@ impl LayeredProcessor for EdgeRouting {
                 edge,
                 &nodes,
                 self.direction,
+                self.spacing,
                 siblings
                     .get(&edge.id)
                     .copied()
@@ -69,16 +100,16 @@ impl SiblingRoute {
         Self { index: 0, count: 1 }
     }
 
-    fn centered_offset(self) -> f64 {
+    fn centered_offset(self, edge_edge_spacing: f64) -> f64 {
         if self.count <= 1 {
             0.0
         } else {
-            (self.index as f64 - (self.count - 1) as f64 / 2.0) * DEFAULT_EDGE_EDGE_SPACING
+            (self.index as f64 - (self.count - 1) as f64 / 2.0) * edge_edge_spacing
         }
     }
 
-    fn loop_distance(self) -> f64 {
-        DEFAULT_EDGE_NODE_SPACING + self.index as f64 * DEFAULT_EDGE_EDGE_SPACING
+    fn loop_distance(self, spacing: EdgeRoutingSpacing) -> f64 {
+        spacing.edge_node + self.index as f64 * spacing.edge_edge
     }
 }
 
@@ -119,20 +150,21 @@ fn route_edge(
     edge: &mut LEdge,
     nodes: &BTreeMap<ElementId, LNode>,
     direction: Direction,
+    spacing: EdgeRoutingSpacing,
     sibling: SiblingRoute,
 ) -> Result<(), LayoutError> {
     if edge.kind.is_self_loop() {
-        edge.points = self_loop_route(edge, nodes, direction, sibling)?;
+        edge.points = self_loop_route(edge, nodes, direction, spacing, sibling)?;
         return Ok(());
     }
 
     let start = endpoint_anchor(&edge.source, nodes, direction, true)?;
     let end = endpoint_anchor(&edge.target, nodes, direction, false)?;
-    let offset = sibling.centered_offset();
+    let offset = sibling.centered_offset(spacing.edge_edge);
 
     let mut points = orthogonal_route(start, end, direction, offset);
     if let Some(obstacle) = first_intersecting_obstacle(&points, edge, nodes) {
-        points = detour_route(start, end, obstacle, direction, offset);
+        points = detour_route(start, end, obstacle, direction, spacing.edge_node, offset);
     }
     edge.points = points;
     Ok(())
@@ -191,13 +223,14 @@ fn detour_route(
     end: Point,
     obstacle: Rect,
     direction: Direction,
+    edge_node_spacing: f64,
     offset: f64,
 ) -> Vec<Point> {
     if direction.is_horizontal() {
         let x = if end.x >= start.x {
-            obstacle.right() + DEFAULT_EDGE_NODE_SPACING
+            obstacle.right() + edge_node_spacing
         } else {
-            obstacle.left() - DEFAULT_EDGE_NODE_SPACING
+            obstacle.left() - edge_node_spacing
         };
         if offset.abs() < f64::EPSILON {
             vec![start, Point::new(x, start.y), Point::new(x, end.y), end]
@@ -213,9 +246,9 @@ fn detour_route(
         }
     } else {
         let y = if end.y >= start.y {
-            obstacle.bottom() + DEFAULT_EDGE_NODE_SPACING
+            obstacle.bottom() + edge_node_spacing
         } else {
-            obstacle.top() - DEFAULT_EDGE_NODE_SPACING
+            obstacle.top() - edge_node_spacing
         };
         if offset.abs() < f64::EPSILON {
             vec![start, Point::new(start.x, y), Point::new(end.x, y), end]
@@ -244,6 +277,7 @@ fn self_loop_route(
     edge: &LEdge,
     nodes: &BTreeMap<ElementId, LNode>,
     direction: Direction,
+    spacing: EdgeRoutingSpacing,
     sibling: SiblingRoute,
 ) -> Result<Vec<Point>, LayoutError> {
     let node = nodes
@@ -253,7 +287,7 @@ fn self_loop_route(
     let target_side = endpoint_loop_side(&edge.target, node, direction)?;
     let start = self_loop_anchor(&edge.source, node, source_side, true)?;
     let end = self_loop_anchor(&edge.target, node, target_side, false)?;
-    let distance = sibling.loop_distance();
+    let distance = sibling.loop_distance(spacing);
 
     if source_side != target_side {
         return Ok(mixed_side_self_loop_route(

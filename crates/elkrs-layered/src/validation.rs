@@ -22,18 +22,33 @@ pub(crate) fn validate_options(properties: &Properties) -> Result<Vec<Diagnostic
             "hierarchy handling SeparateChildren is recognized but not implemented by elkrs-layered yet; laying out children with the current graph",
         ));
     }
-    if properties.get(CoreOption::SpacingEdgeNode).is_some() {
-        diagnostics.push(Diagnostic::warning(
-            UNSUPPORTED_OPTION_CODE,
-            "edge-node spacing is recognized but not applied by elkrs-layered edge routing yet",
-        ));
-    }
-    if properties.get(CoreOption::SpacingEdgeEdge).is_some() {
-        diagnostics.push(Diagnostic::warning(
-            UNSUPPORTED_OPTION_CODE,
-            "edge-edge spacing is recognized but not applied by elkrs-layered edge routing yet",
-        ));
-    }
+    validate_non_negative_spacing(properties, CoreOption::SpacingEdgeNode, "edge-node spacing")?;
+    validate_non_negative_spacing(properties, CoreOption::SpacingEdgeEdge, "edge-edge spacing")?;
 
     Ok(diagnostics)
+}
+
+fn validate_non_negative_spacing(
+    properties: &Properties,
+    option: CoreOption,
+    name: &str,
+) -> Result<(), LayoutError> {
+    let Some(spacing) = spacing_value(properties, option) else {
+        return Ok(());
+    };
+    if spacing.is_finite() && spacing >= 0.0 {
+        return Ok(());
+    }
+
+    Err(LayoutError::InvalidOption(format!(
+        "{name} must be finite and non-negative"
+    )))
+}
+
+fn spacing_value(properties: &Properties, option: CoreOption) -> Option<f64> {
+    match option {
+        CoreOption::SpacingEdgeNode => Some(properties.spacing_edge_node()),
+        CoreOption::SpacingEdgeEdge => Some(properties.spacing_edge_edge()),
+        _ => None,
+    }
 }

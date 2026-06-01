@@ -13,6 +13,9 @@ pub enum LayoutError {
     #[error("invalid hierarchy: {0}")]
     InvalidHierarchy(String),
 
+    #[error("invalid layout option: {0}")]
+    InvalidOption(String),
+
     #[error("layout phase {phase} failed: {message}")]
     PhaseFailed {
         phase: &'static str,

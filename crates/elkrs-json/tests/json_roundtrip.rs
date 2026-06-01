@@ -64,7 +64,9 @@ fn round_trips_graph_with_ports_options_and_edge_sections() {
       "layoutOptions": {
         "elk.direction": "DOWN",
         "elk.spacing.nodeNode": 42,
-        "elk.spacing.layerNodeNode": 84
+        "elk.spacing.layerNodeNode": 84,
+        "elk.spacing.edgeNode": 21,
+        "elk.spacing.edgeEdge": 9
       },
       "children": [
         {
@@ -108,6 +110,8 @@ fn round_trips_graph_with_ports_options_and_edge_sections() {
     assert_eq!(graph.properties.direction(), Direction::Down);
     assert_eq!(graph.properties.spacing_node_node(), 42.0);
     assert_eq!(graph.properties.spacing_layer_node_node(), 84.0);
+    assert_eq!(graph.properties.spacing_edge_node(), 21.0);
+    assert_eq!(graph.properties.spacing_edge_edge(), 9.0);
     assert_eq!(
         graph.edges[&ElementId::from("edge")].source,
         ElementRef::Port {

@@ -37,14 +37,14 @@ STATUS_OVERRIDES = {
         "Parity: Java oracle fixture suite expansion",
     ),
     "org.eclipse.elk.spacing.edgeNode": (
-        "diagnostic",
-        "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_reports_unimplemented_edge_spacing_options`",
-        "Parity: edge spacing option semantics",
+        "semantic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_node_spacing_to_obstacle_detours`",
+        "Parity: Java oracle fixture suite expansion",
     ),
     "org.eclipse.elk.spacing.edgeEdge": (
-        "diagnostic",
-        "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_reports_unimplemented_edge_spacing_options`",
-        "Parity: edge spacing option semantics",
+        "semantic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_edge_spacing_to_parallel_routes`",
+        "Parity: Java oracle fixture suite expansion",
     ),
     "org.eclipse.elk.hierarchyHandling": (
         "diagnostic",

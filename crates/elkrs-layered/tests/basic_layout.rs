@@ -577,6 +577,104 @@ fn layered_layout_routes_parallel_edges_as_distinct_sections() {
 }
 
 #[test]
+fn layered_layout_applies_edge_edge_spacing_to_parallel_routes() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_edge_edge(36.0);
+    graph.add_node(node("a", 60.0, 30.0));
+    graph.add_node(node("b", 60.0, 30.0));
+    graph.add_edge(ElkEdge::new(
+        "ab-1",
+        ElementRef::Node(ElementId::from("a")),
+        ElementRef::Node(ElementId::from("b")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "ab-2",
+        ElementRef::Node(ElementId::from("a")),
+        ElementRef::Node(ElementId::from("b")),
+    ));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().all(|diagnostic| {
+        !diagnostic.message.contains("edge-edge spacing")
+            && !diagnostic.message.contains("edge-node spacing")
+    }));
+
+    let first = &graph.edges[&ElementId::from("ab-1")].sections[0].points;
+    let second = &graph.edges[&ElementId::from("ab-2")].sections[0].points;
+
+    assert_eq!((first[2].y - second[2].y).abs(), 36.0);
+}
+
+#[test]
+fn layered_layout_applies_edge_node_spacing_to_obstacle_detours() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_edge_node(48.0);
+    graph.add_node(node("a-source", 40.0, 30.0));
+    graph.add_node(node("b-obstacle", 40.0, 80.0));
+    graph.add_node(node("c-target", 40.0, 30.0));
+    graph.add_edge(ElkEdge::new(
+        "direct",
+        ElementRef::Node(ElementId::from("a-source")),
+        ElementRef::Node(ElementId::from("c-target")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "source-obstacle",
+        ElementRef::Node(ElementId::from("a-source")),
+        ElementRef::Node(ElementId::from("b-obstacle")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "obstacle-target",
+        ElementRef::Node(ElementId::from("b-obstacle")),
+        ElementRef::Node(ElementId::from("c-target")),
+    ));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().all(|diagnostic| {
+        !diagnostic.message.contains("edge-node spacing")
+            && !diagnostic.message.contains("edge-edge spacing")
+    }));
+
+    let obstacle = &graph.nodes[&ElementId::from("b-obstacle")];
+    let section = &graph.edges[&ElementId::from("direct")].sections[0];
+    let expected_detour_x = obstacle.position.x + obstacle.size.width + 48.0;
+
+    assert_eq!(section.points[1].x, expected_detour_x);
+    assert_eq!(section.points[2].x, expected_detour_x);
+}
+
+#[test]
+fn layered_layout_rejects_negative_edge_node_spacing() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_edge_node(-1.0);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let error = LayeredLayout.layout(&mut graph).unwrap_err();
+
+    assert!(matches!(
+        error,
+        LayoutError::InvalidOption(message)
+            if message.contains("edge-node spacing")
+    ));
+}
+
+#[test]
+fn layered_layout_rejects_negative_edge_edge_spacing() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_edge_edge(-1.0);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let error = LayeredLayout.layout(&mut graph).unwrap_err();
+
+    assert!(matches!(
+        error,
+        LayoutError::InvalidOption(message)
+            if message.contains("edge-edge spacing")
+    ));
+}
+
+#[test]
 fn layered_layout_rejects_non_layered_algorithm_option() {
     let mut graph = ElkGraph::new("root");
     graph
@@ -607,33 +705,6 @@ fn layered_layout_reports_unsupported_hierarchy_handling() {
         diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
             && diagnostic.severity == Severity::Warning
             && diagnostic.message.contains("hierarchy handling")
-    }));
-}
-
-#[test]
-fn layered_layout_reports_unimplemented_edge_spacing_options() {
-    let mut graph = ElkGraph::new("root");
-    graph.properties.set_spacing_edge_node(12.0);
-    graph.properties.set_spacing_edge_edge(24.0);
-    graph.add_node(node("source", 60.0, 30.0));
-    graph.add_node(node("target", 60.0, 30.0));
-    graph.add_edge(ElkEdge::new(
-        "edge",
-        ElementRef::Node(ElementId::from("source")),
-        ElementRef::Node(ElementId::from("target")),
-    ));
-
-    let report = LayeredLayout.layout(&mut graph).unwrap();
-
-    assert!(report.diagnostics.iter().any(|diagnostic| {
-        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
-            && diagnostic.severity == Severity::Warning
-            && diagnostic.message.contains("edge-node spacing")
-    }));
-    assert!(report.diagnostics.iter().any(|diagnostic| {
-        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
-            && diagnostic.severity == Severity::Warning
-            && diagnostic.message.contains("edge-edge spacing")
     }));
 }
 

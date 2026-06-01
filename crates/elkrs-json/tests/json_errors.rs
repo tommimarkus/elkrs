@@ -104,6 +104,28 @@ fn non_number_layer_spacing_returns_invalid_error() {
 }
 
 #[test]
+fn non_number_edge_spacing_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "elk.spacing.edgeNode": "wide" }
+        }"#,
+        "elk.spacing.edgeNode must be a number",
+    );
+}
+
+#[test]
+fn negative_edge_spacing_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "elk.spacing.edgeEdge": -1 }
+        }"#,
+        "elk.spacing.edgeEdge must be non-negative",
+    );
+}
+
+#[test]
 fn unsupported_port_side_returns_invalid_error() {
     assert_invalid_contains(
         r#"{
