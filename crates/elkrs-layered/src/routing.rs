@@ -227,41 +227,55 @@ fn detour_route(
     offset: f64,
 ) -> Vec<Point> {
     if direction.is_horizontal() {
-        let x = if end.x >= start.x {
-            obstacle.right() + edge_node_spacing
+        let (entry_x, exit_x) = if end.x >= start.x {
+            (
+                (start.x + obstacle.left()) / 2.0,
+                (obstacle.right() + end.x) / 2.0,
+            )
         } else {
-            obstacle.left() - edge_node_spacing
+            (
+                (start.x + obstacle.right()) / 2.0,
+                (obstacle.left() + end.x) / 2.0,
+            )
         };
-        if offset.abs() < f64::EPSILON {
-            vec![start, Point::new(x, start.y), Point::new(x, end.y), end]
+        let lane_y = if offset < 0.0 {
+            obstacle.top() - edge_node_spacing + offset
         } else {
-            vec![
-                start,
-                Point::new(x, start.y),
-                Point::new(x, start.y + offset),
-                Point::new(x, end.y + offset),
-                Point::new(x, end.y),
-                end,
-            ]
-        }
+            obstacle.bottom() + edge_node_spacing + offset
+        };
+        dedupe_consecutive_points(vec![
+            start,
+            Point::new(entry_x, start.y),
+            Point::new(entry_x, lane_y),
+            Point::new(exit_x, lane_y),
+            Point::new(exit_x, end.y),
+            end,
+        ])
     } else {
-        let y = if end.y >= start.y {
-            obstacle.bottom() + edge_node_spacing
+        let (entry_y, exit_y) = if end.y >= start.y {
+            (
+                (start.y + obstacle.top()) / 2.0,
+                (obstacle.bottom() + end.y) / 2.0,
+            )
         } else {
-            obstacle.top() - edge_node_spacing
+            (
+                (start.y + obstacle.bottom()) / 2.0,
+                (obstacle.top() + end.y) / 2.0,
+            )
         };
-        if offset.abs() < f64::EPSILON {
-            vec![start, Point::new(start.x, y), Point::new(end.x, y), end]
+        let lane_x = if offset < 0.0 {
+            obstacle.left() - edge_node_spacing + offset
         } else {
-            vec![
-                start,
-                Point::new(start.x, y),
-                Point::new(start.x + offset, y),
-                Point::new(end.x + offset, y),
-                Point::new(end.x, y),
-                end,
-            ]
-        }
+            obstacle.right() + edge_node_spacing + offset
+        };
+        dedupe_consecutive_points(vec![
+            start,
+            Point::new(start.x, entry_y),
+            Point::new(lane_x, entry_y),
+            Point::new(lane_x, exit_y),
+            Point::new(end.x, exit_y),
+            end,
+        ])
     }
 }
 
@@ -645,8 +659,9 @@ mod tests {
             graph.edges[0].points,
             vec![
                 Point::new(40.0, 20.0),
-                Point::new(160.0, 20.0),
-                Point::new(160.0, 140.0),
+                Point::new(70.0, 20.0),
+                Point::new(70.0, 140.0),
+                Point::new(170.0, 140.0),
                 Point::new(200.0, 140.0),
             ]
         );

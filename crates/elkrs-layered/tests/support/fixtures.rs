@@ -150,6 +150,18 @@ pub fn self_loop() -> ElkGraph {
     graph
 }
 
+pub fn edge_node_spacing_obstacle() -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_edge_node(48.0);
+    graph.add_node(node("a-source", 40.0, 30.0));
+    graph.add_node(node("b-obstacle", 40.0, 80.0));
+    graph.add_node(node("c-target", 40.0, 30.0));
+    graph.add_edge(edge("direct", "a-source", "c-target"));
+    graph.add_edge(edge("source-obstacle", "a-source", "b-obstacle"));
+    graph.add_edge(edge("obstacle-target", "b-obstacle", "c-target"));
+    graph
+}
+
 pub fn consumer_compound_ports() -> ElkGraph {
     let mut client = node("a-client", 80.0, 40.0);
     client.add_port(port(
@@ -246,6 +258,16 @@ pub struct ParityFixture {
     pub name: &'static str,
     pub status: ParityFixtureStatus,
     pub build: fn() -> ElkGraph,
+    pub assertions: &'static [ParityAssertion],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ParityAssertion {
+    EdgeNodeClearance {
+        edge_id: &'static str,
+        node_id: &'static str,
+        minimum: f64,
+    },
 }
 
 pub fn parity_fixtures() -> Vec<ParityFixture> {
@@ -255,42 +277,60 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             name: "chain",
             status: ParityFixtureStatus::JavaComparable,
             build: chain,
+            assertions: &[],
         },
         ParityFixture {
             id: "LAYERED-GRAPH-002",
             name: "multi-edge-pair",
             status: ParityFixtureStatus::JavaComparable,
             build: multi_edge_pair,
+            assertions: &[],
         },
         ParityFixture {
             id: "LAYERED-GRAPH-003",
             name: "self-loop",
             status: ParityFixtureStatus::JavaComparable,
             build: self_loop,
+            assertions: &[],
         },
         ParityFixture {
             id: "LAYERED-P3-001",
             name: "two-layer-crossing",
             status: ParityFixtureStatus::JavaComparable,
             build: two_layer_crossing,
+            assertions: &[],
+        },
+        ParityFixture {
+            id: "LAYERED-OPT-005",
+            name: "edge-node-spacing-obstacle",
+            status: ParityFixtureStatus::JavaComparable,
+            build: edge_node_spacing_obstacle,
+            assertions: &[ParityAssertion::EdgeNodeClearance {
+                edge_id: "direct",
+                node_id: "b-obstacle",
+                minimum: 48.0,
+            }],
         },
         ParityFixture {
             id: "LAYERED-GRAPH-008",
             name: "nested-group",
             status: ParityFixtureStatus::RustOnly,
             build: nested_group,
+            assertions: &[],
         },
         ParityFixture {
             id: "LAYERED-GRAPH-009",
             name: "consumer-compound-ports",
             status: ParityFixtureStatus::RustOnly,
             build: consumer_compound_ports,
+            assertions: &[],
         },
         ParityFixture {
             id: "LAYERED-P5-002",
             name: "port-heavy",
             status: ParityFixtureStatus::RustOnly,
             build: port_heavy,
+            assertions: &[],
         },
     ]
 }

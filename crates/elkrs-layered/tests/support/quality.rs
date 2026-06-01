@@ -112,6 +112,39 @@ pub fn edge_through_node_count(graph: &ElkGraph) -> usize {
     count
 }
 
+pub fn major_axis_edge_node_clearance(
+    graph: &ElkGraph,
+    edge_id: &str,
+    node_id: &str,
+) -> Option<f64> {
+    let edge = graph.edges.get(&ElementId::from(edge_id))?;
+    let nodes = node_bounds(graph);
+    let obstacle = nodes.iter().find(|node| node.id.as_str() == node_id)?;
+    let obstacle_rect = rect(obstacle.node);
+    let direction = graph.properties.direction();
+    let mut clearance = None::<f64>;
+
+    for section in &edge.sections {
+        for segment in section.points.windows(2) {
+            let start = segment[0];
+            let end = segment[1];
+            let segment_clearance = if direction.is_horizontal() && is_horizontal(start, end) {
+                major_axis_horizontal_clearance(start, end, obstacle_rect)
+            } else if !direction.is_horizontal() && is_vertical(start, end) {
+                major_axis_vertical_clearance(start, end, obstacle_rect)
+            } else {
+                None
+            };
+            if let Some(segment_clearance) = segment_clearance {
+                clearance =
+                    Some(clearance.map_or(segment_clearance, |best| best.min(segment_clearance)));
+            }
+        }
+    }
+
+    clearance
+}
+
 pub fn crossing_count(graph: &ElkGraph) -> usize {
     let edges = graph.edges.values().collect::<Vec<_>>();
     let mut count = 0;
@@ -242,6 +275,34 @@ fn segment_intersects_rect_interior(start: Point, end: Point, rect: Rect) -> boo
     } else {
         false
     }
+}
+
+fn major_axis_horizontal_clearance(start: Point, end: Point, rect: Rect) -> Option<f64> {
+    if !ranges_overlap_interior(start.x, end.x, rect.left(), rect.right()) {
+        return None;
+    }
+
+    Some(if strict_between(start.y, rect.top(), rect.bottom()) {
+        0.0
+    } else if start.y <= rect.top() {
+        rect.top() - start.y
+    } else {
+        start.y - rect.bottom()
+    })
+}
+
+fn major_axis_vertical_clearance(start: Point, end: Point, rect: Rect) -> Option<f64> {
+    if !ranges_overlap_interior(start.y, end.y, rect.top(), rect.bottom()) {
+        return None;
+    }
+
+    Some(if strict_between(start.x, rect.left(), rect.right()) {
+        0.0
+    } else if start.x <= rect.left() {
+        rect.left() - start.x
+    } else {
+        start.x - rect.right()
+    })
 }
 
 fn ranges_overlap_interior(a: f64, b: f64, min: f64, max: f64) -> bool {

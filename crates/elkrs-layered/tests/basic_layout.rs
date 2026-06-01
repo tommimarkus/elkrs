@@ -1,9 +1,13 @@
+mod support;
+
 use elkrs_core::diagnostic::Severity;
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{Algorithm, Direction, HierarchyHandling, PortSide};
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
+
+use support::quality::major_axis_edge_node_clearance;
 
 #[test]
 fn layered_layout_respects_down_direction() {
@@ -638,10 +642,61 @@ fn layered_layout_applies_edge_node_spacing_to_obstacle_detours() {
 
     let obstacle = &graph.nodes[&ElementId::from("b-obstacle")];
     let section = &graph.edges[&ElementId::from("direct")].sections[0];
-    let expected_detour_x = obstacle.position.x + obstacle.size.width + 48.0;
+    let expected_detour_y = obstacle.position.y + obstacle.size.height + 48.0;
 
-    assert_eq!(section.points[1].x, expected_detour_x);
-    assert_eq!(section.points[2].x, expected_detour_x);
+    assert!(section
+        .points
+        .iter()
+        .any(|point| (point.y - expected_detour_y).abs() < f64::EPSILON));
+    let clearance = major_axis_edge_node_clearance(&graph, "direct", "b-obstacle").unwrap();
+    assert!(
+        clearance + f64::EPSILON >= 48.0,
+        "direct edge should keep at least 48.0 clearance from the obstacle: {clearance}"
+    );
+    assert_no_axis_aligned_segment_through_node_interior(&section.points, obstacle);
+}
+
+#[test]
+fn layered_layout_preserves_edge_node_spacing_for_parallel_obstacle_detours() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_edge_node(48.0);
+    graph.properties.set_spacing_edge_edge(120.0);
+    graph.add_node(node("a-source", 40.0, 30.0));
+    graph.add_node(node("b-obstacle", 40.0, 80.0));
+    graph.add_node(node("c-target", 40.0, 30.0));
+    graph.add_edge(ElkEdge::new(
+        "direct-1",
+        ElementRef::Node(ElementId::from("a-source")),
+        ElementRef::Node(ElementId::from("c-target")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "direct-2",
+        ElementRef::Node(ElementId::from("a-source")),
+        ElementRef::Node(ElementId::from("c-target")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "source-obstacle",
+        ElementRef::Node(ElementId::from("a-source")),
+        ElementRef::Node(ElementId::from("b-obstacle")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "obstacle-target",
+        ElementRef::Node(ElementId::from("b-obstacle")),
+        ElementRef::Node(ElementId::from("c-target")),
+    ));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let obstacle = &graph.nodes[&ElementId::from("b-obstacle")];
+    for edge_id in ["direct-1", "direct-2"] {
+        let section = &graph.edges[&ElementId::from(edge_id)].sections[0];
+        let clearance = major_axis_edge_node_clearance(&graph, edge_id, "b-obstacle").unwrap();
+        assert!(
+            clearance + f64::EPSILON >= 48.0,
+            "{edge_id} should keep at least 48.0 clearance from the obstacle: {clearance}"
+        );
+        assert_no_axis_aligned_segment_through_node_interior(&section.points, obstacle);
+    }
 }
 
 #[test]

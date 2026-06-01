@@ -7,8 +7,8 @@ use std::process::{Command, Stdio};
 use elkrs_json::{from_str, to_string_pretty};
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
-use support::fixtures::{parity_fixtures, ParityFixtureStatus};
-use support::quality::layout_metrics;
+use support::fixtures::{parity_fixtures, ParityAssertion, ParityFixtureStatus};
+use support::quality::{layout_metrics, major_axis_edge_node_clearance};
 
 #[test]
 #[ignore = "requires ELKRS_JAVA_ELK_COMMAND to point at a Java ELK JSON command"]
@@ -64,6 +64,15 @@ fn java_elk_parity_matches_structural_metrics_for_comparable_fixtures() {
 
         let java_metrics = layout_metrics(&java_graph);
         let rust_metrics = layout_metrics(&rust_graph);
+        for assertion in fixture.assertions {
+            assert_parity_fixture_assertion(
+                assertion,
+                &java_graph,
+                &rust_graph,
+                fixture.id,
+                fixture.name,
+            );
+        }
         assert_eq!(
             java_metrics.node_overlaps, rust_metrics.node_overlaps,
             "fixture {} ({}) node overlap parity mismatch: java={java_metrics:?}, rust={rust_metrics:?}",
@@ -133,4 +142,42 @@ fn run_java_elk_command(command: &str, input: &str) -> String {
     );
 
     String::from_utf8(output.stdout).expect("Java ELK command stdout should be UTF-8 JSON")
+}
+
+fn assert_parity_fixture_assertion(
+    assertion: &ParityAssertion,
+    java_graph: &elkrs_core::graph::ElkGraph,
+    rust_graph: &elkrs_core::graph::ElkGraph,
+    fixture_id: &str,
+    fixture_name: &str,
+) {
+    match *assertion {
+        ParityAssertion::EdgeNodeClearance {
+            edge_id,
+            node_id,
+            minimum,
+        } => {
+            let java_clearance = major_axis_edge_node_clearance(java_graph, edge_id, node_id)
+                .unwrap_or_else(|| {
+                    panic!(
+                        "fixture {fixture_id} ({fixture_name}) Java output should route edge {edge_id} across node {node_id}'s layer"
+                    )
+                });
+            let rust_clearance = major_axis_edge_node_clearance(rust_graph, edge_id, node_id)
+                .unwrap_or_else(|| {
+                    panic!(
+                        "fixture {fixture_id} ({fixture_name}) Rust output should route edge {edge_id} across node {node_id}'s layer"
+                    )
+                });
+
+            assert!(
+                java_clearance + f64::EPSILON >= minimum,
+                "fixture {fixture_id} ({fixture_name}) Java edge-node clearance for edge {edge_id} vs node {node_id} should be at least {minimum}: {java_clearance}"
+            );
+            assert!(
+                rust_clearance + f64::EPSILON >= minimum,
+                "fixture {fixture_id} ({fixture_name}) Rust edge-node clearance for edge {edge_id} vs node {node_id} should be at least {minimum}: {rust_clearance}"
+            );
+        }
+    }
 }
