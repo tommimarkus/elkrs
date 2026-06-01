@@ -69,15 +69,22 @@ pub enum PropertyValue {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum CoreOption {
     Algorithm,
+    ConnectedComponentsCompaction,
+    ConsiderPortOrder,
     DebugMode,
     Direction,
     EdgeRouting,
+    FavorStraightEdges,
     FeedbackEdges,
+    FixedGraphSize,
+    ForceNodeModelOrder,
     GeneratePositionAndLayerIds,
+    HighDegreeNodeTreatment,
     HierarchyHandling,
     InteractiveLayout,
     LayoutPartitioning,
     MergeEdges,
+    SemiInteractiveCrossingMinimization,
     SpacingNodeNode,
     SpacingLayerNodeNode,
     SpacingEdgeNode,
@@ -95,6 +102,14 @@ impl Properties {
     pub fn set_algorithm(&mut self, algorithm: Algorithm) -> Option<PropertyValue> {
         self.values
             .insert(CoreOption::Algorithm, PropertyValue::Algorithm(algorithm))
+    }
+
+    pub fn set_connected_components_compaction(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::ConnectedComponentsCompaction, enabled)
+    }
+
+    pub fn set_consider_port_order(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::ConsiderPortOrder, enabled)
     }
 
     pub fn set_debug_mode(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -117,8 +132,24 @@ impl Properties {
         self.set_bool_option(CoreOption::FeedbackEdges, enabled)
     }
 
+    pub fn set_favor_straight_edges(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::FavorStraightEdges, enabled)
+    }
+
+    pub fn set_fixed_graph_size(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::FixedGraphSize, enabled)
+    }
+
+    pub fn set_force_node_model_order(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::ForceNodeModelOrder, enabled)
+    }
+
     pub fn set_generate_position_and_layer_ids(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::GeneratePositionAndLayerIds, enabled)
+    }
+
+    pub fn set_high_degree_node_treatment(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::HighDegreeNodeTreatment, enabled)
     }
 
     pub fn set_hierarchy_handling(
@@ -141,6 +172,13 @@ impl Properties {
 
     pub fn set_merge_edges(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::MergeEdges, enabled)
+    }
+
+    pub fn set_semi_interactive_crossing_minimization(
+        &mut self,
+        enabled: bool,
+    ) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::SemiInteractiveCrossingMinimization, enabled)
     }
 
     pub fn set_spacing_node_node(&mut self, spacing: f64) -> Option<PropertyValue> {
@@ -185,6 +223,17 @@ impl Properties {
         }
     }
 
+    pub fn connected_components_compaction(&self) -> bool {
+        self.bool_option(
+            CoreOption::ConnectedComponentsCompaction,
+            "connected components compaction",
+        )
+    }
+
+    pub fn consider_port_order(&self) -> bool {
+        self.bool_option(CoreOption::ConsiderPortOrder, "consider port order")
+    }
+
     pub fn debug_mode(&self) -> bool {
         self.bool_option(CoreOption::DebugMode, "debug mode")
     }
@@ -209,10 +258,29 @@ impl Properties {
         self.bool_option(CoreOption::FeedbackEdges, "feedback edges")
     }
 
+    pub fn favor_straight_edges(&self) -> bool {
+        self.bool_option(CoreOption::FavorStraightEdges, "favor straight edges")
+    }
+
+    pub fn fixed_graph_size(&self) -> bool {
+        self.bool_option(CoreOption::FixedGraphSize, "fixed graph size")
+    }
+
+    pub fn force_node_model_order(&self) -> bool {
+        self.bool_option(CoreOption::ForceNodeModelOrder, "force node model order")
+    }
+
     pub fn generate_position_and_layer_ids(&self) -> bool {
         self.bool_option(
             CoreOption::GeneratePositionAndLayerIds,
             "generate position and layer ids",
+        )
+    }
+
+    pub fn high_degree_node_treatment(&self) -> bool {
+        self.bool_option(
+            CoreOption::HighDegreeNodeTreatment,
+            "high degree node treatment",
         )
     }
 
@@ -236,6 +304,13 @@ impl Properties {
 
     pub fn merge_edges(&self) -> bool {
         self.bool_option(CoreOption::MergeEdges, "merge edges")
+    }
+
+    pub fn semi_interactive_crossing_minimization(&self) -> bool {
+        self.bool_option(
+            CoreOption::SemiInteractiveCrossingMinimization,
+            "semi-interactive crossing minimization",
+        )
     }
 
     pub fn spacing_node_node(&self) -> f64 {
@@ -347,23 +422,44 @@ mod tests {
         let mut properties = Properties::default();
 
         assert!(!properties.generate_position_and_layer_ids());
+        assert!(!properties.connected_components_compaction());
+        assert!(!properties.consider_port_order());
+        assert!(!properties.favor_straight_edges());
+        assert!(!properties.fixed_graph_size());
+        assert!(!properties.force_node_model_order());
+        assert!(!properties.high_degree_node_treatment());
         assert!(!properties.interactive_layout());
         assert!(!properties.layout_partitioning());
         assert!(!properties.merge_edges());
+        assert!(!properties.semi_interactive_crossing_minimization());
         assert!(!properties.topdown_layout());
         assert!(!properties.unnecessary_bendpoints());
 
         properties.set_generate_position_and_layer_ids(true);
+        properties.set_connected_components_compaction(true);
+        properties.set_consider_port_order(true);
+        properties.set_favor_straight_edges(true);
+        properties.set_fixed_graph_size(true);
+        properties.set_force_node_model_order(true);
+        properties.set_high_degree_node_treatment(true);
         properties.set_interactive_layout(true);
         properties.set_layout_partitioning(true);
         properties.set_merge_edges(true);
+        properties.set_semi_interactive_crossing_minimization(true);
         properties.set_topdown_layout(true);
         properties.set_unnecessary_bendpoints(true);
 
         assert!(properties.generate_position_and_layer_ids());
+        assert!(properties.connected_components_compaction());
+        assert!(properties.consider_port_order());
+        assert!(properties.favor_straight_edges());
+        assert!(properties.fixed_graph_size());
+        assert!(properties.force_node_model_order());
+        assert!(properties.high_degree_node_treatment());
         assert!(properties.interactive_layout());
         assert!(properties.layout_partitioning());
         assert!(properties.merge_edges());
+        assert!(properties.semi_interactive_crossing_minimization());
         assert!(properties.topdown_layout());
         assert!(properties.unnecessary_bendpoints());
     }

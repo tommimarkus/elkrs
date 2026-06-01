@@ -216,9 +216,16 @@ fn imports_parent_boolean_layout_options() {
           "id": "root",
           "layoutOptions": {
             "org.eclipse.elk.interactiveLayout": true,
+            "org.eclipse.elk.layered.compaction.connectedComponents": true,
+            "org.eclipse.elk.layered.considerModelOrder.portModelOrder": true,
+            "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder": true,
+            "org.eclipse.elk.layered.crossingMinimization.semiInteractive": true,
             "org.eclipse.elk.layered.generatePositionAndLayerIds": true,
+            "org.eclipse.elk.layered.highDegreeNodes.treatment": true,
             "org.eclipse.elk.layered.mergeEdges": true,
+            "org.eclipse.elk.layered.nodePlacement.favorStraightEdges": true,
             "org.eclipse.elk.layered.unnecessaryBendpoints": true,
+            "org.eclipse.elk.nodeSize.fixedGraphSize": true,
             "org.eclipse.elk.partitioning.activate": true,
             "org.eclipse.elk.topdownLayout": true
           }
@@ -242,9 +249,16 @@ fn imports_disabled_parent_boolean_layout_options() {
           "id": "root",
           "layoutOptions": {
             "org.eclipse.elk.interactiveLayout": false,
+            "org.eclipse.elk.layered.compaction.connectedComponents": false,
+            "org.eclipse.elk.layered.considerModelOrder.portModelOrder": false,
+            "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder": false,
+            "org.eclipse.elk.layered.crossingMinimization.semiInteractive": false,
             "org.eclipse.elk.layered.generatePositionAndLayerIds": false,
+            "org.eclipse.elk.layered.highDegreeNodes.treatment": false,
             "org.eclipse.elk.layered.mergeEdges": false,
+            "org.eclipse.elk.layered.nodePlacement.favorStraightEdges": false,
             "org.eclipse.elk.layered.unnecessaryBendpoints": false,
+            "org.eclipse.elk.nodeSize.fixedGraphSize": false,
             "org.eclipse.elk.partitioning.activate": false,
             "org.eclipse.elk.topdownLayout": false
           }
@@ -293,9 +307,16 @@ fn imports_node_parent_boolean_layout_options() {
               "id": "parent",
               "layoutOptions": {
                 "org.eclipse.elk.interactiveLayout": true,
+                "org.eclipse.elk.layered.compaction.connectedComponents": true,
+                "org.eclipse.elk.layered.considerModelOrder.portModelOrder": true,
+                "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder": true,
+                "org.eclipse.elk.layered.crossingMinimization.semiInteractive": true,
                 "org.eclipse.elk.layered.generatePositionAndLayerIds": true,
+                "org.eclipse.elk.layered.highDegreeNodes.treatment": true,
                 "org.eclipse.elk.layered.mergeEdges": true,
+                "org.eclipse.elk.layered.nodePlacement.favorStraightEdges": true,
                 "org.eclipse.elk.layered.unnecessaryBendpoints": true,
+                "org.eclipse.elk.nodeSize.fixedGraphSize": true,
                 "org.eclipse.elk.partitioning.activate": true,
                 "org.eclipse.elk.topdownLayout": true
               }
@@ -325,9 +346,16 @@ fn imports_disabled_node_parent_boolean_layout_options() {
               "id": "parent",
               "layoutOptions": {
                 "org.eclipse.elk.interactiveLayout": false,
+                "org.eclipse.elk.layered.compaction.connectedComponents": false,
+                "org.eclipse.elk.layered.considerModelOrder.portModelOrder": false,
+                "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder": false,
+                "org.eclipse.elk.layered.crossingMinimization.semiInteractive": false,
                 "org.eclipse.elk.layered.generatePositionAndLayerIds": false,
+                "org.eclipse.elk.layered.highDegreeNodes.treatment": false,
                 "org.eclipse.elk.layered.mergeEdges": false,
+                "org.eclipse.elk.layered.nodePlacement.favorStraightEdges": false,
                 "org.eclipse.elk.layered.unnecessaryBendpoints": false,
+                "org.eclipse.elk.nodeSize.fixedGraphSize": false,
                 "org.eclipse.elk.partitioning.activate": false,
                 "org.eclipse.elk.topdownLayout": false
               }
@@ -1117,20 +1145,48 @@ fn serialized_value(graph: &ElkGraph) -> Value {
     serde_json::from_str(&to_string_pretty(graph).unwrap()).unwrap()
 }
 
-fn parent_boolean_options() -> [(&'static str, CoreOption); 6] {
+fn parent_boolean_options() -> [(&'static str, CoreOption); 13] {
     [
         (
             "org.eclipse.elk.interactiveLayout",
             CoreOption::InteractiveLayout,
         ),
         (
+            "org.eclipse.elk.layered.compaction.connectedComponents",
+            CoreOption::ConnectedComponentsCompaction,
+        ),
+        (
+            "org.eclipse.elk.layered.considerModelOrder.portModelOrder",
+            CoreOption::ConsiderPortOrder,
+        ),
+        (
+            "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder",
+            CoreOption::ForceNodeModelOrder,
+        ),
+        (
+            "org.eclipse.elk.layered.crossingMinimization.semiInteractive",
+            CoreOption::SemiInteractiveCrossingMinimization,
+        ),
+        (
             "org.eclipse.elk.layered.generatePositionAndLayerIds",
             CoreOption::GeneratePositionAndLayerIds,
         ),
+        (
+            "org.eclipse.elk.layered.highDegreeNodes.treatment",
+            CoreOption::HighDegreeNodeTreatment,
+        ),
         ("org.eclipse.elk.layered.mergeEdges", CoreOption::MergeEdges),
+        (
+            "org.eclipse.elk.layered.nodePlacement.favorStraightEdges",
+            CoreOption::FavorStraightEdges,
+        ),
         (
             "org.eclipse.elk.layered.unnecessaryBendpoints",
             CoreOption::UnnecessaryBendpoints,
+        ),
+        (
+            "org.eclipse.elk.nodeSize.fixedGraphSize",
+            CoreOption::FixedGraphSize,
         ),
         (
             "org.eclipse.elk.partitioning.activate",
@@ -1144,18 +1200,37 @@ fn set_parent_boolean_options(graph: &mut ElkGraph, enabled: bool) {
     graph.properties.set_interactive_layout(enabled);
     graph
         .properties
+        .set_connected_components_compaction(enabled);
+    graph.properties.set_consider_port_order(enabled);
+    graph.properties.set_force_node_model_order(enabled);
+    graph
+        .properties
+        .set_semi_interactive_crossing_minimization(enabled);
+    graph
+        .properties
         .set_generate_position_and_layer_ids(enabled);
+    graph.properties.set_high_degree_node_treatment(enabled);
     graph.properties.set_merge_edges(enabled);
+    graph.properties.set_favor_straight_edges(enabled);
     graph.properties.set_unnecessary_bendpoints(enabled);
+    graph.properties.set_fixed_graph_size(enabled);
     graph.properties.set_layout_partitioning(enabled);
     graph.properties.set_topdown_layout(enabled);
 }
 
 fn set_parent_boolean_node_options(node: &mut ElkNode, enabled: bool) {
     node.properties.set_interactive_layout(enabled);
+    node.properties.set_connected_components_compaction(enabled);
+    node.properties.set_consider_port_order(enabled);
+    node.properties.set_force_node_model_order(enabled);
+    node.properties
+        .set_semi_interactive_crossing_minimization(enabled);
     node.properties.set_generate_position_and_layer_ids(enabled);
+    node.properties.set_high_degree_node_treatment(enabled);
     node.properties.set_merge_edges(enabled);
+    node.properties.set_favor_straight_edges(enabled);
     node.properties.set_unnecessary_bendpoints(enabled);
+    node.properties.set_fixed_graph_size(enabled);
     node.properties.set_layout_partitioning(enabled);
     node.properties.set_topdown_layout(enabled);
 }

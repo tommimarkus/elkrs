@@ -61,6 +61,26 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "Interactive layout is parsed and diagnosed; interactive placement constraints are not implemented yet",
     ),
+    "org.eclipse.elk.layered.compaction.connectedComponents": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Connected-components compaction is parsed and diagnosed; component compaction semantics are not implemented yet",
+    ),
+    "org.eclipse.elk.layered.considerModelOrder.portModelOrder": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Port model order is parsed and diagnosed; port-order-aware crossing behavior is not implemented yet",
+    ),
+    "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Forced node model order is parsed and diagnosed; crossing minimization constraints are not implemented yet",
+    ),
+    "org.eclipse.elk.layered.crossingMinimization.semiInteractive": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Semi-interactive crossing minimization is parsed and diagnosed; position-derived ordering is not implemented yet",
+    ),
     "org.eclipse.elk.layered.feedbackEdges": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked feedback_edges`; `cargo test -p elkrs-json --test json_partitions --locked feedback_edges`; `cargo test -p elkrs-json --test json_errors --locked feedback_edges`",
@@ -71,10 +91,20 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "Position and layer ID generation is parsed and diagnosed; generated IDs are not emitted yet",
     ),
+    "org.eclipse.elk.layered.highDegreeNodes.treatment": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "High degree node treatment is parsed and diagnosed; high-degree layer assignment behavior is not implemented yet",
+    ),
     "org.eclipse.elk.layered.mergeEdges": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "Edge merging is parsed and diagnosed; merged routing and implicit ports are not implemented yet",
+    ),
+    "org.eclipse.elk.layered.nodePlacement.favorStraightEdges": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Favoring straight edges is parsed and diagnosed; node placement balancing behavior is not implemented yet",
     ),
     "org.eclipse.elk.layered.unnecessaryBendpoints": (
         "diagnostic",
@@ -120,6 +150,11 @@ STATUS_OVERRIDES = {
         "unsupported",
         "No public option model yet",
         "Parity: labels and node sizing model",
+    ),
+    "org.eclipse.elk.nodeSize.fixedGraphSize": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Fixed graph size is parsed and diagnosed; node-size semantics are not implemented yet",
     ),
     "org.eclipse.elk.partitioning.activate": (
         "diagnostic",

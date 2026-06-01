@@ -14,13 +14,21 @@ use thiserror::Error;
 
 const ALGORITHM_KEY: &str = "org.eclipse.elk.algorithm";
 const LEGACY_ALGORITHM_KEY: &str = "elk.algorithm";
+const CONNECTED_COMPONENTS_COMPACTION_KEY: &str =
+    "org.eclipse.elk.layered.compaction.connectedComponents";
+const CONSIDER_PORT_ORDER_KEY: &str = "org.eclipse.elk.layered.considerModelOrder.portModelOrder";
 const DEBUG_MODE_KEY: &str = "org.eclipse.elk.debugMode";
 const DIRECTION_KEY: &str = "org.eclipse.elk.direction";
 const LEGACY_DIRECTION_KEY: &str = "elk.direction";
 const EDGE_ROUTING_KEY: &str = "org.eclipse.elk.edgeRouting";
+const FAVOR_STRAIGHT_EDGES_KEY: &str = "org.eclipse.elk.layered.nodePlacement.favorStraightEdges";
 const FEEDBACK_EDGES_KEY: &str = "org.eclipse.elk.layered.feedbackEdges";
+const FIXED_GRAPH_SIZE_KEY: &str = "org.eclipse.elk.nodeSize.fixedGraphSize";
+const FORCE_NODE_MODEL_ORDER_KEY: &str =
+    "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder";
 const GENERATE_POSITION_AND_LAYER_IDS_KEY: &str =
     "org.eclipse.elk.layered.generatePositionAndLayerIds";
+const HIGH_DEGREE_NODE_TREATMENT_KEY: &str = "org.eclipse.elk.layered.highDegreeNodes.treatment";
 const HIERARCHY_HANDLING_KEY: &str = "org.eclipse.elk.hierarchyHandling";
 const INTERACTIVE_LAYOUT_KEY: &str = "org.eclipse.elk.interactiveLayout";
 const LAYOUT_PARTITIONING_KEY: &str = "org.eclipse.elk.partitioning.activate";
@@ -35,6 +43,8 @@ const EDGE_EDGE_SPACING_KEY: &str = "org.eclipse.elk.spacing.edgeEdge";
 const LEGACY_EDGE_EDGE_SPACING_KEY: &str = "elk.spacing.edgeEdge";
 const PORT_SIDE_KEY: &str = "org.eclipse.elk.port.side";
 const LEGACY_PORT_SIDE_KEY: &str = "side";
+const SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY: &str =
+    "org.eclipse.elk.layered.crossingMinimization.semiInteractive";
 const TOPDOWN_LAYOUT_KEY: &str = "org.eclipse.elk.topdownLayout";
 const UNNECESSARY_BENDPOINTS_KEY: &str = "org.eclipse.elk.layered.unnecessaryBendpoints";
 
@@ -355,6 +365,12 @@ fn apply_layout_options(
             ALGORITHM_KEY | LEGACY_ALGORITHM_KEY => {
                 graph.properties.set_algorithm(parse_algorithm(value, key)?)
             }
+            CONNECTED_COMPONENTS_COMPACTION_KEY => graph
+                .properties
+                .set_connected_components_compaction(boolean(value, key)?),
+            CONSIDER_PORT_ORDER_KEY => graph
+                .properties
+                .set_consider_port_order(boolean(value, key)?),
             DEBUG_MODE_KEY => graph.properties.set_debug_mode(boolean(value, key)?),
             EDGE_ROUTING_KEY => {
                 if let Some(edge_routing) = parse_edge_routing(value, key)? {
@@ -363,10 +379,20 @@ fn apply_layout_options(
                     None
                 }
             }
+            FAVOR_STRAIGHT_EDGES_KEY => graph
+                .properties
+                .set_favor_straight_edges(boolean(value, key)?),
             FEEDBACK_EDGES_KEY => graph.properties.set_feedback_edges(boolean(value, key)?),
+            FIXED_GRAPH_SIZE_KEY => graph.properties.set_fixed_graph_size(boolean(value, key)?),
+            FORCE_NODE_MODEL_ORDER_KEY => graph
+                .properties
+                .set_force_node_model_order(boolean(value, key)?),
             GENERATE_POSITION_AND_LAYER_IDS_KEY => graph
                 .properties
                 .set_generate_position_and_layer_ids(boolean(value, key)?),
+            HIGH_DEGREE_NODE_TREATMENT_KEY => graph
+                .properties
+                .set_high_degree_node_treatment(boolean(value, key)?),
             HIERARCHY_HANDLING_KEY => {
                 if let Some(hierarchy_handling) = parse_hierarchy_handling(value, key)? {
                     graph.properties.set_hierarchy_handling(hierarchy_handling)
@@ -396,6 +422,9 @@ fn apply_layout_options(
             EDGE_EDGE_SPACING_KEY | LEGACY_EDGE_EDGE_SPACING_KEY => graph
                 .properties
                 .set_spacing_edge_edge(non_negative_number(value, key)?),
+            SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY => graph
+                .properties
+                .set_semi_interactive_crossing_minimization(boolean(value, key)?),
             TOPDOWN_LAYOUT_KEY => graph.properties.set_topdown_layout(boolean(value, key)?),
             UNNECESSARY_BENDPOINTS_KEY => graph
                 .properties
@@ -414,6 +443,18 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
             serde_json::Value::String(format_algorithm(algorithm)),
         );
     }
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
+        CoreOption::ConnectedComponentsCompaction,
+        CONNECTED_COMPONENTS_COMPACTION_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
+        CoreOption::ConsiderPortOrder,
+        CONSIDER_PORT_ORDER_KEY,
+    );
     if let Some(PropertyValue::Bool(debug_mode)) = graph.properties.get(CoreOption::DebugMode) {
         options.insert(
             DEBUG_MODE_KEY.to_string(),
@@ -434,6 +475,12 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
             serde_json::Value::String(format_edge_routing(*edge_routing).to_string()),
         );
     }
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
+        CoreOption::FavorStraightEdges,
+        FAVOR_STRAIGHT_EDGES_KEY,
+    );
     if let Some(PropertyValue::Bool(feedback_edges)) =
         graph.properties.get(CoreOption::FeedbackEdges)
     {
@@ -445,8 +492,26 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     insert_boolean_option(
         &mut options,
         &graph.properties,
+        CoreOption::FixedGraphSize,
+        FIXED_GRAPH_SIZE_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
+        CoreOption::ForceNodeModelOrder,
+        FORCE_NODE_MODEL_ORDER_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
         CoreOption::GeneratePositionAndLayerIds,
         GENERATE_POSITION_AND_LAYER_IDS_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
+        CoreOption::HighDegreeNodeTreatment,
+        HIGH_DEGREE_NODE_TREATMENT_KEY,
     );
     if let Some(PropertyValue::HierarchyHandling(hierarchy_handling)) =
         graph.properties.get(CoreOption::HierarchyHandling)
@@ -491,6 +556,12 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     insert_boolean_option(
         &mut options,
         &graph.properties,
+        CoreOption::SemiInteractiveCrossingMinimization,
+        SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
         CoreOption::TopdownLayout,
         TOPDOWN_LAYOUT_KEY,
     );
@@ -509,6 +580,14 @@ fn apply_node_layout_options(
 ) -> Result<(), JsonError> {
     for (key, value) in options {
         match key.as_str() {
+            CONNECTED_COMPONENTS_COMPACTION_KEY => {
+                node.properties
+                    .set_connected_components_compaction(boolean(value, key)?);
+            }
+            CONSIDER_PORT_ORDER_KEY => {
+                node.properties
+                    .set_consider_port_order(boolean(value, key)?);
+            }
             DEBUG_MODE_KEY => {
                 node.properties.set_debug_mode(boolean(value, key)?);
             }
@@ -517,12 +596,27 @@ fn apply_node_layout_options(
                     node.properties.set_edge_routing(edge_routing);
                 }
             }
+            FAVOR_STRAIGHT_EDGES_KEY => {
+                node.properties
+                    .set_favor_straight_edges(boolean(value, key)?);
+            }
             FEEDBACK_EDGES_KEY => {
                 node.properties.set_feedback_edges(boolean(value, key)?);
+            }
+            FIXED_GRAPH_SIZE_KEY => {
+                node.properties.set_fixed_graph_size(boolean(value, key)?);
+            }
+            FORCE_NODE_MODEL_ORDER_KEY => {
+                node.properties
+                    .set_force_node_model_order(boolean(value, key)?);
             }
             GENERATE_POSITION_AND_LAYER_IDS_KEY => {
                 node.properties
                     .set_generate_position_and_layer_ids(boolean(value, key)?);
+            }
+            HIGH_DEGREE_NODE_TREATMENT_KEY => {
+                node.properties
+                    .set_high_degree_node_treatment(boolean(value, key)?);
             }
             HIERARCHY_HANDLING_KEY => {
                 if let Some(hierarchy_handling) = parse_hierarchy_handling(value, key)? {
@@ -539,6 +633,10 @@ fn apply_node_layout_options(
             MERGE_EDGES_KEY => {
                 node.properties.set_merge_edges(boolean(value, key)?);
             }
+            SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY => {
+                node.properties
+                    .set_semi_interactive_crossing_minimization(boolean(value, key)?);
+            }
             TOPDOWN_LAYOUT_KEY => {
                 node.properties.set_topdown_layout(boolean(value, key)?);
             }
@@ -554,6 +652,18 @@ fn apply_node_layout_options(
 
 fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Value> {
     let mut options = BTreeMap::new();
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::ConnectedComponentsCompaction,
+        CONNECTED_COMPONENTS_COMPACTION_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::ConsiderPortOrder,
+        CONSIDER_PORT_ORDER_KEY,
+    );
     if let Some(PropertyValue::Bool(debug_mode)) = node.properties.get(CoreOption::DebugMode) {
         options.insert(
             DEBUG_MODE_KEY.to_string(),
@@ -568,6 +678,12 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
             serde_json::Value::String(format_edge_routing(*edge_routing).to_string()),
         );
     }
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::FavorStraightEdges,
+        FAVOR_STRAIGHT_EDGES_KEY,
+    );
     if let Some(PropertyValue::Bool(feedback_edges)) =
         node.properties.get(CoreOption::FeedbackEdges)
     {
@@ -579,8 +695,26 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
     insert_boolean_option(
         &mut options,
         &node.properties,
+        CoreOption::FixedGraphSize,
+        FIXED_GRAPH_SIZE_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::ForceNodeModelOrder,
+        FORCE_NODE_MODEL_ORDER_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
         CoreOption::GeneratePositionAndLayerIds,
         GENERATE_POSITION_AND_LAYER_IDS_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::HighDegreeNodeTreatment,
+        HIGH_DEGREE_NODE_TREATMENT_KEY,
     );
     if let Some(PropertyValue::HierarchyHandling(hierarchy_handling)) =
         node.properties.get(CoreOption::HierarchyHandling)
@@ -604,6 +738,12 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         &node.properties,
         CoreOption::MergeEdges,
         MERGE_EDGES_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::SemiInteractiveCrossingMinimization,
+        SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY,
     );
     insert_boolean_option(
         &mut options,

@@ -7,15 +7,31 @@ use elkrs_core::options::{
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
 const UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
+    (
+        CoreOption::ConnectedComponentsCompaction,
+        "connected components compaction",
+    ),
+    (CoreOption::ConsiderPortOrder, "consider port order"),
     (CoreOption::DebugMode, "debug mode"),
     (CoreOption::FeedbackEdges, "feedback edges"),
+    (CoreOption::FavorStraightEdges, "favor straight edges"),
+    (CoreOption::FixedGraphSize, "fixed graph size"),
+    (CoreOption::ForceNodeModelOrder, "force node model order"),
     (
         CoreOption::GeneratePositionAndLayerIds,
         "generate position and layer IDs",
     ),
+    (
+        CoreOption::HighDegreeNodeTreatment,
+        "high degree node treatment",
+    ),
     (CoreOption::InteractiveLayout, "interactive layout"),
     (CoreOption::LayoutPartitioning, "layout partitioning"),
     (CoreOption::MergeEdges, "merge edges"),
+    (
+        CoreOption::SemiInteractiveCrossingMinimization,
+        "semi-interactive crossing minimization",
+    ),
     (CoreOption::TopdownLayout, "topdown layout"),
     (CoreOption::UnnecessaryBendpoints, "unnecessary bendpoints"),
 ];
