@@ -37,6 +37,8 @@ impl Algorithm {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EdgeRouting {
     Orthogonal,
+    Polyline,
+    Splines,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -238,9 +240,9 @@ mod tests {
         let mut properties = Properties::default();
 
         assert_eq!(properties.edge_routing(), EdgeRouting::Orthogonal);
-        properties.set_edge_routing(EdgeRouting::Orthogonal);
+        properties.set_edge_routing(EdgeRouting::Polyline);
 
-        assert_eq!(properties.edge_routing(), EdgeRouting::Orthogonal);
+        assert_eq!(properties.edge_routing(), EdgeRouting::Polyline);
     }
 
     #[test]

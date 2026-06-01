@@ -346,9 +346,13 @@ fn apply_layout_options(
             ALGORITHM_KEY | LEGACY_ALGORITHM_KEY => {
                 graph.properties.set_algorithm(parse_algorithm(value, key)?)
             }
-            EDGE_ROUTING_KEY => graph
-                .properties
-                .set_edge_routing(parse_edge_routing(value, key)?),
+            EDGE_ROUTING_KEY => {
+                if let Some(edge_routing) = parse_edge_routing(value, key)? {
+                    graph.properties.set_edge_routing(edge_routing)
+                } else {
+                    None
+                }
+            }
             HIERARCHY_HANDLING_KEY => {
                 if let Some(hierarchy_handling) = parse_hierarchy_handling(value, key)? {
                     graph.properties.set_hierarchy_handling(hierarchy_handling)
@@ -430,6 +434,11 @@ fn apply_node_layout_options(
 ) -> Result<(), JsonError> {
     for (key, value) in options {
         match key.as_str() {
+            EDGE_ROUTING_KEY => {
+                if let Some(edge_routing) = parse_edge_routing(value, key)? {
+                    node.properties.set_edge_routing(edge_routing);
+                }
+            }
             HIERARCHY_HANDLING_KEY => {
                 if let Some(hierarchy_handling) = parse_hierarchy_handling(value, key)? {
                     node.properties.set_hierarchy_handling(hierarchy_handling);
@@ -443,6 +452,14 @@ fn apply_node_layout_options(
 
 fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Value> {
     let mut options = BTreeMap::new();
+    if let Some(PropertyValue::EdgeRouting(edge_routing)) =
+        node.properties.get(CoreOption::EdgeRouting)
+    {
+        options.insert(
+            EDGE_ROUTING_KEY.to_string(),
+            serde_json::Value::String(format_edge_routing(*edge_routing).to_string()),
+        );
+    }
     if let Some(PropertyValue::HierarchyHandling(hierarchy_handling)) =
         node.properties.get(CoreOption::HierarchyHandling)
     {
@@ -561,9 +578,15 @@ fn parse_direction(value: &serde_json::Value, key: &str) -> Result<Direction, Js
     }
 }
 
-fn parse_edge_routing(value: &serde_json::Value, key: &str) -> Result<EdgeRouting, JsonError> {
+fn parse_edge_routing(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<Option<EdgeRouting>, JsonError> {
     match string(value, key)? {
-        "ORTHOGONAL" => Ok(EdgeRouting::Orthogonal),
+        "ORTHOGONAL" => Ok(Some(EdgeRouting::Orthogonal)),
+        "POLYLINE" => Ok(Some(EdgeRouting::Polyline)),
+        "SPLINES" => Ok(Some(EdgeRouting::Splines)),
+        "UNDEFINED" => Ok(None),
         other => Err(JsonError::Invalid(format!(
             "unsupported {key} value: {other}"
         ))),
@@ -594,6 +617,8 @@ fn format_hierarchy_handling(hierarchy_handling: HierarchyHandling) -> &'static 
 fn format_edge_routing(edge_routing: EdgeRouting) -> &'static str {
     match edge_routing {
         EdgeRouting::Orthogonal => "ORTHOGONAL",
+        EdgeRouting::Polyline => "POLYLINE",
+        EdgeRouting::Splines => "SPLINES",
     }
 }
 

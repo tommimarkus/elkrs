@@ -429,7 +429,7 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             assertions: &[],
         },
         ParityFixture {
-            id: "LAYERED-META-OPTION-010",
+            id: "LAYERED-P5-001",
             name: "edge-routing-orthogonal",
             status: ParityFixtureStatus::JavaComparable,
             build: edge_routing_orthogonal,

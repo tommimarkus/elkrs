@@ -248,6 +248,46 @@ fn imports_java_edge_routing_layout_option() {
 }
 
 #[test]
+fn imports_non_orthogonal_edge_routing_layout_options_for_validation() {
+    let polyline = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.edgeRouting": "POLYLINE" }
+        }"#,
+    )
+    .unwrap();
+    let splines = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.edgeRouting": "SPLINES" }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        polyline.properties.get(CoreOption::EdgeRouting),
+        Some(&PropertyValue::EdgeRouting(EdgeRouting::Polyline))
+    );
+    assert_eq!(
+        splines.properties.get(CoreOption::EdgeRouting),
+        Some(&PropertyValue::EdgeRouting(EdgeRouting::Splines))
+    );
+}
+
+#[test]
+fn imports_undefined_edge_routing_as_unset() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.edgeRouting": "UNDEFINED" }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(graph.properties.get(CoreOption::EdgeRouting), None);
+}
+
+#[test]
 fn serializes_edge_routing_with_java_key() {
     let mut graph = ElkGraph::new("root");
     graph.properties.set_edge_routing(EdgeRouting::Orthogonal);
@@ -261,6 +301,95 @@ fn serializes_edge_routing_with_java_key() {
         json["layoutOptions"].get("elk.edgeRouting"),
         None,
         "short edge routing key should not be emitted"
+    );
+}
+
+#[test]
+fn serializes_non_orthogonal_edge_routing_with_java_key() {
+    let mut polyline = ElkGraph::new("polyline");
+    polyline.properties.set_edge_routing(EdgeRouting::Polyline);
+    let mut splines = ElkGraph::new("splines");
+    splines.properties.set_edge_routing(EdgeRouting::Splines);
+
+    let polyline_json = serialized_value(&polyline);
+    assert_eq!(
+        polyline_json["layoutOptions"]["org.eclipse.elk.edgeRouting"],
+        Value::String("POLYLINE".to_owned())
+    );
+    let splines_json = serialized_value(&splines);
+    assert_eq!(
+        splines_json["layoutOptions"]["org.eclipse.elk.edgeRouting"],
+        Value::String("SPLINES".to_owned())
+    );
+}
+
+#[test]
+fn imports_node_edge_routing_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "parent",
+              "layoutOptions": { "org.eclipse.elk.edgeRouting": "POLYLINE" }
+            },
+            {
+              "id": "child",
+              "layoutOptions": { "org.eclipse.elk.edgeRouting": "SPLINES" }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.nodes[&ElementId::from("parent")]
+            .properties
+            .get(CoreOption::EdgeRouting),
+        Some(&PropertyValue::EdgeRouting(EdgeRouting::Polyline))
+    );
+    assert_eq!(
+        graph.nodes[&ElementId::from("child")]
+            .properties
+            .get(CoreOption::EdgeRouting),
+        Some(&PropertyValue::EdgeRouting(EdgeRouting::Splines))
+    );
+}
+
+#[test]
+fn imports_node_undefined_edge_routing_as_unset() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.edgeRouting": "UNDEFINED" }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.nodes[&ElementId::from("node")]
+            .properties
+            .get(CoreOption::EdgeRouting),
+        None
+    );
+}
+
+#[test]
+fn serializes_node_edge_routing_with_java_key() {
+    let mut node = ElkNode::new("node");
+    node.properties.set_edge_routing(EdgeRouting::Splines);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["children"][0]["layoutOptions"]["org.eclipse.elk.edgeRouting"],
+        Value::String("SPLINES".to_owned())
     );
 }
 

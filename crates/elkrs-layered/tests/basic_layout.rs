@@ -4,7 +4,7 @@ use elkrs_core::diagnostic::Severity;
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
-use elkrs_core::options::{Algorithm, Direction, HierarchyHandling, PortSide};
+use elkrs_core::options::{Algorithm, Direction, EdgeRouting, HierarchyHandling, PortSide};
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
 use support::quality::major_axis_edge_node_clearance;
@@ -778,6 +778,40 @@ fn layered_layout_reports_node_unsupported_hierarchy_handling() {
         diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
             && diagnostic.severity == Severity::Warning
             && diagnostic.message.contains("hierarchy handling")
+            && diagnostic.message.contains("child")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_unsupported_non_orthogonal_edge_routing() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_edge_routing(EdgeRouting::Polyline);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("edge routing")
+            && diagnostic.message.contains("Polyline")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_node_unsupported_non_orthogonal_edge_routing() {
+    let mut graph = ElkGraph::new("root");
+    let mut child = node("child", 60.0, 30.0);
+    child.properties.set_edge_routing(EdgeRouting::Splines);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("edge routing")
+            && diagnostic.message.contains("Splines")
             && diagnostic.message.contains("child")
     }));
 }

@@ -1,7 +1,7 @@
 use elkrs_core::diagnostic::Diagnostic;
 use elkrs_core::graph::{ElkGraph, ElkNode};
 use elkrs_core::layout::LayoutError;
-use elkrs_core::options::{Algorithm, CoreOption, HierarchyHandling, Properties};
+use elkrs_core::options::{Algorithm, CoreOption, EdgeRouting, HierarchyHandling, Properties};
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
 
@@ -22,6 +22,10 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
     }
 
     let mut diagnostics = Vec::new();
+    match properties.edge_routing() {
+        EdgeRouting::Orthogonal => {}
+        edge_routing => diagnostics.push(unsupported_edge_routing_diagnostic(edge_routing, None)),
+    }
     if matches!(
         properties.hierarchy_handling(),
         HierarchyHandling::SeparateChildren
@@ -34,7 +38,32 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
     Ok(diagnostics)
 }
 
+fn unsupported_edge_routing_diagnostic(
+    edge_routing: EdgeRouting,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "edge routing {edge_routing:?} on node {node_id} is recognized but not implemented by elkrs-layered yet; using orthogonal routing"
+        )
+    } else {
+        format!(
+            "edge routing {edge_routing:?} is recognized but not implemented by elkrs-layered yet; using orthogonal routing"
+        )
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
 fn collect_node_hierarchy_diagnostics(node: &ElkNode, diagnostics: &mut Vec<Diagnostic>) {
+    match node.properties.edge_routing() {
+        EdgeRouting::Orthogonal => {}
+        edge_routing => {
+            diagnostics.push(unsupported_edge_routing_diagnostic(
+                edge_routing,
+                Some(node.id.as_str()),
+            ));
+        }
+    }
     if matches!(
         node.properties.hierarchy_handling(),
         HierarchyHandling::SeparateChildren

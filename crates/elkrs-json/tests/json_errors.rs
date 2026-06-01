@@ -97,9 +97,9 @@ fn unsupported_edge_routing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{
           "id": "root",
-          "layoutOptions": { "org.eclipse.elk.edgeRouting": "SPLINES" }
+          "layoutOptions": { "org.eclipse.elk.edgeRouting": "BEZIER" }
         }"#,
-        "unsupported org.eclipse.elk.edgeRouting value: SPLINES",
+        "unsupported org.eclipse.elk.edgeRouting value: BEZIER",
     );
 }
 
@@ -109,6 +109,38 @@ fn non_string_edge_routing_returns_invalid_error() {
         r#"{
           "id": "root",
           "layoutOptions": { "org.eclipse.elk.edgeRouting": 7 }
+        }"#,
+        "org.eclipse.elk.edgeRouting must be a string",
+    );
+}
+
+#[test]
+fn unsupported_node_edge_routing_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.edgeRouting": "BEZIER" }
+            }
+          ]
+        }"#,
+        "unsupported org.eclipse.elk.edgeRouting value: BEZIER",
+    );
+}
+
+#[test]
+fn non_string_node_edge_routing_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.edgeRouting": 7 }
+            }
+          ]
         }"#,
         "org.eclipse.elk.edgeRouting must be a string",
     );
