@@ -84,11 +84,11 @@ or the metadata artifact, then regenerate the section.
 | ID | Area | ELK Layered capability | Current status | Current proof | Next plan |
 | --- | --- | --- | --- | --- | --- |
 | LAYERED-META-FEATURE-001 | Graph feature metadata | `CLUSTERS` | `unsupported` | Generated from Java ELK v0.11.0 supported feature metadata; no Rust proof mapped yet | Parity: compound, hierarchy, and non-plugin cluster behavior |
-| LAYERED-META-FEATURE-002 | Graph feature metadata | `COMPOUND` | `semantic` | `cargo test -p elkrs-layered --test quality --locked nested_group_fixture_has_contained_children` | Parity: compound, hierarchy, and non-plugin cluster behavior |
+| LAYERED-META-FEATURE-002 | Graph feature metadata | `COMPOUND` | `java-parity` | `cargo test -p elkrs-layered --test quality --locked nested_group_fixture_has_contained_children` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete for nested containment semantics |
 | LAYERED-META-FEATURE-003 | Graph feature metadata | `EDGE_LABELS` | `parsed` | `cargo test -p elkrs-json --test json_roundtrip --locked round_trips_node_and_edge_label_text`; layout does not place edge labels yet | Parity: labels and node sizing model |
 | LAYERED-META-FEATURE-004 | Graph feature metadata | `INSIDE_SELF_LOOPS` | `unsupported` | Inside self-loop option semantics are not represented in typed options yet | Parity: edge routing variants, junctions, and merging |
 | LAYERED-META-FEATURE-005 | Graph feature metadata | `MULTI_EDGES` | `java-parity` | `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete |
-| LAYERED-META-FEATURE-006 | Graph feature metadata | `PORTS` | `semantic` | `cargo test -p elkrs-layered --test quality --locked port_heavy_fixture_preserves_port_anchor_fidelity` | Parity: port constraints and ordering |
+| LAYERED-META-FEATURE-006 | Graph feature metadata | `PORTS` | `java-parity` | `cargo test -p elkrs-layered --test quality --locked port_heavy_fixture_preserves_port_anchor_fidelity` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete for explicit port endpoint anchors |
 | LAYERED-META-FEATURE-007 | Graph feature metadata | `SELF_LOOPS` | `java-parity` | `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete |
 
 ### Known Algorithm Options

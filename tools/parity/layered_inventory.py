@@ -96,9 +96,9 @@ FEATURE_OVERRIDES = {
         "Parity: compound, hierarchy, and non-plugin cluster behavior",
     ),
     "COMPOUND": (
-        "semantic",
-        "`cargo test -p elkrs-layered --test quality --locked nested_group_fixture_has_contained_children`",
-        "Parity: compound, hierarchy, and non-plugin cluster behavior",
+        "java-parity",
+        '`cargo test -p elkrs-layered --test quality --locked nested_group_fixture_has_contained_children` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for nested containment semantics",
     ),
     "EDGE_LABELS": (
         "parsed",
@@ -121,9 +121,9 @@ FEATURE_OVERRIDES = {
         "Complete",
     ),
     "PORTS": (
-        "semantic",
-        "`cargo test -p elkrs-layered --test quality --locked port_heavy_fixture_preserves_port_anchor_fidelity`",
-        "Parity: port constraints and ordering",
+        "java-parity",
+        '`cargo test -p elkrs-layered --test quality --locked port_heavy_fixture_preserves_port_anchor_fidelity` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for explicit port endpoint anchors",
     ),
     "SELF_LOOPS": (
         "java-parity",
