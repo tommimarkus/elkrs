@@ -22,6 +22,9 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
     }
 
     let mut diagnostics = Vec::new();
+    if properties.debug_mode() {
+        diagnostics.push(unsupported_debug_mode_diagnostic(None));
+    }
     match properties.edge_routing() {
         EdgeRouting::Orthogonal => {}
         edge_routing => diagnostics.push(unsupported_edge_routing_diagnostic(edge_routing, None)),
@@ -36,6 +39,17 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
     validate_non_negative_spacing(properties, CoreOption::SpacingEdgeEdge, "edge-edge spacing")?;
 
     Ok(diagnostics)
+}
+
+fn unsupported_debug_mode_diagnostic(node_id: Option<&str>) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "debug mode on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        "debug mode is recognized but not implemented by elkrs-layered yet".to_owned()
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
 
 fn unsupported_edge_routing_diagnostic(
@@ -55,6 +69,9 @@ fn unsupported_edge_routing_diagnostic(
 }
 
 fn collect_node_hierarchy_diagnostics(node: &ElkNode, diagnostics: &mut Vec<Diagnostic>) {
+    if node.properties.debug_mode() {
+        diagnostics.push(unsupported_debug_mode_diagnostic(Some(node.id.as_str())));
+    }
     match node.properties.edge_routing() {
         EdgeRouting::Orthogonal => {}
         edge_routing => {

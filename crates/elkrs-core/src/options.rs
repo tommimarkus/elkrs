@@ -69,6 +69,7 @@ pub enum PropertyValue {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum CoreOption {
     Algorithm,
+    DebugMode,
     Direction,
     EdgeRouting,
     HierarchyHandling,
@@ -87,6 +88,11 @@ impl Properties {
     pub fn set_algorithm(&mut self, algorithm: Algorithm) -> Option<PropertyValue> {
         self.values
             .insert(CoreOption::Algorithm, PropertyValue::Algorithm(algorithm))
+    }
+
+    pub fn set_debug_mode(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::DebugMode, PropertyValue::Bool(enabled))
     }
 
     pub fn set_direction(&mut self, direction: Direction) -> Option<PropertyValue> {
@@ -142,6 +148,14 @@ impl Properties {
             Some(PropertyValue::Algorithm(algorithm)) => Some(algorithm.clone()),
             Some(value) => unreachable!("algorithm option stored incompatible value: {value:?}"),
             _ => None,
+        }
+    }
+
+    pub fn debug_mode(&self) -> bool {
+        match self.get(CoreOption::DebugMode) {
+            Some(PropertyValue::Bool(enabled)) => *enabled,
+            Some(value) => unreachable!("debug mode option stored incompatible value: {value:?}"),
+            _ => false,
         }
     }
 
@@ -233,6 +247,16 @@ mod tests {
         properties.set_algorithm(Algorithm::Layered);
 
         assert_eq!(properties.algorithm(), Some(Algorithm::Layered));
+    }
+
+    #[test]
+    fn debug_mode_defaults_to_false_and_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert!(!properties.debug_mode());
+        properties.set_debug_mode(true);
+
+        assert!(properties.debug_mode());
     }
 
     #[test]

@@ -93,6 +93,33 @@ fn non_string_algorithm_returns_invalid_error() {
 }
 
 #[test]
+fn non_bool_debug_mode_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.debugMode": "true" }
+        }"#,
+        "org.eclipse.elk.debugMode must be a boolean",
+    );
+}
+
+#[test]
+fn non_bool_node_debug_mode_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.debugMode": "true" }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.debugMode must be a boolean",
+    );
+}
+
+#[test]
 fn unsupported_edge_routing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

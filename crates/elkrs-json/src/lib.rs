@@ -14,6 +14,7 @@ use thiserror::Error;
 
 const ALGORITHM_KEY: &str = "org.eclipse.elk.algorithm";
 const LEGACY_ALGORITHM_KEY: &str = "elk.algorithm";
+const DEBUG_MODE_KEY: &str = "org.eclipse.elk.debugMode";
 const DIRECTION_KEY: &str = "org.eclipse.elk.direction";
 const LEGACY_DIRECTION_KEY: &str = "elk.direction";
 const EDGE_ROUTING_KEY: &str = "org.eclipse.elk.edgeRouting";
@@ -346,6 +347,7 @@ fn apply_layout_options(
             ALGORITHM_KEY | LEGACY_ALGORITHM_KEY => {
                 graph.properties.set_algorithm(parse_algorithm(value, key)?)
             }
+            DEBUG_MODE_KEY => graph.properties.set_debug_mode(boolean(value, key)?),
             EDGE_ROUTING_KEY => {
                 if let Some(edge_routing) = parse_edge_routing(value, key)? {
                     graph.properties.set_edge_routing(edge_routing)
@@ -387,6 +389,12 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         options.insert(
             ALGORITHM_KEY.to_string(),
             serde_json::Value::String(format_algorithm(algorithm)),
+        );
+    }
+    if let Some(PropertyValue::Bool(debug_mode)) = graph.properties.get(CoreOption::DebugMode) {
+        options.insert(
+            DEBUG_MODE_KEY.to_string(),
+            serde_json::Value::Bool(*debug_mode),
         );
     }
     if let Some(PropertyValue::Direction(direction)) = graph.properties.get(CoreOption::Direction) {
@@ -434,6 +442,9 @@ fn apply_node_layout_options(
 ) -> Result<(), JsonError> {
     for (key, value) in options {
         match key.as_str() {
+            DEBUG_MODE_KEY => {
+                node.properties.set_debug_mode(boolean(value, key)?);
+            }
             EDGE_ROUTING_KEY => {
                 if let Some(edge_routing) = parse_edge_routing(value, key)? {
                     node.properties.set_edge_routing(edge_routing);
@@ -452,6 +463,12 @@ fn apply_node_layout_options(
 
 fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Value> {
     let mut options = BTreeMap::new();
+    if let Some(PropertyValue::Bool(debug_mode)) = node.properties.get(CoreOption::DebugMode) {
+        options.insert(
+            DEBUG_MODE_KEY.to_string(),
+            serde_json::Value::Bool(*debug_mode),
+        );
+    }
     if let Some(PropertyValue::EdgeRouting(edge_routing)) =
         node.properties.get(CoreOption::EdgeRouting)
     {
@@ -692,6 +709,12 @@ fn non_negative_number(value: &serde_json::Value, key: &str) -> Result<f64, Json
     } else {
         Err(JsonError::Invalid(format!("{key} must be non-negative")))
     }
+}
+
+fn boolean(value: &serde_json::Value, key: &str) -> Result<bool, JsonError> {
+    value
+        .as_bool()
+        .ok_or_else(|| JsonError::Invalid(format!("{key} must be a boolean")))
 }
 
 fn is_default_f64(value: &f64) -> bool {

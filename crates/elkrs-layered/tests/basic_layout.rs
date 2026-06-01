@@ -816,6 +816,38 @@ fn layered_layout_reports_node_unsupported_non_orthogonal_edge_routing() {
     }));
 }
 
+#[test]
+fn layered_layout_reports_unsupported_debug_mode() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_debug_mode(true);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("debug mode")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_node_unsupported_debug_mode() {
+    let mut graph = ElkGraph::new("root");
+    let mut child = node("child", 60.0, 30.0);
+    child.properties.set_debug_mode(true);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("debug mode")
+            && diagnostic.message.contains("child")
+    }));
+}
+
 fn node(id: &str, width: f64, height: f64) -> ElkNode {
     let mut node = ElkNode::new(id);
     node.size = Size::new(width, height);

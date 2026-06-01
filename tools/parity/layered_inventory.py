@@ -21,6 +21,11 @@ STATUS_OVERRIDES = {
         '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_non_layered_algorithm_option`, `cargo test -p elkrs-json --test json_partitions --locked imports_java_algorithm_layout_option`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete for layered selection and unsupported-algorithm diagnostics",
     ),
+    "org.eclipse.elk.debugMode": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked debug_mode`; `cargo test -p elkrs-json --test json_partitions --locked debug_mode`; `cargo test -p elkrs-json --test json_errors --locked debug_mode`",
+        "Debug mode is parsed and diagnosed; debug artifacts are not generated yet",
+    ),
     "org.eclipse.elk.direction": (
         "java-parity",
         '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_respects_left_direction`, `cargo test -p elkrs-json --test json_partitions --locked direction`, `cargo test -p elkrs-json --test json_errors --locked direction`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',

@@ -80,6 +80,71 @@ fn serializes_other_algorithm_with_java_key() {
 }
 
 #[test]
+fn imports_debug_mode_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.debugMode": true }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.properties.get(CoreOption::DebugMode),
+        Some(&PropertyValue::Bool(true))
+    );
+}
+
+#[test]
+fn serializes_debug_mode_with_java_key() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_debug_mode(true);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.debugMode"],
+        Value::Bool(true)
+    );
+}
+
+#[test]
+fn imports_node_debug_mode_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "parent",
+              "layoutOptions": { "org.eclipse.elk.debugMode": true }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.nodes[&ElementId::from("parent")]
+            .properties
+            .get(CoreOption::DebugMode),
+        Some(&PropertyValue::Bool(true))
+    );
+}
+
+#[test]
+fn serializes_node_debug_mode_with_java_key() {
+    let mut node = ElkNode::new("node");
+    node.properties.set_debug_mode(true);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["children"][0]["layoutOptions"]["org.eclipse.elk.debugMode"],
+        Value::Bool(true)
+    );
+}
+
+#[test]
 fn imports_left_direction_layout_option() {
     let graph = from_str(
         r#"{
