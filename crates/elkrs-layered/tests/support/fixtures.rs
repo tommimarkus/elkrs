@@ -70,6 +70,17 @@ pub fn fan_out() -> ElkGraph {
     graph
 }
 
+pub fn multi_node_cycle() -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    for id in ["a", "b", "c"] {
+        graph.add_node(node(id, 60.0, 30.0));
+    }
+    graph.add_edge(edge("ab", "a", "b"));
+    graph.add_edge(edge("bc", "b", "c"));
+    graph.add_edge(edge("ca", "c", "a"));
+    graph
+}
+
 pub fn two_layer_crossing() -> ElkGraph {
     let mut graph = ElkGraph::new("root");
     for id in ["a", "b", "d", "c"] {
@@ -451,6 +462,32 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             status: ParityFixtureStatus::JavaComparable,
             build: self_loop,
             assertions: &[],
+        },
+        ParityFixture {
+            id: "LAYERED-P1-001",
+            name: "multi-node-cycle",
+            status: ParityFixtureStatus::JavaComparable,
+            build: multi_node_cycle,
+            assertions: &[
+                ParityAssertion::EdgeNodeEndpoints {
+                    edge_id: "ab",
+                    source_id: "a",
+                    target_id: "b",
+                },
+                ParityAssertion::EdgeRouteAxisAligned { edge_id: "ab" },
+                ParityAssertion::EdgeNodeEndpoints {
+                    edge_id: "bc",
+                    source_id: "b",
+                    target_id: "c",
+                },
+                ParityAssertion::EdgeRouteAxisAligned { edge_id: "bc" },
+                ParityAssertion::EdgeNodeEndpoints {
+                    edge_id: "ca",
+                    source_id: "c",
+                    target_id: "a",
+                },
+                ParityAssertion::EdgeRouteAxisAligned { edge_id: "ca" },
+            ],
         },
         ParityFixture {
             id: "LAYERED-P3-001",
