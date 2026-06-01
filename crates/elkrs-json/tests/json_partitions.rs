@@ -48,6 +48,53 @@ fn serializes_left_and_up_direction_options() {
 }
 
 #[test]
+fn imports_java_layer_node_node_spacing_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers": 300
+          }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(graph.properties.spacing_layer_node_node(), 300.0);
+}
+
+#[test]
+fn imports_java_string_layer_node_node_spacing_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers": "300.0"
+          }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(graph.properties.spacing_layer_node_node(), 300.0);
+}
+
+#[test]
+fn serializes_layer_node_node_spacing_with_java_key() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_layer_node_node(300.0);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers"],
+        Value::from(300.0)
+    );
+    assert_eq!(
+        json["layoutOptions"].get("elk.spacing.layerNodeNode"),
+        None,
+        "legacy layer spacing key should not be emitted"
+    );
+}
+
+#[test]
 fn imports_north_and_south_port_sides() {
     let graph = from_str(
         r#"{

@@ -10,6 +10,9 @@ use elkrs_core::options::{CoreOption, Direction, PortSide, PropertyValue};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+const LAYER_NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers";
+const LEGACY_LAYER_NODE_NODE_SPACING_KEY: &str = "elk.spacing.layerNodeNode";
+
 #[derive(Debug, Error)]
 pub enum JsonError {
     #[error(transparent)]
@@ -318,7 +321,7 @@ fn apply_layout_options(
         match key.as_str() {
             "elk.direction" => graph.properties.set_direction(parse_direction(value)?),
             "elk.spacing.nodeNode" => graph.properties.set_spacing_node_node(number(value, key)?),
-            "elk.spacing.layerNodeNode" => graph
+            LAYER_NODE_NODE_SPACING_KEY | LEGACY_LAYER_NODE_NODE_SPACING_KEY => graph
                 .properties
                 .set_spacing_layer_node_node(number(value, key)?),
             "elk.spacing.edgeNode" => graph
@@ -348,7 +351,7 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     if let Some(PropertyValue::Number(spacing)) =
         graph.properties.get(CoreOption::SpacingLayerNodeNode)
     {
-        options.insert("elk.spacing.layerNodeNode".to_string(), (*spacing).into());
+        options.insert(LAYER_NODE_NODE_SPACING_KEY.to_string(), (*spacing).into());
     }
     if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingEdgeNode)
     {
@@ -499,9 +502,14 @@ fn string<'a>(value: &'a serde_json::Value, key: &str) -> Result<&'a str, JsonEr
 }
 
 fn number(value: &serde_json::Value, key: &str) -> Result<f64, JsonError> {
-    value
-        .as_f64()
-        .ok_or_else(|| JsonError::Invalid(format!("{key} must be a number")))
+    let number = match value {
+        serde_json::Value::Number(number) => number.as_f64(),
+        serde_json::Value::String(number) => number.parse::<f64>().ok(),
+        _ => None,
+    }
+    .filter(|number| number.is_finite());
+
+    number.ok_or_else(|| JsonError::Invalid(format!("{key} must be a number")))
 }
 
 fn non_negative_number(value: &serde_json::Value, key: &str) -> Result<f64, JsonError> {

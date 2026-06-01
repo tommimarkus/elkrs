@@ -104,6 +104,17 @@ fn non_number_layer_spacing_returns_invalid_error() {
 }
 
 #[test]
+fn non_finite_string_spacing_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers": "NaN" }
+        }"#,
+        "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers must be a number",
+    );
+}
+
+#[test]
 fn non_number_edge_spacing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

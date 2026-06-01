@@ -32,9 +32,9 @@ STATUS_OVERRIDES = {
         "Complete",
     ),
     "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers": (
-        "semantic",
-        "`cargo test -p elkrs-layered --test quality --locked custom_layer_spacing_separates_connected_layers`",
-        "Parity: Java oracle fixture suite expansion",
+        "java-parity",
+        '`cargo test -p elkrs-layered --test quality --locked custom_layer_spacing_separates_connected_layers` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for canonical connected adjacent-layer node spacing",
     ),
     "org.eclipse.elk.spacing.edgeNode": (
         "java-parity",
