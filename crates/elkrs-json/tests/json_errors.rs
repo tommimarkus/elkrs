@@ -64,9 +64,9 @@ fn unsupported_direction_returns_invalid_error() {
     assert_invalid_contains(
         r#"{
           "id": "root",
-          "layoutOptions": { "elk.direction": "SIDEWAYS" }
+          "layoutOptions": { "org.eclipse.elk.direction": "SIDEWAYS" }
         }"#,
-        "unsupported elk.direction value: SIDEWAYS",
+        "unsupported org.eclipse.elk.direction value: SIDEWAYS",
     );
 }
 
@@ -75,9 +75,9 @@ fn non_string_direction_returns_invalid_error() {
     assert_invalid_contains(
         r#"{
           "id": "root",
-          "layoutOptions": { "elk.direction": 7 }
+          "layoutOptions": { "org.eclipse.elk.direction": 7 }
         }"#,
-        "elk.direction must be a string",
+        "org.eclipse.elk.direction must be a string",
     );
 }
 
@@ -119,9 +119,9 @@ fn non_number_node_spacing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{
           "id": "root",
-          "layoutOptions": { "elk.spacing.nodeNode": "wide" }
+          "layoutOptions": { "org.eclipse.elk.spacing.nodeNode": "wide" }
         }"#,
-        "elk.spacing.nodeNode must be a number",
+        "org.eclipse.elk.spacing.nodeNode must be a number",
     );
 }
 
@@ -152,9 +152,9 @@ fn non_number_edge_spacing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{
           "id": "root",
-          "layoutOptions": { "elk.spacing.edgeNode": "wide" }
+          "layoutOptions": { "org.eclipse.elk.spacing.edgeNode": "wide" }
         }"#,
-        "elk.spacing.edgeNode must be a number",
+        "org.eclipse.elk.spacing.edgeNode must be a number",
     );
 }
 
@@ -163,9 +163,9 @@ fn negative_edge_spacing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{
           "id": "root",
-          "layoutOptions": { "elk.spacing.edgeEdge": -1 }
+          "layoutOptions": { "org.eclipse.elk.spacing.edgeEdge": -1 }
         }"#,
-        "elk.spacing.edgeEdge must be non-negative",
+        "org.eclipse.elk.spacing.edgeEdge must be non-negative",
     );
 }
 

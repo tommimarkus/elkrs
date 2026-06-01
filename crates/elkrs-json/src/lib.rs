@@ -12,9 +12,17 @@ use thiserror::Error;
 
 const ALGORITHM_KEY: &str = "org.eclipse.elk.algorithm";
 const LEGACY_ALGORITHM_KEY: &str = "elk.algorithm";
+const DIRECTION_KEY: &str = "org.eclipse.elk.direction";
+const LEGACY_DIRECTION_KEY: &str = "elk.direction";
 const EDGE_ROUTING_KEY: &str = "org.eclipse.elk.edgeRouting";
+const NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.nodeNode";
+const LEGACY_NODE_NODE_SPACING_KEY: &str = "elk.spacing.nodeNode";
 const LAYER_NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers";
 const LEGACY_LAYER_NODE_NODE_SPACING_KEY: &str = "elk.spacing.layerNodeNode";
+const EDGE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.edgeNode";
+const LEGACY_EDGE_NODE_SPACING_KEY: &str = "elk.spacing.edgeNode";
+const EDGE_EDGE_SPACING_KEY: &str = "org.eclipse.elk.spacing.edgeEdge";
+const LEGACY_EDGE_EDGE_SPACING_KEY: &str = "elk.spacing.edgeEdge";
 
 #[derive(Debug, Error)]
 pub enum JsonError {
@@ -328,15 +336,19 @@ fn apply_layout_options(
             EDGE_ROUTING_KEY => graph
                 .properties
                 .set_edge_routing(parse_edge_routing(value, key)?),
-            "elk.direction" => graph.properties.set_direction(parse_direction(value)?),
-            "elk.spacing.nodeNode" => graph.properties.set_spacing_node_node(number(value, key)?),
+            DIRECTION_KEY | LEGACY_DIRECTION_KEY => {
+                graph.properties.set_direction(parse_direction(value, key)?)
+            }
+            NODE_NODE_SPACING_KEY | LEGACY_NODE_NODE_SPACING_KEY => {
+                graph.properties.set_spacing_node_node(number(value, key)?)
+            }
             LAYER_NODE_NODE_SPACING_KEY | LEGACY_LAYER_NODE_NODE_SPACING_KEY => graph
                 .properties
                 .set_spacing_layer_node_node(number(value, key)?),
-            "elk.spacing.edgeNode" => graph
+            EDGE_NODE_SPACING_KEY | LEGACY_EDGE_NODE_SPACING_KEY => graph
                 .properties
                 .set_spacing_edge_node(non_negative_number(value, key)?),
-            "elk.spacing.edgeEdge" => graph
+            EDGE_EDGE_SPACING_KEY | LEGACY_EDGE_EDGE_SPACING_KEY => graph
                 .properties
                 .set_spacing_edge_edge(non_negative_number(value, key)?),
             _ => continue,
@@ -355,7 +367,7 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     }
     if let Some(PropertyValue::Direction(direction)) = graph.properties.get(CoreOption::Direction) {
         options.insert(
-            "elk.direction".to_string(),
+            DIRECTION_KEY.to_string(),
             serde_json::Value::String(format_direction(*direction).to_string()),
         );
     }
@@ -369,7 +381,7 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     }
     if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingNodeNode)
     {
-        options.insert("elk.spacing.nodeNode".to_string(), (*spacing).into());
+        options.insert(NODE_NODE_SPACING_KEY.to_string(), (*spacing).into());
     }
     if let Some(PropertyValue::Number(spacing)) =
         graph.properties.get(CoreOption::SpacingLayerNodeNode)
@@ -378,11 +390,11 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     }
     if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingEdgeNode)
     {
-        options.insert("elk.spacing.edgeNode".to_string(), (*spacing).into());
+        options.insert(EDGE_NODE_SPACING_KEY.to_string(), (*spacing).into());
     }
     if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingEdgeEdge)
     {
-        options.insert("elk.spacing.edgeEdge".to_string(), (*spacing).into());
+        options.insert(EDGE_EDGE_SPACING_KEY.to_string(), (*spacing).into());
     }
     options
 }
@@ -475,14 +487,14 @@ fn element_ref_id(endpoint: &ElementRef) -> &str {
     }
 }
 
-fn parse_direction(value: &serde_json::Value) -> Result<Direction, JsonError> {
-    match string(value, "elk.direction")? {
+fn parse_direction(value: &serde_json::Value, key: &str) -> Result<Direction, JsonError> {
+    match string(value, key)? {
         "RIGHT" => Ok(Direction::Right),
         "LEFT" => Ok(Direction::Left),
         "DOWN" => Ok(Direction::Down),
         "UP" => Ok(Direction::Up),
         other => Err(JsonError::Invalid(format!(
-            "unsupported elk.direction value: {other}"
+            "unsupported {key} value: {other}"
         ))),
     }
 }

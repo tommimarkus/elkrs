@@ -82,7 +82,7 @@ fn imports_left_direction_layout_option() {
     let graph = from_str(
         r#"{
           "id": "root",
-          "layoutOptions": { "elk.direction": "LEFT" }
+          "layoutOptions": { "org.eclipse.elk.direction": "LEFT" }
         }"#,
     )
     .unwrap();
@@ -95,12 +95,72 @@ fn imports_up_direction_layout_option() {
     let graph = from_str(
         r#"{
           "id": "root",
-          "layoutOptions": { "elk.direction": "UP" }
+          "layoutOptions": { "org.eclipse.elk.direction": "UP" }
         }"#,
     )
     .unwrap();
 
     assert_eq!(graph.properties.direction(), Direction::Up);
+}
+
+#[test]
+fn imports_short_direction_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "elk.direction": "LEFT" }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(graph.properties.direction(), Direction::Left);
+}
+
+#[test]
+fn imports_java_spacing_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.spacing.nodeNode": 42,
+            "org.eclipse.elk.spacing.edgeNode": 21,
+            "org.eclipse.elk.spacing.edgeEdge": 9
+          }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.properties.get(CoreOption::SpacingNodeNode),
+        Some(&PropertyValue::Number(42.0))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::SpacingEdgeNode),
+        Some(&PropertyValue::Number(21.0))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::SpacingEdgeEdge),
+        Some(&PropertyValue::Number(9.0))
+    );
+}
+
+#[test]
+fn imports_short_spacing_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "elk.spacing.nodeNode": 42,
+            "elk.spacing.edgeNode": 21,
+            "elk.spacing.edgeEdge": 9
+          }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(graph.properties.spacing_node_node(), 42.0);
+    assert_eq!(graph.properties.spacing_edge_node(), 21.0);
+    assert_eq!(graph.properties.spacing_edge_edge(), 9.0);
 }
 
 #[test]
@@ -110,13 +170,62 @@ fn serializes_left_and_up_direction_options() {
     let mut up = ElkGraph::new("up");
     up.properties.set_direction(Direction::Up);
 
+    let left_json = serialized_value(&left);
     assert_eq!(
-        serialized_value(&left)["layoutOptions"]["elk.direction"],
+        left_json["layoutOptions"]["org.eclipse.elk.direction"],
         Value::String("LEFT".to_owned()),
     );
     assert_eq!(
-        serialized_value(&up)["layoutOptions"]["elk.direction"],
+        left_json["layoutOptions"].get("elk.direction"),
+        None,
+        "short direction key should not be emitted"
+    );
+    let up_json = serialized_value(&up);
+    assert_eq!(
+        up_json["layoutOptions"]["org.eclipse.elk.direction"],
         Value::String("UP".to_owned()),
+    );
+    assert_eq!(
+        up_json["layoutOptions"].get("elk.direction"),
+        None,
+        "short direction key should not be emitted"
+    );
+}
+
+#[test]
+fn serializes_spacing_with_java_keys() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_node_node(42.0);
+    graph.properties.set_spacing_edge_node(21.0);
+    graph.properties.set_spacing_edge_edge(9.0);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.spacing.nodeNode"],
+        Value::from(42.0)
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.spacing.edgeNode"],
+        Value::from(21.0)
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.spacing.edgeEdge"],
+        Value::from(9.0)
+    );
+    assert_eq!(
+        json["layoutOptions"].get("elk.spacing.nodeNode"),
+        None,
+        "short node spacing key should not be emitted"
+    );
+    assert_eq!(
+        json["layoutOptions"].get("elk.spacing.edgeNode"),
+        None,
+        "short edge-node spacing key should not be emitted"
+    );
+    assert_eq!(
+        json["layoutOptions"].get("elk.spacing.edgeEdge"),
+        None,
+        "short edge-edge spacing key should not be emitted"
     );
 }
 

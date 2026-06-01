@@ -23,12 +23,12 @@ STATUS_OVERRIDES = {
     ),
     "org.eclipse.elk.direction": (
         "java-parity",
-        '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_respects_left_direction` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_respects_left_direction`, `cargo test -p elkrs-json --test json_partitions --locked direction`, `cargo test -p elkrs-json --test json_errors --locked direction`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete",
     ),
     "org.eclipse.elk.spacing.nodeNode": (
         "java-parity",
-        '`cargo test -p elkrs-layered --test quality --locked custom_node_spacing_separates_same_layer_nodes` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        '`cargo test -p elkrs-layered --test quality --locked custom_node_spacing_separates_same_layer_nodes`, `cargo test -p elkrs-json --test json_partitions --locked spacing`, `cargo test -p elkrs-json --test json_errors --locked spacing`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete",
     ),
     "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers": (
@@ -38,12 +38,12 @@ STATUS_OVERRIDES = {
     ),
     "org.eclipse.elk.spacing.edgeNode": (
         "java-parity",
-        '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_node_spacing_to_obstacle_detours` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_node_spacing_to_obstacle_detours`, `cargo test -p elkrs-json --test json_partitions --locked spacing`, `cargo test -p elkrs-json --test json_errors --locked spacing`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete",
     ),
     "org.eclipse.elk.spacing.edgeEdge": (
         "semantic",
-        "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_edge_spacing_to_parallel_routes`",
+        "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_edge_spacing_to_parallel_routes`; `cargo test -p elkrs-json --test json_partitions --locked spacing`; `cargo test -p elkrs-json --test json_errors --locked spacing`",
         "Parity: Java oracle fixture suite expansion",
     ),
     "org.eclipse.elk.edgeRouting": (
