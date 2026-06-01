@@ -76,7 +76,14 @@ fn round_trips_graph_with_ports_options_and_edge_sections() {
           "width": 100,
           "height": 40,
           "ports": [
-            { "id": "out", "x": 90, "y": 10, "width": 10, "height": 10, "side": "EAST" }
+            {
+              "id": "out",
+              "x": 90,
+              "y": 10,
+              "width": 10,
+              "height": 10,
+              "layoutOptions": { "org.eclipse.elk.port.side": "EAST" }
+            }
           ]
         },
         {
@@ -84,7 +91,14 @@ fn round_trips_graph_with_ports_options_and_edge_sections() {
           "width": 80,
           "height": 30,
           "ports": [
-            { "id": "in", "x": 0, "y": 10, "width": 10, "height": 10, "side": "WEST" }
+            {
+              "id": "in",
+              "x": 0,
+              "y": 10,
+              "width": 10,
+              "height": 10,
+              "layoutOptions": { "org.eclipse.elk.port.side": "WEST" }
+            }
           ]
         }
       ],

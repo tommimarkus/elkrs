@@ -64,6 +64,12 @@ struct JsonNode {
 #[derive(Debug, Deserialize, Serialize)]
 struct JsonPort {
     id: String,
+    #[serde(
+        default,
+        rename = "layoutOptions",
+        skip_serializing_if = "BTreeMap::is_empty"
+    )]
+    layout_options: BTreeMap<String, serde_json::Value>,
     #[serde(default, skip_serializing_if = "is_default_f64")]
     x: f64,
     #[serde(default, skip_serializing_if = "is_default_f64")]
@@ -141,7 +147,7 @@ impl TryFrom<JsonPort> for ElkPort {
         let mut port = ElkPort::new(json.id.as_str());
         port.position = Point::new(json.x, json.y);
         port.size = Size::new(json.width, json.height);
-        port.side = json.side.as_deref().map(parse_port_side).transpose()?;
+        port.side = port_side_from_json(&json)?;
         Ok(port)
     }
 }
@@ -175,11 +181,12 @@ impl JsonPort {
     fn from_port(port: &ElkPort) -> Self {
         Self {
             id: port.id.as_str().to_string(),
+            layout_options: layout_options_from_port(port),
             x: port.position.x,
             y: port.position.y,
             width: port.size.width,
             height: port.size.height,
-            side: port.side.map(format_port_side),
+            side: None,
         }
     }
 }
@@ -309,6 +316,27 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingEdgeEdge)
     {
         options.insert("elk.spacing.edgeEdge".to_string(), (*spacing).into());
+    }
+    options
+}
+
+fn port_side_from_json(port: &JsonPort) -> Result<Option<PortSide>, JsonError> {
+    if let Some(value) = port.layout_options.get("org.eclipse.elk.port.side") {
+        return Ok(Some(parse_port_side(string(
+            value,
+            "org.eclipse.elk.port.side",
+        )?)?));
+    }
+    port.side.as_deref().map(parse_port_side).transpose()
+}
+
+fn layout_options_from_port(port: &ElkPort) -> BTreeMap<String, serde_json::Value> {
+    let mut options = BTreeMap::new();
+    if let Some(side) = port.side {
+        options.insert(
+            "org.eclipse.elk.port.side".to_string(),
+            serde_json::Value::String(format_port_side(side)),
+        );
     }
     options
 }

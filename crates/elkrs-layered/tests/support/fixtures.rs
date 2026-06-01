@@ -328,7 +328,7 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
         ParityFixture {
             id: "LAYERED-P5-002",
             name: "port-heavy",
-            status: ParityFixtureStatus::RustOnly,
+            status: ParityFixtureStatus::JavaComparable,
             build: port_heavy,
             assertions: &[],
         },

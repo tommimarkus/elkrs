@@ -77,6 +77,61 @@ fn imports_north_and_south_port_sides() {
 }
 
 #[test]
+fn imports_port_side_from_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "ports": [
+                {
+                  "id": "east",
+                  "layoutOptions": { "org.eclipse.elk.port.side": "EAST" }
+                }
+              ]
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let node = &graph.nodes[&ElementId::from("node")];
+    assert_eq!(
+        node.ports[&ElementId::from("east")].side,
+        Some(PortSide::East)
+    );
+}
+
+#[test]
+fn port_side_layout_option_takes_precedence_over_side_field() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "ports": [
+                {
+                  "id": "port",
+                  "side": "WEST",
+                  "layoutOptions": { "org.eclipse.elk.port.side": "EAST" }
+                }
+              ]
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let node = &graph.nodes[&ElementId::from("node")];
+    assert_eq!(
+        node.ports[&ElementId::from("port")].side,
+        Some(PortSide::East)
+    );
+}
+
+#[test]
 fn serializes_north_and_south_port_sides() {
     let mut node = ElkNode::new("node");
     node.add_port(port(
@@ -103,11 +158,11 @@ fn serializes_north_and_south_port_sides() {
         .unwrap();
 
     assert_eq!(
-        port_value(node, "north")["side"],
+        port_value(node, "north")["layoutOptions"]["org.eclipse.elk.port.side"],
         Value::String("NORTH".to_owned())
     );
     assert_eq!(
-        port_value(node, "south")["side"],
+        port_value(node, "south")["layoutOptions"]["org.eclipse.elk.port.side"],
         Value::String("SOUTH".to_owned())
     );
 }
