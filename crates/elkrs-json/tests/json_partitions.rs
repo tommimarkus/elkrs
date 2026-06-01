@@ -1,6 +1,6 @@
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElkGraph, ElkNode, ElkPort};
-use elkrs_core::options::{Algorithm, Direction, PortSide};
+use elkrs_core::options::{Algorithm, CoreOption, Direction, EdgeRouting, PortSide, PropertyValue};
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
 
@@ -117,6 +117,39 @@ fn serializes_left_and_up_direction_options() {
     assert_eq!(
         serialized_value(&up)["layoutOptions"]["elk.direction"],
         Value::String("UP".to_owned()),
+    );
+}
+
+#[test]
+fn imports_java_edge_routing_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.edgeRouting": "ORTHOGONAL" }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.properties.get(CoreOption::EdgeRouting),
+        Some(&PropertyValue::EdgeRouting(EdgeRouting::Orthogonal))
+    );
+}
+
+#[test]
+fn serializes_edge_routing_with_java_key() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_edge_routing(EdgeRouting::Orthogonal);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.edgeRouting"],
+        Value::String("ORTHOGONAL".to_owned())
+    );
+    assert_eq!(
+        json["layoutOptions"].get("elk.edgeRouting"),
+        None,
+        "short edge routing key should not be emitted"
     );
 }
 

@@ -93,6 +93,28 @@ fn non_string_algorithm_returns_invalid_error() {
 }
 
 #[test]
+fn unsupported_edge_routing_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.edgeRouting": "SPLINES" }
+        }"#,
+        "unsupported org.eclipse.elk.edgeRouting value: SPLINES",
+    );
+}
+
+#[test]
+fn non_string_edge_routing_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.edgeRouting": 7 }
+        }"#,
+        "org.eclipse.elk.edgeRouting must be a string",
+    );
+}
+
+#[test]
 fn non_number_node_spacing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

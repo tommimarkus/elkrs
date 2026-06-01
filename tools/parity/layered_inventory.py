@@ -46,6 +46,11 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_edge_spacing_to_parallel_routes`",
         "Parity: Java oracle fixture suite expansion",
     ),
+    "org.eclipse.elk.edgeRouting": (
+        "java-parity",
+        '`cargo test -p elkrs-json --test json_partitions --locked edge_routing`, `cargo test -p elkrs-json --test json_errors --locked edge_routing`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for explicit orthogonal edge routing selection",
+    ),
     "org.eclipse.elk.hierarchyHandling": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_reports_unsupported_hierarchy_handling`",

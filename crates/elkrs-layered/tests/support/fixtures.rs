@@ -2,7 +2,7 @@
 
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
-use elkrs_core::options::{Algorithm, Direction, PortSide};
+use elkrs_core::options::{Algorithm, Direction, EdgeRouting, PortSide};
 
 pub fn chain() -> ElkGraph {
     let mut graph = ElkGraph::new("root");
@@ -21,6 +21,12 @@ pub fn reverse_insertion_chain() -> ElkGraph {
 pub fn algorithm_layered() -> ElkGraph {
     let mut graph = chain();
     graph.properties.set_algorithm(Algorithm::Layered);
+    graph
+}
+
+pub fn edge_routing_orthogonal() -> ElkGraph {
+    let mut graph = chain();
+    graph.properties.set_edge_routing(EdgeRouting::Orthogonal);
     graph
 }
 
@@ -421,6 +427,20 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             status: ParityFixtureStatus::JavaComparable,
             build: algorithm_layered,
             assertions: &[],
+        },
+        ParityFixture {
+            id: "LAYERED-META-OPTION-010",
+            name: "edge-routing-orthogonal",
+            status: ParityFixtureStatus::JavaComparable,
+            build: edge_routing_orthogonal,
+            assertions: &[
+                ParityAssertion::EdgeNodeEndpoints {
+                    edge_id: "ab",
+                    source_id: "a",
+                    target_id: "b",
+                },
+                ParityAssertion::EdgeRouteAxisAligned { edge_id: "ab" },
+            ],
         },
         ParityFixture {
             id: "LAYERED-OPT-002",

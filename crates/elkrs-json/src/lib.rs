@@ -6,12 +6,13 @@ use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{
     ElementId, ElementRef, ElkEdge, ElkEdgeSection, ElkGraph, ElkLabel, ElkNode, ElkPort,
 };
-use elkrs_core::options::{Algorithm, CoreOption, Direction, PortSide, PropertyValue};
+use elkrs_core::options::{Algorithm, CoreOption, Direction, EdgeRouting, PortSide, PropertyValue};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 const ALGORITHM_KEY: &str = "org.eclipse.elk.algorithm";
 const LEGACY_ALGORITHM_KEY: &str = "elk.algorithm";
+const EDGE_ROUTING_KEY: &str = "org.eclipse.elk.edgeRouting";
 const LAYER_NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers";
 const LEGACY_LAYER_NODE_NODE_SPACING_KEY: &str = "elk.spacing.layerNodeNode";
 
@@ -324,6 +325,9 @@ fn apply_layout_options(
             ALGORITHM_KEY | LEGACY_ALGORITHM_KEY => {
                 graph.properties.set_algorithm(parse_algorithm(value, key)?)
             }
+            EDGE_ROUTING_KEY => graph
+                .properties
+                .set_edge_routing(parse_edge_routing(value, key)?),
             "elk.direction" => graph.properties.set_direction(parse_direction(value)?),
             "elk.spacing.nodeNode" => graph.properties.set_spacing_node_node(number(value, key)?),
             LAYER_NODE_NODE_SPACING_KEY | LEGACY_LAYER_NODE_NODE_SPACING_KEY => graph
@@ -353,6 +357,14 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         options.insert(
             "elk.direction".to_string(),
             serde_json::Value::String(format_direction(*direction).to_string()),
+        );
+    }
+    if let Some(PropertyValue::EdgeRouting(edge_routing)) =
+        graph.properties.get(CoreOption::EdgeRouting)
+    {
+        options.insert(
+            EDGE_ROUTING_KEY.to_string(),
+            serde_json::Value::String(format_edge_routing(*edge_routing).to_string()),
         );
     }
     if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingNodeNode)
@@ -472,6 +484,21 @@ fn parse_direction(value: &serde_json::Value) -> Result<Direction, JsonError> {
         other => Err(JsonError::Invalid(format!(
             "unsupported elk.direction value: {other}"
         ))),
+    }
+}
+
+fn parse_edge_routing(value: &serde_json::Value, key: &str) -> Result<EdgeRouting, JsonError> {
+    match string(value, key)? {
+        "ORTHOGONAL" => Ok(EdgeRouting::Orthogonal),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
+fn format_edge_routing(edge_routing: EdgeRouting) -> &'static str {
+    match edge_routing {
+        EdgeRouting::Orthogonal => "ORTHOGONAL",
     }
 }
 
