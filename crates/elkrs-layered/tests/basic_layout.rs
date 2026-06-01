@@ -763,6 +763,25 @@ fn layered_layout_reports_unsupported_hierarchy_handling() {
     }));
 }
 
+#[test]
+fn layered_layout_reports_node_unsupported_hierarchy_handling() {
+    let mut graph = ElkGraph::new("root");
+    let mut child = node("child", 60.0, 30.0);
+    child
+        .properties
+        .set_hierarchy_handling(HierarchyHandling::SeparateChildren);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("hierarchy handling")
+            && diagnostic.message.contains("child")
+    }));
+}
+
 fn node(id: &str, width: f64, height: f64) -> ElkNode {
     let mut node = ElkNode::new(id);
     node.size = Size::new(width, height);

@@ -53,7 +53,7 @@ STATUS_OVERRIDES = {
     ),
     "org.eclipse.elk.hierarchyHandling": (
         "diagnostic",
-        "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_reports_unsupported_hierarchy_handling`",
+        "`cargo test -p elkrs-layered --test basic_layout --locked hierarchy_handling`; `cargo test -p elkrs-json --test json_partitions --locked hierarchy`; `cargo test -p elkrs-json --test json_errors --locked hierarchy`",
         "Parity: compound, hierarchy, and non-plugin cluster behavior",
     ),
     "org.eclipse.elk.insideSelfLoops.activate": (

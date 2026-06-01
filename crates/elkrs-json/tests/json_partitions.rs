@@ -1,6 +1,8 @@
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElkGraph, ElkNode, ElkPort};
-use elkrs_core::options::{Algorithm, CoreOption, Direction, EdgeRouting, PortSide, PropertyValue};
+use elkrs_core::options::{
+    Algorithm, CoreOption, Direction, EdgeRouting, HierarchyHandling, PortSide, PropertyValue,
+};
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
 
@@ -259,6 +261,152 @@ fn serializes_edge_routing_with_java_key() {
         json["layoutOptions"].get("elk.edgeRouting"),
         None,
         "short edge routing key should not be emitted"
+    );
+}
+
+#[test]
+fn imports_java_hierarchy_handling_layout_option() {
+    let include_children = from_str(
+        r#"{
+          "id": "include",
+          "layoutOptions": { "org.eclipse.elk.hierarchyHandling": "INCLUDE_CHILDREN" }
+        }"#,
+    )
+    .unwrap();
+    let separate_children = from_str(
+        r#"{
+          "id": "separate",
+          "layoutOptions": { "org.eclipse.elk.hierarchyHandling": "SEPARATE_CHILDREN" }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        include_children
+            .properties
+            .get(CoreOption::HierarchyHandling),
+        Some(&PropertyValue::HierarchyHandling(
+            HierarchyHandling::IncludeChildren
+        ))
+    );
+    assert_eq!(
+        separate_children
+            .properties
+            .get(CoreOption::HierarchyHandling),
+        Some(&PropertyValue::HierarchyHandling(
+            HierarchyHandling::SeparateChildren
+        ))
+    );
+}
+
+#[test]
+fn imports_inherit_hierarchy_handling_as_unset() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.hierarchyHandling": "INHERIT" }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(graph.properties.get(CoreOption::HierarchyHandling), None);
+}
+
+#[test]
+fn serializes_hierarchy_handling_with_java_key() {
+    let mut include_children = ElkGraph::new("include");
+    include_children
+        .properties
+        .set_hierarchy_handling(HierarchyHandling::IncludeChildren);
+    let mut separate_children = ElkGraph::new("separate");
+    separate_children
+        .properties
+        .set_hierarchy_handling(HierarchyHandling::SeparateChildren);
+
+    let include_json = serialized_value(&include_children);
+    assert_eq!(
+        include_json["layoutOptions"]["org.eclipse.elk.hierarchyHandling"],
+        Value::String("INCLUDE_CHILDREN".to_owned())
+    );
+    let separate_json = serialized_value(&separate_children);
+    assert_eq!(
+        separate_json["layoutOptions"]["org.eclipse.elk.hierarchyHandling"],
+        Value::String("SEPARATE_CHILDREN".to_owned())
+    );
+}
+
+#[test]
+fn imports_node_hierarchy_handling_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "parent",
+              "layoutOptions": { "org.eclipse.elk.hierarchyHandling": "SEPARATE_CHILDREN" }
+            },
+            {
+              "id": "child",
+              "layoutOptions": { "org.eclipse.elk.hierarchyHandling": "INCLUDE_CHILDREN" }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.nodes[&ElementId::from("parent")]
+            .properties
+            .get(CoreOption::HierarchyHandling),
+        Some(&PropertyValue::HierarchyHandling(
+            HierarchyHandling::SeparateChildren
+        ))
+    );
+    assert_eq!(
+        graph.nodes[&ElementId::from("child")]
+            .properties
+            .get(CoreOption::HierarchyHandling),
+        Some(&PropertyValue::HierarchyHandling(
+            HierarchyHandling::IncludeChildren
+        ))
+    );
+}
+
+#[test]
+fn imports_node_inherit_hierarchy_handling_as_unset() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.hierarchyHandling": "INHERIT" }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.nodes[&ElementId::from("node")]
+            .properties
+            .get(CoreOption::HierarchyHandling),
+        None
+    );
+}
+
+#[test]
+fn serializes_node_hierarchy_handling_with_java_key() {
+    let mut node = ElkNode::new("node");
+    node.properties
+        .set_hierarchy_handling(HierarchyHandling::SeparateChildren);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["children"][0]["layoutOptions"]["org.eclipse.elk.hierarchyHandling"],
+        Value::String("SEPARATE_CHILDREN".to_owned())
     );
 }
 

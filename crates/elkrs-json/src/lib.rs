@@ -6,7 +6,9 @@ use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{
     ElementId, ElementRef, ElkEdge, ElkEdgeSection, ElkGraph, ElkLabel, ElkNode, ElkPort,
 };
-use elkrs_core::options::{Algorithm, CoreOption, Direction, EdgeRouting, PortSide, PropertyValue};
+use elkrs_core::options::{
+    Algorithm, CoreOption, Direction, EdgeRouting, HierarchyHandling, PortSide, PropertyValue,
+};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -15,6 +17,7 @@ const LEGACY_ALGORITHM_KEY: &str = "elk.algorithm";
 const DIRECTION_KEY: &str = "org.eclipse.elk.direction";
 const LEGACY_DIRECTION_KEY: &str = "elk.direction";
 const EDGE_ROUTING_KEY: &str = "org.eclipse.elk.edgeRouting";
+const HIERARCHY_HANDLING_KEY: &str = "org.eclipse.elk.hierarchyHandling";
 const NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.nodeNode";
 const LEGACY_NODE_NODE_SPACING_KEY: &str = "elk.spacing.nodeNode";
 const LAYER_NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers";
@@ -63,6 +66,12 @@ struct JsonGraph {
 #[derive(Debug, Deserialize, Serialize)]
 struct JsonNode {
     id: String,
+    #[serde(
+        default,
+        rename = "layoutOptions",
+        skip_serializing_if = "BTreeMap::is_empty"
+    )]
+    layout_options: BTreeMap<String, serde_json::Value>,
     #[serde(default, skip_serializing_if = "is_default_f64")]
     x: f64,
     #[serde(default, skip_serializing_if = "is_default_f64")]
@@ -161,6 +170,7 @@ impl TryFrom<JsonNode> for ElkNode {
 
     fn try_from(json: JsonNode) -> Result<Self, Self::Error> {
         let mut node = ElkNode::new(json.id.as_str());
+        apply_node_layout_options(&mut node, &json.layout_options)?;
         node.position = Point::new(json.x, json.y);
         node.size = Size::new(json.width, json.height);
         node.labels = json.labels.into_iter().map(JsonLabel::into_label).collect();
@@ -201,6 +211,7 @@ impl JsonNode {
     fn from_node(node: &ElkNode) -> Self {
         Self {
             id: node.id.as_str().to_string(),
+            layout_options: layout_options_from_node(node),
             x: node.position.x,
             y: node.position.y,
             width: node.size.width,
@@ -338,6 +349,13 @@ fn apply_layout_options(
             EDGE_ROUTING_KEY => graph
                 .properties
                 .set_edge_routing(parse_edge_routing(value, key)?),
+            HIERARCHY_HANDLING_KEY => {
+                if let Some(hierarchy_handling) = parse_hierarchy_handling(value, key)? {
+                    graph.properties.set_hierarchy_handling(hierarchy_handling)
+                } else {
+                    None
+                }
+            }
             DIRECTION_KEY | LEGACY_DIRECTION_KEY => {
                 graph.properties.set_direction(parse_direction(value, key)?)
             }
@@ -381,6 +399,11 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
             serde_json::Value::String(format_edge_routing(*edge_routing).to_string()),
         );
     }
+    if let Some(PropertyValue::HierarchyHandling(hierarchy_handling)) =
+        graph.properties.get(CoreOption::HierarchyHandling)
+    {
+        insert_hierarchy_handling(&mut options, *hierarchy_handling);
+    }
     if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingNodeNode)
     {
         options.insert(NODE_NODE_SPACING_KEY.to_string(), (*spacing).into());
@@ -399,6 +422,43 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         options.insert(EDGE_EDGE_SPACING_KEY.to_string(), (*spacing).into());
     }
     options
+}
+
+fn apply_node_layout_options(
+    node: &mut ElkNode,
+    options: &BTreeMap<String, serde_json::Value>,
+) -> Result<(), JsonError> {
+    for (key, value) in options {
+        match key.as_str() {
+            HIERARCHY_HANDLING_KEY => {
+                if let Some(hierarchy_handling) = parse_hierarchy_handling(value, key)? {
+                    node.properties.set_hierarchy_handling(hierarchy_handling);
+                }
+            }
+            _ => continue,
+        }
+    }
+    Ok(())
+}
+
+fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Value> {
+    let mut options = BTreeMap::new();
+    if let Some(PropertyValue::HierarchyHandling(hierarchy_handling)) =
+        node.properties.get(CoreOption::HierarchyHandling)
+    {
+        insert_hierarchy_handling(&mut options, *hierarchy_handling);
+    }
+    options
+}
+
+fn insert_hierarchy_handling(
+    options: &mut BTreeMap<String, serde_json::Value>,
+    hierarchy_handling: HierarchyHandling,
+) {
+    options.insert(
+        HIERARCHY_HANDLING_KEY.to_string(),
+        serde_json::Value::String(format_hierarchy_handling(hierarchy_handling).to_string()),
+    );
 }
 
 fn port_side_from_json(port: &JsonPort) -> Result<Option<PortSide>, JsonError> {
@@ -507,6 +567,27 @@ fn parse_edge_routing(value: &serde_json::Value, key: &str) -> Result<EdgeRoutin
         other => Err(JsonError::Invalid(format!(
             "unsupported {key} value: {other}"
         ))),
+    }
+}
+
+fn parse_hierarchy_handling(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<Option<HierarchyHandling>, JsonError> {
+    match string(value, key)? {
+        "INCLUDE_CHILDREN" => Ok(Some(HierarchyHandling::IncludeChildren)),
+        "SEPARATE_CHILDREN" => Ok(Some(HierarchyHandling::SeparateChildren)),
+        "INHERIT" => Ok(None),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
+fn format_hierarchy_handling(hierarchy_handling: HierarchyHandling) -> &'static str {
+    match hierarchy_handling {
+        HierarchyHandling::IncludeChildren => "INCLUDE_CHILDREN",
+        HierarchyHandling::SeparateChildren => "SEPARATE_CHILDREN",
     }
 }
 

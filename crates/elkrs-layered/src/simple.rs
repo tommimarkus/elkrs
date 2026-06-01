@@ -19,7 +19,7 @@ pub trait LayoutAlgorithm {
 
 impl LayoutAlgorithm for LayeredLayout {
     fn layout(&self, graph: &mut ElkGraph) -> Result<LayoutReport, LayoutError> {
-        let mut diagnostics = validate_options(&graph.properties)?;
+        let mut diagnostics = validate_options(graph)?;
         let direction = graph.properties.direction();
         let node_placement = NodePlacement::from_properties(direction, &graph.properties);
         let mut layered = import_graph(graph)?;

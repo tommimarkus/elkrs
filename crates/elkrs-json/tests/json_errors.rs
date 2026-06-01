@@ -115,6 +115,60 @@ fn non_string_edge_routing_returns_invalid_error() {
 }
 
 #[test]
+fn unsupported_hierarchy_handling_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.hierarchyHandling": "FLATTEN" }
+        }"#,
+        "unsupported org.eclipse.elk.hierarchyHandling value: FLATTEN",
+    );
+}
+
+#[test]
+fn non_string_hierarchy_handling_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.hierarchyHandling": 7 }
+        }"#,
+        "org.eclipse.elk.hierarchyHandling must be a string",
+    );
+}
+
+#[test]
+fn unsupported_node_hierarchy_handling_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.hierarchyHandling": "FLATTEN" }
+            }
+          ]
+        }"#,
+        "unsupported org.eclipse.elk.hierarchyHandling value: FLATTEN",
+    );
+}
+
+#[test]
+fn non_string_node_hierarchy_handling_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.hierarchyHandling": 7 }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.hierarchyHandling must be a string",
+    );
+}
+
+#[test]
 fn non_number_node_spacing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

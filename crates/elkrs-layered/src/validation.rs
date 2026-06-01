@@ -1,10 +1,19 @@
 use elkrs_core::diagnostic::Diagnostic;
+use elkrs_core::graph::{ElkGraph, ElkNode};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{Algorithm, CoreOption, HierarchyHandling, Properties};
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
 
-pub(crate) fn validate_options(properties: &Properties) -> Result<Vec<Diagnostic>, LayoutError> {
+pub(crate) fn validate_options(graph: &ElkGraph) -> Result<Vec<Diagnostic>, LayoutError> {
+    let mut diagnostics = validate_graph_properties(&graph.properties)?;
+    for node in graph.nodes.values() {
+        collect_node_hierarchy_diagnostics(node, &mut diagnostics);
+    }
+    Ok(diagnostics)
+}
+
+fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>, LayoutError> {
     match properties.algorithm() {
         Some(Algorithm::Layered) | None => {}
         Some(Algorithm::Other(algorithm)) => {
@@ -17,15 +26,37 @@ pub(crate) fn validate_options(properties: &Properties) -> Result<Vec<Diagnostic
         properties.hierarchy_handling(),
         HierarchyHandling::SeparateChildren
     ) {
-        diagnostics.push(Diagnostic::warning(
-            UNSUPPORTED_OPTION_CODE,
-            "hierarchy handling SeparateChildren is recognized but not implemented by elkrs-layered yet; laying out children with the current graph",
-        ));
+        diagnostics.push(unsupported_hierarchy_handling_diagnostic(None));
     }
     validate_non_negative_spacing(properties, CoreOption::SpacingEdgeNode, "edge-node spacing")?;
     validate_non_negative_spacing(properties, CoreOption::SpacingEdgeEdge, "edge-edge spacing")?;
 
     Ok(diagnostics)
+}
+
+fn collect_node_hierarchy_diagnostics(node: &ElkNode, diagnostics: &mut Vec<Diagnostic>) {
+    if matches!(
+        node.properties.hierarchy_handling(),
+        HierarchyHandling::SeparateChildren
+    ) {
+        diagnostics.push(unsupported_hierarchy_handling_diagnostic(Some(
+            node.id.as_str(),
+        )));
+    }
+    for child in node.children.values() {
+        collect_node_hierarchy_diagnostics(child, diagnostics);
+    }
+}
+
+fn unsupported_hierarchy_handling_diagnostic(node_id: Option<&str>) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "hierarchy handling SeparateChildren on node {node_id} is recognized but not implemented by elkrs-layered yet; laying out children with the current graph"
+        )
+    } else {
+        "hierarchy handling SeparateChildren is recognized but not implemented by elkrs-layered yet; laying out children with the current graph".to_owned()
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
 
 fn validate_non_negative_spacing(
