@@ -314,7 +314,7 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
         ParityFixture {
             id: "LAYERED-GRAPH-008",
             name: "nested-group",
-            status: ParityFixtureStatus::RustOnly,
+            status: ParityFixtureStatus::JavaComparable,
             build: nested_group,
             assertions: &[],
         },

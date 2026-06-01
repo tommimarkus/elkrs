@@ -4,11 +4,12 @@ use std::env;
 use std::io::Write;
 use std::process::{Command, Stdio};
 
+use elkrs_core::graph::{ElkGraph, ElkNode};
 use elkrs_json::{from_str, to_string_pretty};
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
 use support::fixtures::{parity_fixtures, ParityAssertion, ParityFixtureStatus};
-use support::quality::{layout_metrics, major_axis_edge_node_clearance};
+use support::quality::{layout_metrics, major_axis_edge_node_clearance, LayoutMetrics};
 
 #[test]
 #[ignore = "requires ELKRS_JAVA_ELK_COMMAND to point at a Java ELK JSON command"]
@@ -48,9 +49,9 @@ fn java_elk_parity_matches_structural_metrics_for_comparable_fixtures() {
             });
 
         assert_eq!(
-            java_graph.nodes.len(),
-            rust_graph.nodes.len(),
-            "fixture {} ({}) should preserve node count",
+            node_count(&java_graph),
+            node_count(&rust_graph),
+            "fixture {} ({}) should preserve recursive node count",
             fixture.id,
             fixture.name
         );
@@ -73,24 +74,7 @@ fn java_elk_parity_matches_structural_metrics_for_comparable_fixtures() {
                 fixture.name,
             );
         }
-        assert_eq!(
-            java_metrics.node_overlaps, rust_metrics.node_overlaps,
-            "fixture {} ({}) node overlap parity mismatch: java={java_metrics:?}, rust={rust_metrics:?}",
-            fixture.id,
-            fixture.name
-        );
-        assert_eq!(
-            java_metrics.edges_through_nodes, rust_metrics.edges_through_nodes,
-            "fixture {} ({}) route-through-node parity mismatch: java={java_metrics:?}, rust={rust_metrics:?}",
-            fixture.id,
-            fixture.name
-        );
-        assert_eq!(
-            java_metrics.crossings, rust_metrics.crossings,
-            "fixture {} ({}) crossing parity mismatch: java={java_metrics:?}, rust={rust_metrics:?}",
-            fixture.id,
-            fixture.name
-        );
+        assert_structural_metric_parity(&java_metrics, &rust_metrics, fixture.id, fixture.name);
         assert_eq!(
             java_metrics.unrouted_edges, 0,
             "fixture {} ({}) Java output should route every edge: {java_metrics:?}",
@@ -114,6 +98,69 @@ fn java_elk_parity_matches_structural_metrics_for_comparable_fixtures() {
             fixture.name
         );
     }
+}
+
+fn assert_structural_metric_parity(
+    java_metrics: &LayoutMetrics,
+    rust_metrics: &LayoutMetrics,
+    fixture_id: &str,
+    fixture_name: &str,
+) {
+    assert_eq!(
+        java_metrics.node_overlaps, rust_metrics.node_overlaps,
+        "fixture {fixture_id} ({fixture_name}) node overlap parity mismatch: java={java_metrics:?}, rust={rust_metrics:?}"
+    );
+    assert_eq!(
+        java_metrics.containment_violations, rust_metrics.containment_violations,
+        "fixture {fixture_id} ({fixture_name}) containment parity mismatch: java={java_metrics:?}, rust={rust_metrics:?}"
+    );
+    assert_eq!(
+        java_metrics.edges_through_nodes, rust_metrics.edges_through_nodes,
+        "fixture {fixture_id} ({fixture_name}) route-through-node parity mismatch: java={java_metrics:?}, rust={rust_metrics:?}"
+    );
+    assert_eq!(
+        java_metrics.crossings, rust_metrics.crossings,
+        "fixture {fixture_id} ({fixture_name}) crossing parity mismatch: java={java_metrics:?}, rust={rust_metrics:?}"
+    );
+    assert_eq!(
+        java_metrics.port_anchor_mismatches, rust_metrics.port_anchor_mismatches,
+        "fixture {fixture_id} ({fixture_name}) port anchor parity mismatch: java={java_metrics:?}, rust={rust_metrics:?}"
+    );
+}
+
+#[test]
+fn recursive_node_count_includes_nested_children() {
+    let graph = support::fixtures::nested_group();
+
+    assert_eq!(node_count(&graph), 3);
+}
+
+#[test]
+fn structural_metric_parity_checks_containment_violations() {
+    let java_metrics = metrics_with_containment_violations(1);
+    let rust_metrics = metrics_with_containment_violations(0);
+
+    assert!(
+        std::panic::catch_unwind(|| {
+            assert_structural_metric_parity(&java_metrics, &rust_metrics, "fixture-id", "fixture")
+        })
+        .is_err(),
+        "containment violation mismatches should fail Java parity"
+    );
+}
+
+#[test]
+fn structural_metric_parity_checks_port_anchor_mismatches() {
+    let java_metrics = metrics_with_port_anchor_mismatches(1);
+    let rust_metrics = metrics_with_port_anchor_mismatches(0);
+
+    assert!(
+        std::panic::catch_unwind(|| {
+            assert_structural_metric_parity(&java_metrics, &rust_metrics, "fixture-id", "fixture")
+        })
+        .is_err(),
+        "port anchor mismatch differences should fail Java parity"
+    );
 }
 
 fn run_java_elk_command(command: &str, input: &str) -> String {
@@ -142,6 +189,42 @@ fn run_java_elk_command(command: &str, input: &str) -> String {
     );
 
     String::from_utf8(output.stdout).expect("Java ELK command stdout should be UTF-8 JSON")
+}
+
+fn node_count(graph: &ElkGraph) -> usize {
+    graph.nodes.values().map(node_count_in_subtree).sum()
+}
+
+fn node_count_in_subtree(node: &ElkNode) -> usize {
+    1 + node
+        .children
+        .values()
+        .map(node_count_in_subtree)
+        .sum::<usize>()
+}
+
+fn metrics_with_containment_violations(containment_violations: usize) -> LayoutMetrics {
+    LayoutMetrics {
+        node_overlaps: 0,
+        containment_violations,
+        route_segments: 1,
+        unrouted_edges: 0,
+        edges_through_nodes: 0,
+        crossings: 0,
+        port_anchor_mismatches: 0,
+    }
+}
+
+fn metrics_with_port_anchor_mismatches(port_anchor_mismatches: usize) -> LayoutMetrics {
+    LayoutMetrics {
+        node_overlaps: 0,
+        containment_violations: 0,
+        route_segments: 1,
+        unrouted_edges: 0,
+        edges_through_nodes: 0,
+        crossings: 0,
+        port_anchor_mismatches,
+    }
 }
 
 fn assert_parity_fixture_assertion(

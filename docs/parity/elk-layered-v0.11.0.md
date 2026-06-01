@@ -35,7 +35,7 @@ The Java command must read ELK-style JSON from stdin and write ELK-style JSON to
 | LAYERED-GRAPH-005 | Graph model | Edge labels | `parsed` | `ElkEdge.labels` exists but layout does not place labels | Label and sizing parity plan |
 | LAYERED-GRAPH-006 | Graph model | Node labels | `parsed` | `ElkNode.labels` exists but layout does not size or place labels | Label and sizing parity plan |
 | LAYERED-GRAPH-007 | Graph model | Ports as edge endpoints | `semantic` | `cargo test -p elkrs-layered --test quality --locked port_heavy_fixture_preserves_port_anchor_fidelity` | Port constraints parity plan |
-| LAYERED-GRAPH-008 | Graph model | Compound nodes | `semantic` | `cargo test -p elkrs-layered --test quality --locked nested_group_fixture_has_contained_children` | Compound parity plan |
+| LAYERED-GRAPH-008 | Graph model | Compound nodes | `java-parity` | `cargo test -p elkrs-layered --test quality --locked nested_group_fixture_has_contained_children` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete for nested containment semantics |
 | LAYERED-GRAPH-009 | Graph model | Hierarchy-crossing edges | `semantic` | `cargo test -p elkrs-layered --test consumer_acceptance --locked` | Compound parity plan |
 | LAYERED-GRAPH-010 | Graph model | Clusters | `unsupported` | No public cluster model yet | Compound parity plan |
 | LAYERED-OPT-001 | Options | `org.eclipse.elk.algorithm` layered selection | `semantic` | `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_non_layered_algorithm_option` | Java parity fixture expansion |
