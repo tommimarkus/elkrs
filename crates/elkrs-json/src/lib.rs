@@ -6,10 +6,12 @@ use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{
     ElementId, ElementRef, ElkEdge, ElkEdgeSection, ElkGraph, ElkLabel, ElkNode, ElkPort,
 };
-use elkrs_core::options::{CoreOption, Direction, PortSide, PropertyValue};
+use elkrs_core::options::{Algorithm, CoreOption, Direction, PortSide, PropertyValue};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+const ALGORITHM_KEY: &str = "org.eclipse.elk.algorithm";
+const LEGACY_ALGORITHM_KEY: &str = "elk.algorithm";
 const LAYER_NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers";
 const LEGACY_LAYER_NODE_NODE_SPACING_KEY: &str = "elk.spacing.layerNodeNode";
 
@@ -319,6 +321,9 @@ fn apply_layout_options(
 ) -> Result<(), JsonError> {
     for (key, value) in options {
         match key.as_str() {
+            ALGORITHM_KEY | LEGACY_ALGORITHM_KEY => {
+                graph.properties.set_algorithm(parse_algorithm(value, key)?)
+            }
             "elk.direction" => graph.properties.set_direction(parse_direction(value)?),
             "elk.spacing.nodeNode" => graph.properties.set_spacing_node_node(number(value, key)?),
             LAYER_NODE_NODE_SPACING_KEY | LEGACY_LAYER_NODE_NODE_SPACING_KEY => graph
@@ -338,6 +343,12 @@ fn apply_layout_options(
 
 fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::Value> {
     let mut options = BTreeMap::new();
+    if let Some(PropertyValue::Algorithm(algorithm)) = graph.properties.get(CoreOption::Algorithm) {
+        options.insert(
+            ALGORITHM_KEY.to_string(),
+            serde_json::Value::String(format_algorithm(algorithm)),
+        );
+    }
     if let Some(PropertyValue::Direction(direction)) = graph.properties.get(CoreOption::Direction) {
         options.insert(
             "elk.direction".to_string(),
@@ -499,6 +510,20 @@ fn string<'a>(value: &'a serde_json::Value, key: &str) -> Result<&'a str, JsonEr
     value
         .as_str()
         .ok_or_else(|| JsonError::Invalid(format!("{key} must be a string")))
+}
+
+fn parse_algorithm(value: &serde_json::Value, key: &str) -> Result<Algorithm, JsonError> {
+    Ok(match string(value, key)? {
+        "layered" | "org.eclipse.elk.layered" => Algorithm::Layered,
+        other => Algorithm::Other(other.to_owned()),
+    })
+}
+
+fn format_algorithm(algorithm: &Algorithm) -> String {
+    match algorithm {
+        Algorithm::Layered => "layered".to_owned(),
+        Algorithm::Other(value) => value.clone(),
+    }
 }
 
 fn number(value: &serde_json::Value, key: &str) -> Result<f64, JsonError> {

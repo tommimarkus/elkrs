@@ -1,8 +1,81 @@
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElkGraph, ElkNode, ElkPort};
-use elkrs_core::options::{Direction, PortSide};
+use elkrs_core::options::{Algorithm, Direction, PortSide};
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
+
+#[test]
+fn imports_java_algorithm_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.algorithm": "layered" }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(graph.properties.algorithm(), Some(Algorithm::Layered));
+}
+
+#[test]
+fn imports_short_algorithm_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "elk.algorithm": "org.eclipse.elk.layered" }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(graph.properties.algorithm(), Some(Algorithm::Layered));
+}
+
+#[test]
+fn imports_other_algorithm_for_layout_validation() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.algorithm": "org.eclipse.elk.force" }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.properties.algorithm(),
+        Some(Algorithm::Other("org.eclipse.elk.force".to_owned()))
+    );
+}
+
+#[test]
+fn serializes_algorithm_with_java_key() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_algorithm(Algorithm::Layered);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.algorithm"],
+        Value::String("layered".to_owned())
+    );
+    assert_eq!(
+        json["layoutOptions"].get("elk.algorithm"),
+        None,
+        "short algorithm key should not be emitted"
+    );
+}
+
+#[test]
+fn serializes_other_algorithm_with_java_key() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_algorithm(Algorithm::Other("org.eclipse.elk.force".to_owned()));
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.algorithm"],
+        Value::String("org.eclipse.elk.force".to_owned())
+    );
+}
 
 #[test]
 fn imports_left_direction_layout_option() {

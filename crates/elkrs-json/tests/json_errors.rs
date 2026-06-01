@@ -82,6 +82,17 @@ fn non_string_direction_returns_invalid_error() {
 }
 
 #[test]
+fn non_string_algorithm_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.algorithm": 7 }
+        }"#,
+        "org.eclipse.elk.algorithm must be a string",
+    );
+}
+
+#[test]
 fn non_number_node_spacing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

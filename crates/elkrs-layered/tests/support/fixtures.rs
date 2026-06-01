@@ -2,7 +2,7 @@
 
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
-use elkrs_core::options::{Direction, PortSide};
+use elkrs_core::options::{Algorithm, Direction, PortSide};
 
 pub fn chain() -> ElkGraph {
     let mut graph = ElkGraph::new("root");
@@ -11,6 +11,12 @@ pub fn chain() -> ElkGraph {
     }
     graph.add_edge(edge("ab", "a", "b"));
     graph.add_edge(edge("bc", "b", "c"));
+    graph
+}
+
+pub fn algorithm_layered() -> ElkGraph {
+    let mut graph = chain();
+    graph.properties.set_algorithm(Algorithm::Layered);
     graph
 }
 
@@ -360,6 +366,13 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             name: "multi-edge-pair",
             status: ParityFixtureStatus::JavaComparable,
             build: multi_edge_pair,
+            assertions: &[],
+        },
+        ParityFixture {
+            id: "LAYERED-OPT-001",
+            name: "algorithm-layered",
+            status: ParityFixtureStatus::JavaComparable,
+            build: algorithm_layered,
             assertions: &[],
         },
         ParityFixture {

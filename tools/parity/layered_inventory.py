@@ -17,9 +17,9 @@ METADATA_ARTIFACT = "docs/parity/generated/elk-layered-v0.11.0-metadata.json"
 
 STATUS_OVERRIDES = {
     "org.eclipse.elk.algorithm": (
-        "semantic",
-        "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_non_layered_algorithm_option`",
-        "Parity: Java oracle fixture suite expansion",
+        "java-parity",
+        '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_non_layered_algorithm_option`, `cargo test -p elkrs-json --test json_partitions --locked imports_java_algorithm_layout_option`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for layered selection and unsupported-algorithm diagnostics",
     ),
     "org.eclipse.elk.direction": (
         "java-parity",
