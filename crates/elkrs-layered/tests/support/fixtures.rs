@@ -321,6 +321,14 @@ pub struct ParityFixture {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ParityAssertion {
+    EdgeNodeEndpoints {
+        edge_id: &'static str,
+        source_id: &'static str,
+        target_id: &'static str,
+    },
+    EdgeRouteAxisAligned {
+        edge_id: &'static str,
+    },
     EdgeNodeClearance {
         edge_id: &'static str,
         node_id: &'static str,
@@ -360,6 +368,20 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             status: ParityFixtureStatus::JavaComparable,
             build: chain,
             assertions: &[],
+        },
+        ParityFixture {
+            id: "LAYERED-P5-001",
+            name: "node-endpoint-routing",
+            status: ParityFixtureStatus::JavaComparable,
+            build: chain,
+            assertions: &[
+                ParityAssertion::EdgeNodeEndpoints {
+                    edge_id: "ab",
+                    source_id: "a",
+                    target_id: "b",
+                },
+                ParityAssertion::EdgeRouteAxisAligned { edge_id: "ab" },
+            ],
         },
         ParityFixture {
             id: "LAYERED-GRAPH-002",

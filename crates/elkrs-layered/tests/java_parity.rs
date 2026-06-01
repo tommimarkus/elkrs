@@ -5,7 +5,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 use elkrs_core::geometry::{Point, Size};
-use elkrs_core::graph::{ElementId, ElkGraph, ElkNode};
+use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkEdgeSection, ElkGraph, ElkNode};
 use elkrs_json::{from_str, to_string_pretty};
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
@@ -250,6 +250,84 @@ fn node_separation_assertion_checks_java_and_rust_bounds() {
     );
 }
 
+#[test]
+fn edge_node_endpoint_assertion_checks_java_and_rust_routes() {
+    let assertion = ParityAssertion::EdgeNodeEndpoints {
+        edge_id: "ab",
+        source_id: "a",
+        target_id: "b",
+    };
+    let java_graph =
+        graph_with_node_endpoint_route(vec![Point::new(80.0, 20.0), Point::new(200.0, 20.0)]);
+    let rust_graph =
+        graph_with_node_endpoint_route(vec![Point::new(80.0, 20.0), Point::new(200.0, 20.0)]);
+
+    assert_parity_fixture_assertion(
+        &assertion,
+        &java_graph,
+        &rust_graph,
+        "fixture-id",
+        "fixture",
+    );
+
+    let off_node_java_graph =
+        graph_with_node_endpoint_route(vec![Point::new(90.0, 20.0), Point::new(200.0, 20.0)]);
+    assert!(
+        std::panic::catch_unwind(|| {
+            assert_parity_fixture_assertion(
+                &assertion,
+                &off_node_java_graph,
+                &rust_graph,
+                "fixture-id",
+                "fixture",
+            )
+        })
+        .is_err(),
+        "node endpoint assertion should fail when Java output starts away from the source node boundary"
+    );
+}
+
+#[test]
+fn edge_route_axis_aligned_assertion_checks_java_and_rust_routes() {
+    let assertion = ParityAssertion::EdgeRouteAxisAligned { edge_id: "ab" };
+    let java_graph = graph_with_node_endpoint_route(vec![
+        Point::new(80.0, 20.0),
+        Point::new(140.0, 20.0),
+        Point::new(140.0, 30.0),
+        Point::new(200.0, 30.0),
+    ]);
+    let rust_graph = graph_with_node_endpoint_route(vec![
+        Point::new(80.0, 20.0),
+        Point::new(140.0, 20.0),
+        Point::new(140.0, 30.0),
+        Point::new(200.0, 30.0),
+    ]);
+
+    assert_parity_fixture_assertion(
+        &assertion,
+        &java_graph,
+        &rust_graph,
+        "fixture-id",
+        "fixture",
+    );
+
+    let diagonal_java_graph =
+        graph_with_node_endpoint_route(vec![Point::new(80.0, 20.0), Point::new(200.0, 30.0)]);
+    assert!(
+        std::panic::catch_unwind(|| {
+            assert_parity_fixture_assertion(
+                &assertion,
+                &diagonal_java_graph,
+                &rust_graph,
+                "fixture-id",
+                "fixture",
+            )
+        })
+        .is_err(),
+        "axis-aligned route assertion should fail when Java output includes a diagonal segment"
+    );
+}
+
 fn run_java_elk_command(command: &str, input: &str) -> String {
     let mut child = Command::new(command)
         .stdin(Stdio::piped())
@@ -322,6 +400,38 @@ fn assert_parity_fixture_assertion(
     fixture_name: &str,
 ) {
     match *assertion {
+        ParityAssertion::EdgeNodeEndpoints {
+            edge_id,
+            source_id,
+            target_id,
+        } => {
+            assert_edge_node_endpoints(
+                java_graph,
+                edge_id,
+                source_id,
+                target_id,
+                AssertionContext::new(fixture_id, fixture_name, "Java"),
+            );
+            assert_edge_node_endpoints(
+                rust_graph,
+                edge_id,
+                source_id,
+                target_id,
+                AssertionContext::new(fixture_id, fixture_name, "Rust"),
+            );
+        }
+        ParityAssertion::EdgeRouteAxisAligned { edge_id } => {
+            assert_edge_route_axis_aligned(
+                java_graph,
+                edge_id,
+                AssertionContext::new(fixture_id, fixture_name, "Java"),
+            );
+            assert_edge_route_axis_aligned(
+                rust_graph,
+                edge_id,
+                AssertionContext::new(fixture_id, fixture_name, "Rust"),
+            );
+        }
         ParityAssertion::EdgeNodeClearance {
             edge_id,
             node_id,
@@ -415,6 +525,108 @@ impl<'a> AssertionContext<'a> {
     }
 }
 
+fn assert_edge_node_endpoints(
+    graph: &ElkGraph,
+    edge_id: &str,
+    source_id: &str,
+    target_id: &str,
+    context: AssertionContext<'_>,
+) {
+    let edge = graph
+        .edges
+        .get(&ElementId::from(edge_id))
+        .unwrap_or_else(|| {
+            panic!(
+                "fixture {} ({}) {} output should contain edge {edge_id}",
+                context.fixture_id, context.fixture_name, context.engine
+            )
+        });
+    let section = edge.sections.first().unwrap_or_else(|| {
+        panic!(
+            "fixture {} ({}) {} output should route edge {edge_id}",
+            context.fixture_id, context.fixture_name, context.engine
+        )
+    });
+    let start = section.points.first().copied().unwrap_or_else(|| {
+        panic!(
+            "fixture {} ({}) {} output should give edge {edge_id} a start point",
+            context.fixture_id, context.fixture_name, context.engine
+        )
+    });
+    let end = section.points.last().copied().unwrap_or_else(|| {
+        panic!(
+            "fixture {} ({}) {} output should give edge {edge_id} an end point",
+            context.fixture_id, context.fixture_name, context.engine
+        )
+    });
+    let source = find_node(graph, source_id).unwrap_or_else(|| {
+        panic!(
+            "fixture {} ({}) {} output should contain source node {source_id}",
+            context.fixture_id, context.fixture_name, context.engine
+        )
+    });
+    let target = find_node(graph, target_id).unwrap_or_else(|| {
+        panic!(
+            "fixture {} ({}) {} output should contain target node {target_id}",
+            context.fixture_id, context.fixture_name, context.engine
+        )
+    });
+
+    assert!(
+        point_on_node_boundary(start, source),
+        "fixture {} ({}) {} edge {edge_id} should start on source node {source_id}'s boundary: {start:?}",
+        context.fixture_id,
+        context.fixture_name,
+        context.engine,
+    );
+    assert!(
+        point_on_node_boundary(end, target),
+        "fixture {} ({}) {} edge {edge_id} should end on target node {target_id}'s boundary: {end:?}",
+        context.fixture_id,
+        context.fixture_name,
+        context.engine,
+    );
+}
+
+fn assert_edge_route_axis_aligned(graph: &ElkGraph, edge_id: &str, context: AssertionContext<'_>) {
+    let edge = graph
+        .edges
+        .get(&ElementId::from(edge_id))
+        .unwrap_or_else(|| {
+            panic!(
+                "fixture {} ({}) {} output should contain edge {edge_id}",
+                context.fixture_id, context.fixture_name, context.engine
+            )
+        });
+    let section = edge.sections.first().unwrap_or_else(|| {
+        panic!(
+            "fixture {} ({}) {} output should route edge {edge_id}",
+            context.fixture_id, context.fixture_name, context.engine
+        )
+    });
+    assert!(
+        section.points.len() >= 2,
+        "fixture {} ({}) {} edge {edge_id} should contain at least one route segment: {:?}",
+        context.fixture_id,
+        context.fixture_name,
+        context.engine,
+        section.points,
+    );
+    const EPSILON: f64 = 0.000_001;
+
+    assert!(
+        section.points.windows(2).all(|segment| {
+            (segment[0].x - segment[1].x).abs() <= EPSILON
+                || (segment[0].y - segment[1].y).abs() <= EPSILON
+        }),
+        "fixture {} ({}) {} edge {edge_id} should contain only axis-aligned route segments: {:?}",
+        context.fixture_id,
+        context.fixture_name,
+        context.engine,
+        section.points,
+    );
+}
+
 fn assert_node_order(
     graph: &ElkGraph,
     first: &str,
@@ -452,6 +664,40 @@ fn assert_node_order(
             context.engine,
         ),
     }
+}
+
+fn point_on_node_boundary(point: Point, node: &ElkNode) -> bool {
+    const EPSILON: f64 = 0.000_001;
+
+    let left = node.position.x;
+    let right = node.position.x + node.size.width;
+    let top = node.position.y;
+    let bottom = node.position.y + node.size.height;
+
+    let within_x = point.x + EPSILON >= left && point.x <= right + EPSILON;
+    let within_y = point.y + EPSILON >= top && point.y <= bottom + EPSILON;
+    let on_vertical_side = (point.x - left).abs() <= EPSILON || (point.x - right).abs() <= EPSILON;
+    let on_horizontal_side =
+        (point.y - top).abs() <= EPSILON || (point.y - bottom).abs() <= EPSILON;
+
+    within_x && within_y && (on_vertical_side || on_horizontal_side)
+}
+
+fn find_node<'a>(graph: &'a ElkGraph, node_id: &str) -> Option<&'a ElkNode> {
+    let node_id = ElementId::from(node_id);
+    graph
+        .nodes
+        .values()
+        .find_map(|node| find_node_in_subtree(node, &node_id))
+}
+
+fn find_node_in_subtree<'a>(node: &'a ElkNode, node_id: &ElementId) -> Option<&'a ElkNode> {
+    if node.id == *node_id {
+        return Some(node);
+    }
+    node.children
+        .values()
+        .find_map(|child| find_node_in_subtree(child, node_id))
 }
 
 fn node_axis_coordinate(graph: &ElkGraph, node_id: &str, axis: Axis) -> Option<f64> {
@@ -495,6 +741,27 @@ fn node_axis_gap(graph: &ElkGraph, first: &str, second: &str, axis: Axis) -> Opt
         Axis::Y => (second.position.y - (first.position.y + first.size.height))
             .max(first.position.y - (second.position.y + second.size.height)),
     })
+}
+
+fn graph_with_node_endpoint_route(points: Vec<Point>) -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    let mut source = ElkNode::new("a");
+    source.position = Point::new(0.0, 0.0);
+    source.size = Size::new(80.0, 40.0);
+    let mut target = ElkNode::new("b");
+    target.position = Point::new(200.0, 0.0);
+    target.size = Size::new(80.0, 40.0);
+    let mut edge = ElkEdge::new(
+        "ab",
+        ElementRef::Node(ElementId::from("a")),
+        ElementRef::Node(ElementId::from("b")),
+    );
+    edge.sections.push(ElkEdgeSection { points });
+
+    graph.add_node(source);
+    graph.add_node(target);
+    graph.add_edge(edge);
+    graph
 }
 
 fn graph_with_node_positions(first: Point, second: Point) -> ElkGraph {
