@@ -2,7 +2,7 @@
 
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
-use elkrs_core::options::PortSide;
+use elkrs_core::options::{Direction, PortSide};
 
 pub fn chain() -> ElkGraph {
     let mut graph = ElkGraph::new("root");
@@ -12,6 +12,22 @@ pub fn chain() -> ElkGraph {
     graph.add_edge(edge("ab", "a", "b"));
     graph.add_edge(edge("bc", "b", "c"));
     graph
+}
+
+pub fn direction_right() -> ElkGraph {
+    direction_chain(Direction::Right)
+}
+
+pub fn direction_left() -> ElkGraph {
+    direction_chain(Direction::Left)
+}
+
+pub fn direction_down() -> ElkGraph {
+    direction_chain(Direction::Down)
+}
+
+pub fn direction_up() -> ElkGraph {
+    direction_chain(Direction::Up)
 }
 
 pub fn diamond() -> ElkGraph {
@@ -238,6 +254,15 @@ pub fn node(id: &str, width: f64, height: f64) -> ElkNode {
     node
 }
 
+fn direction_chain(direction: Direction) -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_direction(direction);
+    graph.add_node(node("a", 40.0, 30.0));
+    graph.add_node(node("b", 40.0, 30.0));
+    graph.add_edge(edge("ab", "a", "b"));
+    graph
+}
+
 pub fn edge(id: &str, source: &str, target: &str) -> ElkEdge {
     ElkEdge::new(
         id,
@@ -275,6 +300,24 @@ pub enum ParityAssertion {
         node_id: &'static str,
         minimum: f64,
     },
+    NodeOrder {
+        first: &'static str,
+        second: &'static str,
+        axis: Axis,
+        order: Order,
+    },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Axis {
+    X,
+    Y,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Order {
+    LessThan,
+    GreaterThan,
 }
 
 pub fn parity_fixtures() -> Vec<ParityFixture> {
@@ -292,6 +335,54 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             status: ParityFixtureStatus::JavaComparable,
             build: multi_edge_pair,
             assertions: &[],
+        },
+        ParityFixture {
+            id: "LAYERED-OPT-002",
+            name: "direction-right",
+            status: ParityFixtureStatus::JavaComparable,
+            build: direction_right,
+            assertions: &[ParityAssertion::NodeOrder {
+                first: "a",
+                second: "b",
+                axis: Axis::X,
+                order: Order::LessThan,
+            }],
+        },
+        ParityFixture {
+            id: "LAYERED-OPT-002",
+            name: "direction-left",
+            status: ParityFixtureStatus::JavaComparable,
+            build: direction_left,
+            assertions: &[ParityAssertion::NodeOrder {
+                first: "a",
+                second: "b",
+                axis: Axis::X,
+                order: Order::GreaterThan,
+            }],
+        },
+        ParityFixture {
+            id: "LAYERED-OPT-002",
+            name: "direction-down",
+            status: ParityFixtureStatus::JavaComparable,
+            build: direction_down,
+            assertions: &[ParityAssertion::NodeOrder {
+                first: "a",
+                second: "b",
+                axis: Axis::Y,
+                order: Order::LessThan,
+            }],
+        },
+        ParityFixture {
+            id: "LAYERED-OPT-002",
+            name: "direction-up",
+            status: ParityFixtureStatus::JavaComparable,
+            build: direction_up,
+            assertions: &[ParityAssertion::NodeOrder {
+                first: "a",
+                second: "b",
+                axis: Axis::Y,
+                order: Order::GreaterThan,
+            }],
         },
         ParityFixture {
             id: "LAYERED-GRAPH-003",

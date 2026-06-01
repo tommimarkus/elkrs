@@ -4,11 +4,12 @@ use std::env;
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-use elkrs_core::graph::{ElkGraph, ElkNode};
+use elkrs_core::geometry::Point;
+use elkrs_core::graph::{ElementId, ElkGraph, ElkNode};
 use elkrs_json::{from_str, to_string_pretty};
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
-use support::fixtures::{parity_fixtures, ParityAssertion, ParityFixtureStatus};
+use support::fixtures::{parity_fixtures, Axis, Order, ParityAssertion, ParityFixtureStatus};
 use support::quality::{layout_metrics, major_axis_edge_node_clearance, LayoutMetrics};
 
 #[test]
@@ -163,6 +164,42 @@ fn structural_metric_parity_checks_port_anchor_mismatches() {
     );
 }
 
+#[test]
+fn node_order_assertion_checks_java_and_rust_positions() {
+    let assertion = ParityAssertion::NodeOrder {
+        first: "a",
+        second: "b",
+        axis: Axis::X,
+        order: Order::LessThan,
+    };
+    let java_graph = graph_with_node_positions(Point::new(0.0, 0.0), Point::new(100.0, 0.0));
+    let rust_graph = graph_with_node_positions(Point::new(0.0, 0.0), Point::new(100.0, 0.0));
+
+    assert_parity_fixture_assertion(
+        &assertion,
+        &java_graph,
+        &rust_graph,
+        "fixture-id",
+        "fixture",
+    );
+
+    let reversed_java_graph =
+        graph_with_node_positions(Point::new(100.0, 0.0), Point::new(0.0, 0.0));
+    assert!(
+        std::panic::catch_unwind(|| {
+            assert_parity_fixture_assertion(
+                &assertion,
+                &reversed_java_graph,
+                &rust_graph,
+                "fixture-id",
+                "fixture",
+            )
+        })
+        .is_err(),
+        "node order assertion should fail when Java output has the wrong relative order"
+    );
+}
+
 fn run_java_elk_command(command: &str, input: &str) -> String {
     let mut child = Command::new(command)
         .stdin(Stdio::piped())
@@ -262,5 +299,103 @@ fn assert_parity_fixture_assertion(
                 "fixture {fixture_id} ({fixture_name}) Rust edge-node clearance for edge {edge_id} vs node {node_id} should be at least {minimum}: {rust_clearance}"
             );
         }
+        ParityAssertion::NodeOrder {
+            first,
+            second,
+            axis,
+            order,
+        } => {
+            assert_node_order(
+                java_graph,
+                first,
+                second,
+                axis,
+                order,
+                AssertionContext::new(fixture_id, fixture_name, "Java"),
+            );
+            assert_node_order(
+                rust_graph,
+                first,
+                second,
+                axis,
+                order,
+                AssertionContext::new(fixture_id, fixture_name, "Rust"),
+            );
+        }
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+struct AssertionContext<'a> {
+    fixture_id: &'a str,
+    fixture_name: &'a str,
+    engine: &'a str,
+}
+
+impl<'a> AssertionContext<'a> {
+    fn new(fixture_id: &'a str, fixture_name: &'a str, engine: &'a str) -> Self {
+        Self {
+            fixture_id,
+            fixture_name,
+            engine,
+        }
+    }
+}
+
+fn assert_node_order(
+    graph: &ElkGraph,
+    first: &str,
+    second: &str,
+    axis: Axis,
+    order: Order,
+    context: AssertionContext<'_>,
+) {
+    let first_coordinate = node_axis_coordinate(graph, first, axis).unwrap_or_else(|| {
+        panic!(
+            "fixture {} ({}) {} output should contain node {first}",
+            context.fixture_id, context.fixture_name, context.engine
+        )
+    });
+    let second_coordinate = node_axis_coordinate(graph, second, axis).unwrap_or_else(|| {
+        panic!(
+            "fixture {} ({}) {} output should contain node {second}",
+            context.fixture_id, context.fixture_name, context.engine
+        )
+    });
+
+    match order {
+        Order::LessThan => assert!(
+            first_coordinate < second_coordinate,
+            "fixture {} ({}) {} output should place node {first} before {second} on {axis:?}: {first_coordinate} >= {second_coordinate}",
+            context.fixture_id,
+            context.fixture_name,
+            context.engine,
+        ),
+        Order::GreaterThan => assert!(
+            first_coordinate > second_coordinate,
+            "fixture {} ({}) {} output should place node {first} after {second} on {axis:?}: {first_coordinate} <= {second_coordinate}",
+            context.fixture_id,
+            context.fixture_name,
+            context.engine,
+        ),
+    }
+}
+
+fn node_axis_coordinate(graph: &ElkGraph, node_id: &str, axis: Axis) -> Option<f64> {
+    let node = graph.nodes.get(&ElementId::from(node_id))?;
+    Some(match axis {
+        Axis::X => node.position.x,
+        Axis::Y => node.position.y,
+    })
+}
+
+fn graph_with_node_positions(first: Point, second: Point) -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    let mut first_node = ElkNode::new("a");
+    first_node.position = first;
+    let mut second_node = ElkNode::new("b");
+    second_node.position = second;
+    graph.add_node(first_node);
+    graph.add_node(second_node);
+    graph
 }

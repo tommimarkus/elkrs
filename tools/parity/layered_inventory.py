@@ -22,9 +22,9 @@ STATUS_OVERRIDES = {
         "Parity: Java oracle fixture suite expansion",
     ),
     "org.eclipse.elk.direction": (
-        "semantic",
-        "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_respects_left_direction`",
-        "Parity: Java oracle fixture suite expansion",
+        "java-parity",
+        '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_respects_left_direction` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete",
     ),
     "org.eclipse.elk.spacing.nodeNode": (
         "semantic",
