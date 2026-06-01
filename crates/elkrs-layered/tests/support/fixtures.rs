@@ -14,6 +14,10 @@ pub fn chain() -> ElkGraph {
     graph
 }
 
+pub fn reverse_insertion_chain() -> ElkGraph {
+    chain_with_node_order(["c", "b", "a"])
+}
+
 pub fn algorithm_layered() -> ElkGraph {
     let mut graph = chain();
     graph.properties.set_algorithm(Algorithm::Layered);
@@ -300,6 +304,16 @@ fn direction_chain(direction: Direction) -> ElkGraph {
     graph
 }
 
+fn chain_with_node_order(ids: [&str; 3]) -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    for id in ids {
+        graph.add_node(node(id, 40.0, 30.0));
+    }
+    graph.add_edge(edge("ab", "a", "b"));
+    graph.add_edge(edge("bc", "b", "c"));
+    graph
+}
+
 pub fn edge(id: &str, source: &str, target: &str) -> ElkEdge {
     ElkEdge::new(
         id,
@@ -487,6 +501,26 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
                     target_id: "a",
                 },
                 ParityAssertion::EdgeRouteAxisAligned { edge_id: "ca" },
+            ],
+        },
+        ParityFixture {
+            id: "LAYERED-P2-001",
+            name: "reverse-insertion-chain",
+            status: ParityFixtureStatus::JavaComparable,
+            build: reverse_insertion_chain,
+            assertions: &[
+                ParityAssertion::NodeOrder {
+                    first: "a",
+                    second: "b",
+                    axis: Axis::X,
+                    order: Order::LessThan,
+                },
+                ParityAssertion::NodeOrder {
+                    first: "b",
+                    second: "c",
+                    axis: Axis::X,
+                    order: Order::LessThan,
+                },
             ],
         },
         ParityFixture {
