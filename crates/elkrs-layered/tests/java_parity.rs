@@ -4,7 +4,7 @@ use std::env;
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-use elkrs_core::geometry::Point;
+use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElkGraph, ElkNode};
 use elkrs_json::{from_str, to_string_pretty};
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
@@ -200,6 +200,56 @@ fn node_order_assertion_checks_java_and_rust_positions() {
     );
 }
 
+#[test]
+fn node_separation_assertion_checks_java_and_rust_bounds() {
+    let assertion = ParityAssertion::NodeSeparation {
+        first: "a",
+        second: "b",
+        axis: Axis::Y,
+        minimum: 200.0,
+    };
+    let java_graph = graph_with_node_bounds(
+        Point::new(0.0, 0.0),
+        Size::new(80.0, 40.0),
+        Point::new(0.0, 240.0),
+        Size::new(80.0, 40.0),
+    );
+    let rust_graph = graph_with_node_bounds(
+        Point::new(0.0, 0.0),
+        Size::new(80.0, 40.0),
+        Point::new(0.0, 240.0),
+        Size::new(80.0, 40.0),
+    );
+
+    assert_parity_fixture_assertion(
+        &assertion,
+        &java_graph,
+        &rust_graph,
+        "fixture-id",
+        "fixture",
+    );
+
+    let too_close_java_graph = graph_with_node_bounds(
+        Point::new(0.0, 0.0),
+        Size::new(80.0, 40.0),
+        Point::new(0.0, 239.0),
+        Size::new(80.0, 40.0),
+    );
+    assert!(
+        std::panic::catch_unwind(|| {
+            assert_parity_fixture_assertion(
+                &assertion,
+                &too_close_java_graph,
+                &rust_graph,
+                "fixture-id",
+                "fixture",
+            )
+        })
+        .is_err(),
+        "node separation assertion should fail when Java output violates the minimum gap"
+    );
+}
+
 fn run_java_elk_command(command: &str, input: &str) -> String {
     let mut child = Command::new(command)
         .stdin(Stdio::piped())
@@ -322,6 +372,29 @@ fn assert_parity_fixture_assertion(
                 AssertionContext::new(fixture_id, fixture_name, "Rust"),
             );
         }
+        ParityAssertion::NodeSeparation {
+            first,
+            second,
+            axis,
+            minimum,
+        } => {
+            assert_node_separation(
+                java_graph,
+                first,
+                second,
+                axis,
+                minimum,
+                AssertionContext::new(fixture_id, fixture_name, "Java"),
+            );
+            assert_node_separation(
+                rust_graph,
+                first,
+                second,
+                axis,
+                minimum,
+                AssertionContext::new(fixture_id, fixture_name, "Rust"),
+            );
+        }
     }
 }
 
@@ -389,12 +462,65 @@ fn node_axis_coordinate(graph: &ElkGraph, node_id: &str, axis: Axis) -> Option<f
     })
 }
 
+fn assert_node_separation(
+    graph: &ElkGraph,
+    first: &str,
+    second: &str,
+    axis: Axis,
+    minimum: f64,
+    context: AssertionContext<'_>,
+) {
+    let gap = node_axis_gap(graph, first, second, axis).unwrap_or_else(|| {
+        panic!(
+            "fixture {} ({}) {} output should contain nodes {first} and {second}",
+            context.fixture_id, context.fixture_name, context.engine
+        )
+    });
+
+    assert!(
+        gap + f64::EPSILON >= minimum,
+        "fixture {} ({}) {} output should separate nodes {first} and {second} on {axis:?} by at least {minimum}: {gap}",
+        context.fixture_id,
+        context.fixture_name,
+        context.engine,
+    );
+}
+
+fn node_axis_gap(graph: &ElkGraph, first: &str, second: &str, axis: Axis) -> Option<f64> {
+    let first = graph.nodes.get(&ElementId::from(first))?;
+    let second = graph.nodes.get(&ElementId::from(second))?;
+    Some(match axis {
+        Axis::X => (second.position.x - (first.position.x + first.size.width))
+            .max(first.position.x - (second.position.x + second.size.width)),
+        Axis::Y => (second.position.y - (first.position.y + first.size.height))
+            .max(first.position.y - (second.position.y + second.size.height)),
+    })
+}
+
 fn graph_with_node_positions(first: Point, second: Point) -> ElkGraph {
     let mut graph = ElkGraph::new("root");
     let mut first_node = ElkNode::new("a");
     first_node.position = first;
     let mut second_node = ElkNode::new("b");
     second_node.position = second;
+    graph.add_node(first_node);
+    graph.add_node(second_node);
+    graph
+}
+
+fn graph_with_node_bounds(
+    first_position: Point,
+    first_size: Size,
+    second_position: Point,
+    second_size: Size,
+) -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    let mut first_node = ElkNode::new("a");
+    first_node.position = first_position;
+    first_node.size = first_size;
+    let mut second_node = ElkNode::new("b");
+    second_node.position = second_position;
+    second_node.size = second_size;
     graph.add_node(first_node);
     graph.add_node(second_node);
     graph

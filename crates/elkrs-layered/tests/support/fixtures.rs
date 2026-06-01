@@ -185,6 +185,17 @@ pub fn edge_node_spacing_obstacle() -> ElkGraph {
     graph
 }
 
+pub fn node_node_spacing() -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_node_node(200.0);
+    graph.add_node(node("a", 50.0, 30.0));
+    graph.add_node(node("b", 50.0, 30.0));
+    graph.add_node(node("d", 50.0, 30.0));
+    graph.add_edge(edge("ad", "a", "d"));
+    graph.add_edge(edge("bd", "b", "d"));
+    graph
+}
+
 pub fn consumer_compound_ports() -> ElkGraph {
     let mut client = node("a-client", 80.0, 40.0);
     client.add_port(port(
@@ -306,6 +317,12 @@ pub enum ParityAssertion {
         axis: Axis,
         order: Order,
     },
+    NodeSeparation {
+        first: &'static str,
+        second: &'static str,
+        axis: Axis,
+        minimum: f64,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -407,6 +424,18 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
                 edge_id: "direct",
                 node_id: "b-obstacle",
                 minimum: 48.0,
+            }],
+        },
+        ParityFixture {
+            id: "LAYERED-OPT-003",
+            name: "node-node-spacing",
+            status: ParityFixtureStatus::JavaComparable,
+            build: node_node_spacing,
+            assertions: &[ParityAssertion::NodeSeparation {
+                first: "a",
+                second: "b",
+                axis: Axis::Y,
+                minimum: 200.0,
             }],
         },
         ParityFixture {

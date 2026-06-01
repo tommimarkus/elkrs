@@ -27,9 +27,9 @@ STATUS_OVERRIDES = {
         "Complete",
     ),
     "org.eclipse.elk.spacing.nodeNode": (
-        "semantic",
-        "`cargo test -p elkrs-layered --test quality --locked custom_node_spacing_separates_same_layer_nodes`",
-        "Parity: Java oracle fixture suite expansion",
+        "java-parity",
+        '`cargo test -p elkrs-layered --test quality --locked custom_node_spacing_separates_same_layer_nodes` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete",
     ),
     "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers": (
         "semantic",
