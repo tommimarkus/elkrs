@@ -128,9 +128,21 @@ pub enum ElementRef {
     Port { node: ElementId, port: ElementId },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ElkLabel {
     pub text: String,
+    pub position: Point,
+    pub size: Size,
+}
+
+impl ElkLabel {
+    pub fn new(text: impl Into<String>) -> Self {
+        Self {
+            text: text.into(),
+            position: Point::new(0.0, 0.0),
+            size: Size::new(0.0, 0.0),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -168,5 +180,14 @@ mod tests {
         let id = ElementId::new("node-a");
 
         assert_eq!(id.as_str(), "node-a");
+    }
+
+    #[test]
+    fn label_new_preserves_text_and_defaults_geometry() {
+        let label = ElkLabel::new("caption");
+
+        assert_eq!(label.text, "caption");
+        assert_eq!(label.position, Point::new(0.0, 0.0));
+        assert_eq!(label.size, Size::new(0.0, 0.0));
     }
 }

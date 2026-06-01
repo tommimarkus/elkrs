@@ -1,7 +1,8 @@
-use elkrs_core::geometry::Point;
+use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef};
 use elkrs_core::options::Direction;
 use elkrs_json::{from_str, to_string_pretty};
+use serde_json::Value;
 
 #[test]
 fn round_trips_self_loop_edge() {
@@ -155,11 +156,11 @@ fn round_trips_node_and_edge_label_text() {
       "children": [
         {
           "id": "source",
-          "labels": [{ "text": "Source node" }]
+          "labels": [{ "text": "Source node", "x": 3, "y": 5, "width": 70, "height": 12 }]
         },
         {
           "id": "target",
-          "labels": [{ "text": "Target node" }]
+          "labels": [{ "text": "Target node", "x": 7, "y": 11, "width": 80, "height": 14 }]
         }
       ],
       "edges": [
@@ -167,7 +168,7 @@ fn round_trips_node_and_edge_label_text() {
           "id": "edge",
           "sources": ["source"],
           "targets": ["target"],
-          "labels": [{ "text": "Edge label" }]
+          "labels": [{ "text": "Edge label", "x": 13, "y": 17, "width": 90, "height": 16 }]
         }
       ]
     }"#;
@@ -179,15 +180,54 @@ fn round_trips_node_and_edge_label_text() {
         "Source node"
     );
     assert_eq!(
+        graph.nodes[&ElementId::from("source")].labels[0].position,
+        Point::new(3.0, 5.0)
+    );
+    assert_eq!(
+        graph.nodes[&ElementId::from("source")].labels[0].size,
+        Size::new(70.0, 12.0)
+    );
+    assert_eq!(
         graph.nodes[&ElementId::from("target")].labels[0].text,
         "Target node"
+    );
+    assert_eq!(
+        graph.nodes[&ElementId::from("target")].labels[0].position,
+        Point::new(7.0, 11.0)
+    );
+    assert_eq!(
+        graph.nodes[&ElementId::from("target")].labels[0].size,
+        Size::new(80.0, 14.0)
     );
     assert_eq!(
         graph.edges[&ElementId::from("edge")].labels[0].text,
         "Edge label"
     );
+    assert_eq!(
+        graph.edges[&ElementId::from("edge")].labels[0].position,
+        Point::new(13.0, 17.0)
+    );
+    assert_eq!(
+        graph.edges[&ElementId::from("edge")].labels[0].size,
+        Size::new(90.0, 16.0)
+    );
 
     let output = to_string_pretty(&graph).unwrap();
+    let output_json: Value = serde_json::from_str(&output).unwrap();
+    assert_eq!(
+        output_json["children"][0]["labels"][0]["x"],
+        Value::from(3.0)
+    );
+    assert_eq!(
+        output_json["children"][0]["labels"][0]["width"],
+        Value::from(70.0)
+    );
+    assert_eq!(output_json["edges"][0]["labels"][0]["x"], Value::from(13.0));
+    assert_eq!(
+        output_json["edges"][0]["labels"][0]["width"],
+        Value::from(90.0)
+    );
+
     let reparsed = from_str(&output).unwrap();
 
     assert_eq!(reparsed, graph);

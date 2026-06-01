@@ -98,6 +98,14 @@ struct JsonEdge {
 #[derive(Debug, Deserialize, Serialize)]
 struct JsonLabel {
     text: String,
+    #[serde(default, skip_serializing_if = "is_default_f64")]
+    x: f64,
+    #[serde(default, skip_serializing_if = "is_default_f64")]
+    y: f64,
+    #[serde(default, skip_serializing_if = "is_default_f64")]
+    width: f64,
+    #[serde(default, skip_serializing_if = "is_default_f64")]
+    height: f64,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -237,12 +245,20 @@ impl JsonEdge {
 
 impl JsonLabel {
     fn into_label(self) -> ElkLabel {
-        ElkLabel { text: self.text }
+        ElkLabel {
+            text: self.text,
+            position: Point::new(self.x, self.y),
+            size: Size::new(self.width, self.height),
+        }
     }
 
     fn from_label(label: &ElkLabel) -> Self {
         Self {
             text: label.text.clone(),
+            x: label.position.x,
+            y: label.position.y,
+            width: label.size.width,
+            height: label.size.height,
         }
     }
 }

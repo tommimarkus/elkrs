@@ -101,8 +101,8 @@ FEATURE_OVERRIDES = {
         "Parity: compound, hierarchy, and non-plugin cluster behavior",
     ),
     "EDGE_LABELS": (
-        "unsupported",
-        "Generated from Java ELK v0.11.0 supported feature metadata; no Rust proof mapped yet",
+        "parsed",
+        "`cargo test -p elkrs-json --test json_roundtrip --locked round_trips_node_and_edge_label_text`; layout does not place edge labels yet",
         "Parity: labels and node sizing model",
     ),
     "HIERARCHY": (
