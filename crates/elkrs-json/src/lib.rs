@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{
-    ElementId, ElementRef, ElkEdge, ElkEdgeSection, ElkGraph, ElkNode, ElkPort,
+    ElementId, ElementRef, ElkEdge, ElkEdgeSection, ElkGraph, ElkLabel, ElkNode, ElkPort,
 };
 use elkrs_core::options::{CoreOption, Direction, PortSide, PropertyValue};
 use serde::{Deserialize, Serialize};
@@ -56,6 +56,8 @@ struct JsonNode {
     #[serde(default, skip_serializing_if = "is_default_f64")]
     height: f64,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    labels: Vec<JsonLabel>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     ports: Vec<JsonPort>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     children: Vec<JsonNode>,
@@ -88,7 +90,14 @@ struct JsonEdge {
     sources: Vec<String>,
     targets: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    labels: Vec<JsonLabel>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     sections: Vec<JsonSection>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct JsonLabel {
+    text: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -130,6 +139,7 @@ impl TryFrom<JsonNode> for ElkNode {
         let mut node = ElkNode::new(json.id.as_str());
         node.position = Point::new(json.x, json.y);
         node.size = Size::new(json.width, json.height);
+        node.labels = json.labels.into_iter().map(JsonLabel::into_label).collect();
         for port in json.ports {
             node.add_port(port.try_into()?);
         }
@@ -171,6 +181,7 @@ impl JsonNode {
             y: node.position.y,
             width: node.size.width,
             height: node.size.height,
+            labels: node.labels.iter().map(JsonLabel::from_label).collect(),
             ports: node.ports.values().map(JsonPort::from_port).collect(),
             children: node.children.values().map(JsonNode::from_node).collect(),
         }
@@ -200,6 +211,7 @@ impl JsonEdge {
             resolve_element_ref(graph, source)?,
             resolve_element_ref(graph, target)?,
         );
+        edge.labels = self.labels.into_iter().map(JsonLabel::into_label).collect();
         edge.sections = self
             .sections
             .into_iter()
@@ -213,11 +225,24 @@ impl JsonEdge {
             id: edge.id.as_str().to_string(),
             sources: vec![element_ref_id(&edge.source).to_string()],
             targets: vec![element_ref_id(&edge.target).to_string()],
+            labels: edge.labels.iter().map(JsonLabel::from_label).collect(),
             sections: edge
                 .sections
                 .iter()
                 .map(JsonSection::from_section)
                 .collect(),
+        }
+    }
+}
+
+impl JsonLabel {
+    fn into_label(self) -> ElkLabel {
+        ElkLabel { text: self.text }
+    }
+
+    fn from_label(label: &ElkLabel) -> Self {
+        Self {
+            text: label.text.clone(),
         }
     }
 }

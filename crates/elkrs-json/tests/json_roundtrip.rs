@@ -147,3 +147,48 @@ fn round_trips_graph_with_ports_options_and_edge_sections() {
 
     assert_eq!(reparsed, graph);
 }
+
+#[test]
+fn round_trips_node_and_edge_label_text() {
+    let input = r#"{
+      "id": "root",
+      "children": [
+        {
+          "id": "source",
+          "labels": [{ "text": "Source node" }]
+        },
+        {
+          "id": "target",
+          "labels": [{ "text": "Target node" }]
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge",
+          "sources": ["source"],
+          "targets": ["target"],
+          "labels": [{ "text": "Edge label" }]
+        }
+      ]
+    }"#;
+
+    let graph = from_str(input).unwrap();
+
+    assert_eq!(
+        graph.nodes[&ElementId::from("source")].labels[0].text,
+        "Source node"
+    );
+    assert_eq!(
+        graph.nodes[&ElementId::from("target")].labels[0].text,
+        "Target node"
+    );
+    assert_eq!(
+        graph.edges[&ElementId::from("edge")].labels[0].text,
+        "Edge label"
+    );
+
+    let output = to_string_pretty(&graph).unwrap();
+    let reparsed = from_str(&output).unwrap();
+
+    assert_eq!(reparsed, graph);
+}
