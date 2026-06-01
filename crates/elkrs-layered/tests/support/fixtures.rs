@@ -67,6 +67,13 @@ pub fn nested_group() -> ElkGraph {
     graph
 }
 
+pub fn basic_non_overlap() -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node("a", 80.0, 200.0));
+    graph.add_node(node("b", 80.0, 200.0));
+    graph
+}
+
 pub fn cross_group_edge() -> ElkGraph {
     let mut group = node("group", 240.0, 160.0);
     group.add_child(node("child", 50.0, 30.0));
@@ -316,6 +323,13 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             name: "nested-group",
             status: ParityFixtureStatus::JavaComparable,
             build: nested_group,
+            assertions: &[],
+        },
+        ParityFixture {
+            id: "LAYERED-P4-001",
+            name: "basic-non-overlap",
+            status: ParityFixtureStatus::JavaComparable,
+            build: basic_non_overlap,
             assertions: &[],
         },
         ParityFixture {
