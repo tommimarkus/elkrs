@@ -6,7 +6,7 @@ use elkrs_core::options::{
 };
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
-const UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
+const PARENT_UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
     (
         CoreOption::ConnectedComponentsCompaction,
         "connected components compaction",
@@ -35,6 +35,20 @@ const UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
     (CoreOption::TopdownLayout, "topdown layout"),
     (CoreOption::UnnecessaryBendpoints, "unnecessary bendpoints"),
 ];
+const NODE_UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
+    (CoreOption::CommentBox, "comment box"),
+    (CoreOption::Hypernode, "hypernode"),
+    (CoreOption::InsideSelfLoops, "inside self-loops"),
+    (CoreOption::NoModelOrder, "no model order"),
+    (
+        CoreOption::LayerUnzippingMinimizeEdgeLength,
+        "layer unzipping minimize edge length",
+    ),
+    (
+        CoreOption::PortLabelsNextToPortIfPossible,
+        "port labels next to port if possible",
+    ),
+];
 
 pub(crate) fn validate_options(graph: &ElkGraph) -> Result<Vec<Diagnostic>, LayoutError> {
     let mut diagnostics = validate_graph_properties(&graph.properties)?;
@@ -53,7 +67,12 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
     }
 
     let mut diagnostics = Vec::new();
-    collect_unsupported_boolean_option_diagnostics(properties, None, &mut diagnostics);
+    collect_unsupported_boolean_option_diagnostics(
+        properties,
+        None,
+        PARENT_UNSUPPORTED_BOOLEAN_OPTIONS,
+        &mut diagnostics,
+    );
     match properties.edge_routing() {
         EdgeRouting::Orthogonal => {}
         edge_routing => diagnostics.push(unsupported_edge_routing_diagnostic(edge_routing, None)),
@@ -89,9 +108,10 @@ fn unsupported_edge_routing_diagnostic(
 fn collect_unsupported_boolean_option_diagnostics(
     properties: &Properties,
     node_id: Option<&str>,
+    options: &[(CoreOption, &str)],
     diagnostics: &mut Vec<Diagnostic>,
 ) {
-    for (option, name) in UNSUPPORTED_BOOLEAN_OPTIONS {
+    for (option, name) in options {
         if matches!(properties.get(*option), Some(PropertyValue::Bool(true))) {
             diagnostics.push(unsupported_boolean_option_diagnostic(name, node_id));
         }
@@ -113,6 +133,13 @@ fn collect_node_hierarchy_diagnostics(node: &ElkNode, diagnostics: &mut Vec<Diag
     collect_unsupported_boolean_option_diagnostics(
         &node.properties,
         Some(node.id.as_str()),
+        PARENT_UNSUPPORTED_BOOLEAN_OPTIONS,
+        diagnostics,
+    );
+    collect_unsupported_boolean_option_diagnostics(
+        &node.properties,
+        Some(node.id.as_str()),
+        NODE_UNSUPPORTED_BOOLEAN_OPTIONS,
         diagnostics,
     );
     match node.properties.edge_routing() {

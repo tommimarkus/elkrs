@@ -978,6 +978,49 @@ fn layered_layout_reports_node_unsupported_parent_boolean_options() {
     }
 }
 
+#[test]
+fn layered_layout_reports_node_unsupported_node_boolean_options() {
+    for (name, setter) in node_boolean_option_cases() {
+        let mut graph = ElkGraph::new("root");
+        let mut child = node("child", 60.0, 30.0);
+        setter(&mut child.properties, true);
+        graph.add_node(child);
+
+        let report = LayeredLayout.layout(&mut graph).unwrap();
+
+        assert!(
+            report.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+                    && diagnostic.severity == Severity::Warning
+                    && diagnostic.message.contains(name)
+                    && diagnostic.message.contains("child")
+            }),
+            "{name}"
+        );
+    }
+}
+
+#[test]
+fn layered_layout_accepts_disabled_node_boolean_options_without_diagnostic() {
+    for (name, setter) in node_boolean_option_cases() {
+        let mut graph = ElkGraph::new("root");
+        let mut child = node("child", 60.0, 30.0);
+        setter(&mut child.properties, false);
+        graph.add_node(child);
+
+        let report = LayeredLayout.layout(&mut graph).unwrap();
+
+        assert!(
+            report.diagnostics.iter().all(|diagnostic| {
+                diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+                    || !diagnostic.message.contains(name)
+                    || !diagnostic.message.contains("child")
+            }),
+            "{name}"
+        );
+    }
+}
+
 fn node(id: &str, width: f64, height: f64) -> ElkNode {
     let mut node = ElkNode::new(id);
     node.size = Size::new(width, height);
@@ -1019,6 +1062,23 @@ fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 13] {
         ("fixed graph size", Properties::set_fixed_graph_size),
         ("layout partitioning", Properties::set_layout_partitioning),
         ("topdown layout", Properties::set_topdown_layout),
+    ]
+}
+
+fn node_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 6] {
+    [
+        ("comment box", Properties::set_comment_box),
+        ("hypernode", Properties::set_hypernode),
+        ("inside self-loops", Properties::set_inside_self_loops),
+        ("no model order", Properties::set_no_model_order),
+        (
+            "layer unzipping minimize edge length",
+            Properties::set_layer_unzipping_minimize_edge_length,
+        ),
+        (
+            "port labels next to port if possible",
+            Properties::set_port_labels_next_to_port_if_possible,
+        ),
     ]
 }
 

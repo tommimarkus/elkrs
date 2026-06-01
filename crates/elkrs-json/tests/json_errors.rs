@@ -178,6 +178,24 @@ fn non_bool_node_parent_boolean_layout_options_return_invalid_errors() {
 }
 
 #[test]
+fn non_bool_node_boolean_layout_options_return_invalid_errors() {
+    for key in node_boolean_option_keys() {
+        let json = format!(
+            r#"{{
+              "id": "root",
+              "children": [
+                {{
+                  "id": "node",
+                  "layoutOptions": {{ "{key}": "true" }}
+                }}
+              ]
+            }}"#
+        );
+        assert_invalid_contains(&json, &format!("{key} must be a boolean"));
+    }
+}
+
+#[test]
 fn unsupported_edge_routing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{
@@ -419,5 +437,16 @@ fn parent_boolean_option_keys() -> [&'static str; 13] {
         "org.eclipse.elk.nodeSize.fixedGraphSize",
         "org.eclipse.elk.partitioning.activate",
         "org.eclipse.elk.topdownLayout",
+    ]
+}
+
+fn node_boolean_option_keys() -> [&'static str; 6] {
+    [
+        "org.eclipse.elk.commentBox",
+        "org.eclipse.elk.hypernode",
+        "org.eclipse.elk.insideSelfLoops.activate",
+        "org.eclipse.elk.layered.considerModelOrder.noModelOrder",
+        "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength",
+        "org.eclipse.elk.portLabels.nextToPortIfPossible",
     ]
 }

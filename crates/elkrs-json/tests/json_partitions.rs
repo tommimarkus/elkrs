@@ -410,6 +410,104 @@ fn serializes_disabled_node_parent_boolean_layout_options() {
 }
 
 #[test]
+fn imports_node_boolean_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.commentBox": true,
+                "org.eclipse.elk.hypernode": true,
+                "org.eclipse.elk.insideSelfLoops.activate": true,
+                "org.eclipse.elk.layered.considerModelOrder.noModelOrder": true,
+                "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength": true,
+                "org.eclipse.elk.portLabels.nextToPortIfPossible": true
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let properties = &graph.nodes[&ElementId::from("node")].properties;
+    for (key, option) in node_boolean_options() {
+        assert_eq!(
+            properties.get(option),
+            Some(&PropertyValue::Bool(true)),
+            "{key}"
+        );
+    }
+}
+
+#[test]
+fn imports_disabled_node_boolean_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.commentBox": false,
+                "org.eclipse.elk.hypernode": false,
+                "org.eclipse.elk.insideSelfLoops.activate": false,
+                "org.eclipse.elk.layered.considerModelOrder.noModelOrder": false,
+                "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength": false,
+                "org.eclipse.elk.portLabels.nextToPortIfPossible": false
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let properties = &graph.nodes[&ElementId::from("node")].properties;
+    for (key, option) in node_boolean_options() {
+        assert_eq!(
+            properties.get(option),
+            Some(&PropertyValue::Bool(false)),
+            "{key}"
+        );
+    }
+}
+
+#[test]
+fn serializes_node_boolean_layout_options() {
+    let mut node = ElkNode::new("node");
+    set_node_boolean_options(&mut node, true);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    for (key, _) in node_boolean_options() {
+        assert_eq!(
+            json["children"][0]["layoutOptions"][key],
+            Value::Bool(true),
+            "{key}"
+        );
+    }
+}
+
+#[test]
+fn serializes_disabled_node_boolean_layout_options() {
+    let mut node = ElkNode::new("node");
+    set_node_boolean_options(&mut node, false);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    for (key, _) in node_boolean_options() {
+        assert_eq!(
+            json["children"][0]["layoutOptions"][key],
+            Value::Bool(false),
+            "{key}"
+        );
+    }
+}
+
+#[test]
 fn imports_left_direction_layout_option() {
     let graph = from_str(
         r#"{
@@ -1196,6 +1294,29 @@ fn parent_boolean_options() -> [(&'static str, CoreOption); 13] {
     ]
 }
 
+fn node_boolean_options() -> [(&'static str, CoreOption); 6] {
+    [
+        ("org.eclipse.elk.commentBox", CoreOption::CommentBox),
+        ("org.eclipse.elk.hypernode", CoreOption::Hypernode),
+        (
+            "org.eclipse.elk.insideSelfLoops.activate",
+            CoreOption::InsideSelfLoops,
+        ),
+        (
+            "org.eclipse.elk.layered.considerModelOrder.noModelOrder",
+            CoreOption::NoModelOrder,
+        ),
+        (
+            "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength",
+            CoreOption::LayerUnzippingMinimizeEdgeLength,
+        ),
+        (
+            "org.eclipse.elk.portLabels.nextToPortIfPossible",
+            CoreOption::PortLabelsNextToPortIfPossible,
+        ),
+    ]
+}
+
 fn set_parent_boolean_options(graph: &mut ElkGraph, enabled: bool) {
     graph.properties.set_interactive_layout(enabled);
     graph
@@ -1233,6 +1354,17 @@ fn set_parent_boolean_node_options(node: &mut ElkNode, enabled: bool) {
     node.properties.set_fixed_graph_size(enabled);
     node.properties.set_layout_partitioning(enabled);
     node.properties.set_topdown_layout(enabled);
+}
+
+fn set_node_boolean_options(node: &mut ElkNode, enabled: bool) {
+    node.properties.set_comment_box(enabled);
+    node.properties.set_hypernode(enabled);
+    node.properties.set_inside_self_loops(enabled);
+    node.properties.set_no_model_order(enabled);
+    node.properties
+        .set_layer_unzipping_minimize_edge_length(enabled);
+    node.properties
+        .set_port_labels_next_to_port_if_possible(enabled);
 }
 
 fn port_value<'a>(node: &'a Value, id: &str) -> &'a Value {

@@ -21,6 +21,11 @@ STATUS_OVERRIDES = {
         '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_non_layered_algorithm_option`, `cargo test -p elkrs-json --test json_partitions --locked imports_java_algorithm_layout_option`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete for layered selection and unsupported-algorithm diagnostics",
     ),
+    "org.eclipse.elk.commentBox": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
+        "Comment box is parsed and diagnosed; label-like placement semantics are not implemented yet",
+    ),
     "org.eclipse.elk.debugMode": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked debug_mode`; `cargo test -p elkrs-json --test json_partitions --locked debug_mode`; `cargo test -p elkrs-json --test json_errors --locked debug_mode`",
@@ -71,6 +76,11 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "Port model order is parsed and diagnosed; port-order-aware crossing behavior is not implemented yet",
     ),
+    "org.eclipse.elk.layered.considerModelOrder.noModelOrder": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
+        "No model order is parsed and diagnosed; model-order crossing constraints are not implemented yet",
+    ),
     "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
@@ -96,6 +106,11 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "High degree node treatment is parsed and diagnosed; high-degree layer assignment behavior is not implemented yet",
     ),
+    "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
+        "Layer unzipping minimize-edge-length is parsed and diagnosed; layer unzipping semantics are not implemented yet",
+    ),
     "org.eclipse.elk.layered.mergeEdges": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
@@ -116,14 +131,19 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked hierarchy_handling`; `cargo test -p elkrs-json --test json_partitions --locked hierarchy`; `cargo test -p elkrs-json --test json_errors --locked hierarchy`",
         "Parity: compound, hierarchy, and non-plugin cluster behavior",
     ),
+    "org.eclipse.elk.hypernode": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
+        "Hypernode is parsed and diagnosed; hypernode layout semantics are not implemented yet",
+    ),
     "org.eclipse.elk.insideSelfLoops.activate": (
-        "unsupported",
-        "No typed inside self-loop option model yet",
-        "Parity: edge routing variants, junctions, and merging",
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
+        "Inside self-loop activation is parsed and diagnosed; inside self-loop routing semantics are not implemented yet",
     ),
     "org.eclipse.elk.insideSelfLoops.yo": (
         "unsupported",
-        "No typed inside self-loop option model yet",
+        "No typed edge option model yet for the inside self-loop edge flag",
         "Parity: edge routing variants, junctions, and merging",
     ),
     "org.eclipse.elk.portConstraints": (
@@ -135,6 +155,11 @@ STATUS_OVERRIDES = {
         "java-parity",
         '`cargo test -p elkrs-json --test json_partitions --locked port_side`, `cargo test -p elkrs-json --test json_errors --locked port_side`, `cargo test -p elkrs-layered --test quality --locked port_heavy_fixture_preserves_port_anchor_fidelity`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete for explicit port side anchors; broader port constraints remain open",
+    ),
+    "org.eclipse.elk.portLabels.nextToPortIfPossible": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
+        "Port-label next-to-port behavior is parsed and diagnosed; port-label placement semantics are not implemented yet",
     ),
     "org.eclipse.elk.nodeSize.options": (
         "unsupported",
@@ -192,7 +217,7 @@ FEATURE_OVERRIDES = {
     ),
     "INSIDE_SELF_LOOPS": (
         "unsupported",
-        "Inside self-loop option semantics are not represented in typed options yet",
+        "Inside self-loop activation is parsed and diagnosed; inside self-loop routing and edge flag semantics remain unsupported",
         "Parity: edge routing variants, junctions, and merging",
     ),
     "MULTI_EDGES": (

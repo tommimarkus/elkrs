@@ -14,6 +14,7 @@ use thiserror::Error;
 
 const ALGORITHM_KEY: &str = "org.eclipse.elk.algorithm";
 const LEGACY_ALGORITHM_KEY: &str = "elk.algorithm";
+const COMMENT_BOX_KEY: &str = "org.eclipse.elk.commentBox";
 const CONNECTED_COMPONENTS_COMPACTION_KEY: &str =
     "org.eclipse.elk.layered.compaction.connectedComponents";
 const CONSIDER_PORT_ORDER_KEY: &str = "org.eclipse.elk.layered.considerModelOrder.portModelOrder";
@@ -30,9 +31,14 @@ const GENERATE_POSITION_AND_LAYER_IDS_KEY: &str =
     "org.eclipse.elk.layered.generatePositionAndLayerIds";
 const HIGH_DEGREE_NODE_TREATMENT_KEY: &str = "org.eclipse.elk.layered.highDegreeNodes.treatment";
 const HIERARCHY_HANDLING_KEY: &str = "org.eclipse.elk.hierarchyHandling";
+const HYPERNODE_KEY: &str = "org.eclipse.elk.hypernode";
+const INSIDE_SELF_LOOPS_KEY: &str = "org.eclipse.elk.insideSelfLoops.activate";
 const INTERACTIVE_LAYOUT_KEY: &str = "org.eclipse.elk.interactiveLayout";
+const LAYER_UNZIPPING_MINIMIZE_EDGE_LENGTH_KEY: &str =
+    "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength";
 const LAYOUT_PARTITIONING_KEY: &str = "org.eclipse.elk.partitioning.activate";
 const MERGE_EDGES_KEY: &str = "org.eclipse.elk.layered.mergeEdges";
+const NO_MODEL_ORDER_KEY: &str = "org.eclipse.elk.layered.considerModelOrder.noModelOrder";
 const NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.nodeNode";
 const LEGACY_NODE_NODE_SPACING_KEY: &str = "elk.spacing.nodeNode";
 const LAYER_NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers";
@@ -43,6 +49,8 @@ const EDGE_EDGE_SPACING_KEY: &str = "org.eclipse.elk.spacing.edgeEdge";
 const LEGACY_EDGE_EDGE_SPACING_KEY: &str = "elk.spacing.edgeEdge";
 const PORT_SIDE_KEY: &str = "org.eclipse.elk.port.side";
 const LEGACY_PORT_SIDE_KEY: &str = "side";
+const PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY: &str =
+    "org.eclipse.elk.portLabels.nextToPortIfPossible";
 const SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY: &str =
     "org.eclipse.elk.layered.crossingMinimization.semiInteractive";
 const TOPDOWN_LAYOUT_KEY: &str = "org.eclipse.elk.topdownLayout";
@@ -580,6 +588,9 @@ fn apply_node_layout_options(
 ) -> Result<(), JsonError> {
     for (key, value) in options {
         match key.as_str() {
+            COMMENT_BOX_KEY => {
+                node.properties.set_comment_box(boolean(value, key)?);
+            }
             CONNECTED_COMPONENTS_COMPACTION_KEY => {
                 node.properties
                     .set_connected_components_compaction(boolean(value, key)?);
@@ -623,8 +634,18 @@ fn apply_node_layout_options(
                     node.properties.set_hierarchy_handling(hierarchy_handling);
                 }
             }
+            HYPERNODE_KEY => {
+                node.properties.set_hypernode(boolean(value, key)?);
+            }
+            INSIDE_SELF_LOOPS_KEY => {
+                node.properties.set_inside_self_loops(boolean(value, key)?);
+            }
             INTERACTIVE_LAYOUT_KEY => {
                 node.properties.set_interactive_layout(boolean(value, key)?);
+            }
+            LAYER_UNZIPPING_MINIMIZE_EDGE_LENGTH_KEY => {
+                node.properties
+                    .set_layer_unzipping_minimize_edge_length(boolean(value, key)?);
             }
             LAYOUT_PARTITIONING_KEY => {
                 node.properties
@@ -632,6 +653,13 @@ fn apply_node_layout_options(
             }
             MERGE_EDGES_KEY => {
                 node.properties.set_merge_edges(boolean(value, key)?);
+            }
+            NO_MODEL_ORDER_KEY => {
+                node.properties.set_no_model_order(boolean(value, key)?);
+            }
+            PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY => {
+                node.properties
+                    .set_port_labels_next_to_port_if_possible(boolean(value, key)?);
             }
             SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY => {
                 node.properties
@@ -652,6 +680,12 @@ fn apply_node_layout_options(
 
 fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Value> {
     let mut options = BTreeMap::new();
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::CommentBox,
+        COMMENT_BOX_KEY,
+    );
     insert_boolean_option(
         &mut options,
         &node.properties,
@@ -724,8 +758,26 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
     insert_boolean_option(
         &mut options,
         &node.properties,
+        CoreOption::Hypernode,
+        HYPERNODE_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::InsideSelfLoops,
+        INSIDE_SELF_LOOPS_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
         CoreOption::InteractiveLayout,
         INTERACTIVE_LAYOUT_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::LayerUnzippingMinimizeEdgeLength,
+        LAYER_UNZIPPING_MINIMIZE_EDGE_LENGTH_KEY,
     );
     insert_boolean_option(
         &mut options,
@@ -738,6 +790,18 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         &node.properties,
         CoreOption::MergeEdges,
         MERGE_EDGES_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::NoModelOrder,
+        NO_MODEL_ORDER_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::PortLabelsNextToPortIfPossible,
+        PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY,
     );
     insert_boolean_option(
         &mut options,

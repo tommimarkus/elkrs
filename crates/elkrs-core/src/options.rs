@@ -69,6 +69,7 @@ pub enum PropertyValue {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum CoreOption {
     Algorithm,
+    CommentBox,
     ConnectedComponentsCompaction,
     ConsiderPortOrder,
     DebugMode,
@@ -81,9 +82,14 @@ pub enum CoreOption {
     GeneratePositionAndLayerIds,
     HighDegreeNodeTreatment,
     HierarchyHandling,
+    Hypernode,
+    InsideSelfLoops,
     InteractiveLayout,
+    LayerUnzippingMinimizeEdgeLength,
     LayoutPartitioning,
     MergeEdges,
+    NoModelOrder,
+    PortLabelsNextToPortIfPossible,
     SemiInteractiveCrossingMinimization,
     SpacingNodeNode,
     SpacingLayerNodeNode,
@@ -102,6 +108,10 @@ impl Properties {
     pub fn set_algorithm(&mut self, algorithm: Algorithm) -> Option<PropertyValue> {
         self.values
             .insert(CoreOption::Algorithm, PropertyValue::Algorithm(algorithm))
+    }
+
+    pub fn set_comment_box(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::CommentBox, enabled)
     }
 
     pub fn set_connected_components_compaction(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -162,8 +172,23 @@ impl Properties {
         )
     }
 
+    pub fn set_hypernode(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::Hypernode, enabled)
+    }
+
+    pub fn set_inside_self_loops(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::InsideSelfLoops, enabled)
+    }
+
     pub fn set_interactive_layout(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::InteractiveLayout, enabled)
+    }
+
+    pub fn set_layer_unzipping_minimize_edge_length(
+        &mut self,
+        enabled: bool,
+    ) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::LayerUnzippingMinimizeEdgeLength, enabled)
     }
 
     pub fn set_layout_partitioning(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -172,6 +197,17 @@ impl Properties {
 
     pub fn set_merge_edges(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::MergeEdges, enabled)
+    }
+
+    pub fn set_no_model_order(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::NoModelOrder, enabled)
+    }
+
+    pub fn set_port_labels_next_to_port_if_possible(
+        &mut self,
+        enabled: bool,
+    ) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::PortLabelsNextToPortIfPossible, enabled)
     }
 
     pub fn set_semi_interactive_crossing_minimization(
@@ -228,6 +264,10 @@ impl Properties {
             CoreOption::ConnectedComponentsCompaction,
             "connected components compaction",
         )
+    }
+
+    pub fn comment_box(&self) -> bool {
+        self.bool_option(CoreOption::CommentBox, "comment box")
     }
 
     pub fn consider_port_order(&self) -> bool {
@@ -294,8 +334,23 @@ impl Properties {
         }
     }
 
+    pub fn hypernode(&self) -> bool {
+        self.bool_option(CoreOption::Hypernode, "hypernode")
+    }
+
+    pub fn inside_self_loops(&self) -> bool {
+        self.bool_option(CoreOption::InsideSelfLoops, "inside self-loops")
+    }
+
     pub fn interactive_layout(&self) -> bool {
         self.bool_option(CoreOption::InteractiveLayout, "interactive layout")
+    }
+
+    pub fn layer_unzipping_minimize_edge_length(&self) -> bool {
+        self.bool_option(
+            CoreOption::LayerUnzippingMinimizeEdgeLength,
+            "layer unzipping minimize edge length",
+        )
     }
 
     pub fn layout_partitioning(&self) -> bool {
@@ -304,6 +359,17 @@ impl Properties {
 
     pub fn merge_edges(&self) -> bool {
         self.bool_option(CoreOption::MergeEdges, "merge edges")
+    }
+
+    pub fn no_model_order(&self) -> bool {
+        self.bool_option(CoreOption::NoModelOrder, "no model order")
+    }
+
+    pub fn port_labels_next_to_port_if_possible(&self) -> bool {
+        self.bool_option(
+            CoreOption::PortLabelsNextToPortIfPossible,
+            "port labels next to port if possible",
+        )
     }
 
     pub fn semi_interactive_crossing_minimization(&self) -> bool {
@@ -462,6 +528,32 @@ mod tests {
         assert!(properties.semi_interactive_crossing_minimization());
         assert!(properties.topdown_layout());
         assert!(properties.unnecessary_bendpoints());
+    }
+
+    #[test]
+    fn node_boolean_options_default_to_false_and_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert!(!properties.comment_box());
+        assert!(!properties.hypernode());
+        assert!(!properties.inside_self_loops());
+        assert!(!properties.no_model_order());
+        assert!(!properties.layer_unzipping_minimize_edge_length());
+        assert!(!properties.port_labels_next_to_port_if_possible());
+
+        properties.set_comment_box(true);
+        properties.set_hypernode(true);
+        properties.set_inside_self_loops(true);
+        properties.set_no_model_order(true);
+        properties.set_layer_unzipping_minimize_edge_length(true);
+        properties.set_port_labels_next_to_port_if_possible(true);
+
+        assert!(properties.comment_box());
+        assert!(properties.hypernode());
+        assert!(properties.inside_self_loops());
+        assert!(properties.no_model_order());
+        assert!(properties.layer_unzipping_minimize_edge_length());
+        assert!(properties.port_labels_next_to_port_if_possible());
     }
 
     #[test]
