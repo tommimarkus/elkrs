@@ -132,9 +132,9 @@ STATUS_OVERRIDES = {
         "Complete for Java-backed node self-loop spacing fixture",
     ),
     "org.eclipse.elk.spacing.portPort": (
-        "semantic",
-        "`cargo test -p elkrs-layered --test basic_layout --locked port_port_spacing`; `cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_node_port_spacing_returns_invalid_error`",
-        "Port spacing positions default-geometry same-side ports on graph and node layout options; explicit port geometry and broader port constraints remain open",
+        "java-parity",
+        '`cargo test -p elkrs-layered --test basic_layout --locked port_port_spacing`; `cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_node_port_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test parity_matrix --locked port_spacing_row_has_java_fixture_evidence`; plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for Java-backed default same-side port spacing fixture",
     ),
     "org.eclipse.elk.edgeRouting": (
         "diagnostic",

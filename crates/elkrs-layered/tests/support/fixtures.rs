@@ -184,6 +184,35 @@ pub fn port_heavy() -> ElkGraph {
     graph
 }
 
+pub fn port_spacing() -> ElkGraph {
+    let mut source = node("source", 100.0, 60.0);
+    source.add_port(side_port("out-a", PortSide::East));
+    source.add_port(side_port("out-b", PortSide::East));
+    let target = node("target", 80.0, 40.0);
+
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_port_port(24.0);
+    graph.add_node(source);
+    graph.add_node(target);
+    graph.add_edge(ElkEdge::new(
+        "edge-a",
+        ElementRef::Port {
+            node: ElementId::from("source"),
+            port: ElementId::from("out-a"),
+        },
+        ElementRef::Node(ElementId::from("target")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "edge-b",
+        ElementRef::Port {
+            node: ElementId::from("source"),
+            port: ElementId::from("out-b"),
+        },
+        ElementRef::Node(ElementId::from("target")),
+    ));
+    graph
+}
+
 pub fn multi_edge_pair() -> ElkGraph {
     let mut graph = ElkGraph::new("root");
     graph.add_node(node("a", 60.0, 30.0));
@@ -345,6 +374,12 @@ pub fn port(id: &str, side: PortSide, position: Point, size: Size) -> ElkPort {
     port.side = Some(side);
     port.position = position;
     port.size = size;
+    port
+}
+
+pub fn side_port(id: &str, side: PortSide) -> ElkPort {
+    let mut port = ElkPort::new(id);
+    port.side = Some(side);
     port
 }
 
@@ -662,6 +697,13 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             name: "port-side",
             status: ParityFixtureStatus::JavaComparable,
             build: port_heavy,
+            assertions: &[],
+        },
+        ParityFixture {
+            id: "LAYERED-META-OPTION-146",
+            name: "port-spacing",
+            status: ParityFixtureStatus::JavaComparable,
+            build: port_spacing,
             assertions: &[],
         },
     ]

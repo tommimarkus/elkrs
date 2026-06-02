@@ -482,9 +482,14 @@ fn layered_layout_applies_port_port_spacing_to_default_side_ports() {
         .iter()
         .all(|diagnostic| !diagnostic.message.contains("port-port spacing")));
     let source = &graph.nodes[&ElementId::from("source")];
+    let out_a = &source.ports[&ElementId::from("out-a")];
+    let out_b = &source.ports[&ElementId::from("out-b")];
     let first = graph.edges[&ElementId::from("edge-a")].sections[0].points[0];
     let second = graph.edges[&ElementId::from("edge-b")].sections[0].points[0];
 
+    assert_eq!(out_a.position.x, source.size.width);
+    assert_eq!(out_b.position.x, source.size.width);
+    assert_eq!((out_a.position.y - out_b.position.y).abs(), 24.0);
     assert_eq!(first.x, source.position.x + source.size.width);
     assert_eq!(second.x, source.position.x + source.size.width);
     assert_eq!((first.y - second.y).abs(), 24.0);
