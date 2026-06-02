@@ -359,6 +359,17 @@ fn negative_edge_spacing_returns_invalid_error() {
 }
 
 #[test]
+fn negative_layered_edge_spacing_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers": -1 }
+        }"#,
+        "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers must be non-negative",
+    );
+}
+
+#[test]
 fn unsupported_port_side_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

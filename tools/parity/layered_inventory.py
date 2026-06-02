@@ -46,6 +46,16 @@ STATUS_OVERRIDES = {
         '`cargo test -p elkrs-layered --test quality --locked custom_layer_spacing_separates_connected_layers` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete for canonical connected adjacent-layer node spacing",
     ),
+    "org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers": (
+        "parsed",
+        "`cargo test -p elkrs-json --test json_partitions --locked layered_edge_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_layered_edge_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_layered_edge`",
+        "Parsed and validated; between-layer edge-edge routing semantics remain open",
+    ),
+    "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers": (
+        "parsed",
+        "`cargo test -p elkrs-json --test json_partitions --locked layered_edge_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_layered_edge_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_layered_edge`",
+        "Parsed and validated; between-layer edge-node routing semantics remain open",
+    ),
     "org.eclipse.elk.spacing.edgeNode": (
         "java-parity",
         '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_node_spacing_to_obstacle_detours`, `cargo test -p elkrs-json --test json_partitions --locked spacing`, `cargo test -p elkrs-json --test json_errors --locked spacing`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',

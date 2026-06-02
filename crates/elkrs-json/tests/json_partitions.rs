@@ -577,6 +577,33 @@ fn imports_java_spacing_layout_options() {
 }
 
 #[test]
+fn imports_java_layered_edge_spacing_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers": 33,
+            "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers": 44
+          }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::SpacingEdgeEdgeBetweenLayers),
+        Some(&PropertyValue::Number(33.0))
+    );
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::SpacingEdgeNodeBetweenLayers),
+        Some(&PropertyValue::Number(44.0))
+    );
+}
+
+#[test]
 fn imports_short_spacing_layout_options() {
     let graph = from_str(
         r#"{
@@ -658,6 +685,23 @@ fn serializes_spacing_with_java_keys() {
         json["layoutOptions"].get("elk.spacing.edgeEdge"),
         None,
         "short edge-edge spacing key should not be emitted"
+    );
+}
+
+#[test]
+fn serializes_layered_edge_spacing_with_java_keys() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_edge_edge_between_layers(33.0);
+    graph.properties.set_spacing_edge_node_between_layers(44.0);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers"],
+        Value::from(33.0)
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers"],
+        Value::from(44.0)
     );
 }
 

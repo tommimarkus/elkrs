@@ -48,6 +48,8 @@ const EDGE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.edgeNode";
 const LEGACY_EDGE_NODE_SPACING_KEY: &str = "elk.spacing.edgeNode";
 const EDGE_EDGE_SPACING_KEY: &str = "org.eclipse.elk.spacing.edgeEdge";
 const LEGACY_EDGE_EDGE_SPACING_KEY: &str = "elk.spacing.edgeEdge";
+const LAYER_EDGE_NODE_SPACING_KEY: &str = "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers";
+const LAYER_EDGE_EDGE_SPACING_KEY: &str = "org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers";
 const PORT_SIDE_KEY: &str = "org.eclipse.elk.port.side";
 const LEGACY_PORT_SIDE_KEY: &str = "side";
 const PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY: &str =
@@ -431,6 +433,12 @@ fn apply_layout_options(
             EDGE_EDGE_SPACING_KEY | LEGACY_EDGE_EDGE_SPACING_KEY => graph
                 .properties
                 .set_spacing_edge_edge(non_negative_number(value, key)?),
+            LAYER_EDGE_NODE_SPACING_KEY => graph
+                .properties
+                .set_spacing_edge_node_between_layers(non_negative_number(value, key)?),
+            LAYER_EDGE_EDGE_SPACING_KEY => graph
+                .properties
+                .set_spacing_edge_edge_between_layers(non_negative_number(value, key)?),
             SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY => graph
                 .properties
                 .set_semi_interactive_crossing_minimization(boolean(value, key)?),
@@ -561,6 +569,18 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingEdgeEdge)
     {
         options.insert(EDGE_EDGE_SPACING_KEY.to_string(), (*spacing).into());
+    }
+    if let Some(PropertyValue::Number(spacing)) = graph
+        .properties
+        .get(CoreOption::SpacingEdgeNodeBetweenLayers)
+    {
+        options.insert(LAYER_EDGE_NODE_SPACING_KEY.to_string(), (*spacing).into());
+    }
+    if let Some(PropertyValue::Number(spacing)) = graph
+        .properties
+        .get(CoreOption::SpacingEdgeEdgeBetweenLayers)
+    {
+        options.insert(LAYER_EDGE_EDGE_SPACING_KEY.to_string(), (*spacing).into());
     }
     insert_boolean_option(
         &mut options,

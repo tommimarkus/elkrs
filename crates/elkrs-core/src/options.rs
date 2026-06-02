@@ -96,6 +96,8 @@ pub enum CoreOption {
     SpacingLayerNodeNode,
     SpacingEdgeNode,
     SpacingEdgeEdge,
+    SpacingEdgeNodeBetweenLayers,
+    SpacingEdgeEdgeBetweenLayers,
     TopdownLayout,
     UnnecessaryBendpoints,
 }
@@ -242,6 +244,20 @@ impl Properties {
     pub fn set_spacing_edge_edge(&mut self, spacing: f64) -> Option<PropertyValue> {
         self.values
             .insert(CoreOption::SpacingEdgeEdge, PropertyValue::Number(spacing))
+    }
+
+    pub fn set_spacing_edge_node_between_layers(&mut self, spacing: f64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::SpacingEdgeNodeBetweenLayers,
+            PropertyValue::Number(spacing),
+        )
+    }
+
+    pub fn set_spacing_edge_edge_between_layers(&mut self, spacing: f64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::SpacingEdgeEdgeBetweenLayers,
+            PropertyValue::Number(spacing),
+        )
     }
 
     pub fn set_topdown_layout(&mut self, enabled: bool) -> Option<PropertyValue> {

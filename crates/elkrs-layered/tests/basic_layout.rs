@@ -732,6 +732,36 @@ fn layered_layout_rejects_negative_edge_edge_spacing() {
 }
 
 #[test]
+fn layered_layout_rejects_negative_layered_edge_spacing() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_edge_node_between_layers(-1.0);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let error = LayeredLayout.layout(&mut graph).unwrap_err();
+
+    assert!(matches!(
+        error,
+        LayoutError::InvalidOption(message)
+            if message.contains("edge-node between-layers spacing")
+    ));
+}
+
+#[test]
+fn layered_layout_rejects_negative_layered_edge_edge_spacing() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_edge_edge_between_layers(-1.0);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let error = LayeredLayout.layout(&mut graph).unwrap_err();
+
+    assert!(matches!(
+        error,
+        LayoutError::InvalidOption(message)
+            if message.contains("edge-edge between-layers spacing")
+    ));
+}
+
+#[test]
 fn layered_layout_rejects_non_layered_algorithm_option() {
     let mut graph = ElkGraph::new("root");
     graph

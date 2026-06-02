@@ -86,6 +86,16 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
     }
     validate_non_negative_spacing(properties, CoreOption::SpacingEdgeNode, "edge-node spacing")?;
     validate_non_negative_spacing(properties, CoreOption::SpacingEdgeEdge, "edge-edge spacing")?;
+    validate_non_negative_spacing(
+        properties,
+        CoreOption::SpacingEdgeNodeBetweenLayers,
+        "edge-node between-layers spacing",
+    )?;
+    validate_non_negative_spacing(
+        properties,
+        CoreOption::SpacingEdgeEdgeBetweenLayers,
+        "edge-edge between-layers spacing",
+    )?;
 
     Ok(diagnostics)
 }
@@ -197,6 +207,20 @@ fn spacing_value(properties: &Properties, option: CoreOption) -> Option<f64> {
     match option {
         CoreOption::SpacingEdgeNode => Some(properties.spacing_edge_node()),
         CoreOption::SpacingEdgeEdge => Some(properties.spacing_edge_edge()),
+        CoreOption::SpacingEdgeNodeBetweenLayers => match properties.get(option) {
+            Some(PropertyValue::Number(spacing)) => Some(*spacing),
+            Some(value) => unreachable!(
+                "edge-node between-layers spacing stored incompatible value: {value:?}"
+            ),
+            _ => None,
+        },
+        CoreOption::SpacingEdgeEdgeBetweenLayers => match properties.get(option) {
+            Some(PropertyValue::Number(spacing)) => Some(*spacing),
+            Some(value) => unreachable!(
+                "edge-edge between-layers spacing stored incompatible value: {value:?}"
+            ),
+            _ => None,
+        },
         _ => None,
     }
 }
