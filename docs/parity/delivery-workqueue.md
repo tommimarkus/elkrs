@@ -35,14 +35,13 @@ Current safe parallel batches:
 - Batch B: #39 and #38 are complete.
 - Batch C: #41 and #43 are complete.
 - Batch D: #42 and #44 are complete.
-- #45 is a rolling cross-cutting contract check. It may be updated by every
-  delivery issue, but it closes last.
+- #45 is complete. No delivery issues remain in the current queue.
 
 ## Current Queue
 
 | Order | Issue | Delivery target | Why this order |
 | --- | --- | --- | --- |
-| 1 | #45 `Delivery: all in-scope JSON option round trip v1` | Close the full JSON contract for all in-scope 1.0.0 behavior. | Final cross-cutting closeout after all capability decisions. |
+| - | - | No active delivery issue. | All planned delivery slices are complete locally. |
 
 ## Completed Deliveries
 
@@ -56,6 +55,7 @@ Current safe parallel batches:
 | #43 `Delivery: routing variants, self-loops, junctions, and merging v1` | `bfad10b` | Preserved Java-backed orthogonal routing and ordinary external self-loop support; added JSON multi-section route round-trip coverage; recorded 1.0.0 compatibility exclusions for inside self-loops, POLYLINE/straight route geometry, SPLINES route geometry, junction output, merged routing, implicit merge-port semantics, route priorities, configurable self-loop distribution/order, unnecessary bendpoints, edge thickness, and per-element individual spacing. |
 | #42 `Delivery: crossing minimization constraints v1` | `ef33def` | Preserved Java-backed adjacent-layer barycenter crossing reduction; recorded 1.0.0 compatibility exclusions for option-driven model-order, group-order, enforced-order, greedy-switch, random, thoroughness, semi-interactive, and position-constrained crossing-minimization semantics. |
 | #44 `Delivery: node placement, compaction, and wrapping v1` | `8925fd3` | Preserved Java-backed basic node non-overlap and disconnected component spacing; recorded 1.0.0 compatibility exclusions for Brandes-Koepf placement strategies, connected-component compaction, post-compaction, aspect and alignment placement, margins, padding, input-position-aware placement, and graph wrapping. |
+| #45 `Delivery: all in-scope JSON option round trip v1` | `d013870` | Closed the supported 1.0.0 JSON contract for graph, node, edge, port, label, edge-section, option import/export/validation, unknown-field discard, and unrepresented known-option discard; documented explicit JSON compatibility exclusions for out-of-scope label-scoped, object-only, and non-node target behavior. |
 
 ## Closeout Standard
 
