@@ -150,6 +150,67 @@ fn round_trips_graph_with_ports_options_and_edge_sections() {
 }
 
 #[test]
+fn round_trips_multi_section_edge_without_bendpoints() {
+    let input = r#"{
+      "id": "root",
+      "children": [
+        { "id": "source" },
+        { "id": "target" }
+      ],
+      "edges": [
+        {
+          "id": "edge",
+          "sources": ["source"],
+          "targets": ["target"],
+          "sections": [
+            {
+              "startPoint": { "x": 10, "y": 20 },
+              "endPoint": { "x": 30, "y": 20 }
+            },
+            {
+              "startPoint": { "x": 30, "y": 20 },
+              "bendPoints": [{ "x": 40, "y": 35 }],
+              "endPoint": { "x": 50, "y": 35 }
+            }
+          ]
+        }
+      ]
+    }"#;
+
+    let graph = from_str(input).unwrap();
+    let edge = &graph.edges[&ElementId::from("edge")];
+
+    assert_eq!(edge.sections.len(), 2);
+    assert_eq!(
+        edge.sections[0].points,
+        vec![Point::new(10.0, 20.0), Point::new(30.0, 20.0)]
+    );
+    assert_eq!(
+        edge.sections[1].points,
+        vec![
+            Point::new(30.0, 20.0),
+            Point::new(40.0, 35.0),
+            Point::new(50.0, 35.0)
+        ]
+    );
+
+    let output = to_string_pretty(&graph).unwrap();
+    let serialized: Value = serde_json::from_str(&output).unwrap();
+
+    assert_eq!(
+        serialized["edges"][0]["sections"].as_array().unwrap().len(),
+        2
+    );
+    assert!(serialized["edges"][0]["sections"][0]
+        .get("bendPoints")
+        .is_none());
+
+    let reparsed = from_str(&output).unwrap();
+
+    assert_eq!(reparsed, graph);
+}
+
+#[test]
 fn round_trips_node_and_edge_label_text() {
     let input = r#"{
       "id": "root",

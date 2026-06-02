@@ -51,7 +51,7 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.edge.thickness": (
         "diagnostic",
         "`cargo test -p elkrs-core --locked edge_scoped_options`; `cargo test -p elkrs-layered --test basic_layout --locked edge_scoped`; `cargo test -p elkrs-json --test json_partitions --locked edge_scoped_options`; `cargo test -p elkrs-json --test json_errors --locked edge_scoped_options`",
-        "Edge thickness is parsed and diagnosed; thickness-aware edge routing and spacing are not implemented yet",
+        "1.0.0 compatibility exclusion: thickness-aware edge routing and spacing are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.edgeLabels.inline": (
         "unsupported",
@@ -133,6 +133,11 @@ STATUS_OVERRIDES = {
         '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_edge_spacing_to_parallel_routes`; `cargo test -p elkrs-json --test json_partitions --locked spacing`; `cargo test -p elkrs-json --test json_errors --locked spacing`; `cargo test -p elkrs-layered --test parity_matrix --locked edge_edge_spacing_rows_have_java_fixture_evidence`; plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete for Java-backed parallel edge fixture",
     ),
+    "org.eclipse.elk.spacing.individual": (
+        "unsupported",
+        "No public individual-spacing object model yet",
+        "1.0.0 compatibility exclusion: per-element individual spacing override semantics are out of scope; supported spacing remains graph-level typed options",
+    ),
     "org.eclipse.elk.spacing.labelLabel": (
         "parsed",
         "`cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_label_and_port_spacing`",
@@ -166,7 +171,12 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.edgeRouting": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked edge_routing`; `cargo test -p elkrs-json --test json_partitions --locked edge_routing`; `cargo test -p elkrs-json --test json_errors --locked edge_routing`",
-        "Orthogonal routing is Java-backed; POLYLINE and SPLINES are parsed and diagnosed until route geometry parity is implemented",
+        "Orthogonal routing is Java-backed; 1.0.0 compatibility exclusion: POLYLINE and SPLINES route geometry is out of scope and remains parsed, serialized, and diagnosed only",
+    ),
+    "org.eclipse.elk.junctionPoints": (
+        "unsupported",
+        "No public junction-point model or serializer yet",
+        "1.0.0 compatibility exclusion: junction-point output for hyperedges and merged orthogonal routes is out of scope",
     ),
     "org.eclipse.elk.interactiveLayout": (
         "diagnostic",
@@ -187,6 +197,31 @@ STATUS_OVERRIDES = {
         "unsupported",
         "Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet",
         "1.0.0 compatibility exclusion: edge label side-selection semantics are out of scope; edge label text and geometry remain JSON round-trip only",
+    ),
+    "org.eclipse.elk.layered.edgeRouting.polyline.slopedEdgeZoneWidth": (
+        "unsupported",
+        "No public polyline router option model yet",
+        "1.0.0 compatibility exclusion: polyline sloped-edge zone semantics are out of scope with POLYLINE route geometry",
+    ),
+    "org.eclipse.elk.layered.edgeRouting.selfLoopDistribution": (
+        "unsupported",
+        "No public self-loop distribution option model yet",
+        "1.0.0 compatibility exclusion: configurable self-loop distribution semantics are out of scope; ordinary external self-loops remain Java-backed",
+    ),
+    "org.eclipse.elk.layered.edgeRouting.selfLoopOrdering": (
+        "unsupported",
+        "No public self-loop ordering option model yet",
+        "1.0.0 compatibility exclusion: configurable self-loop ordering semantics are out of scope; deterministic external self-loop routing remains supported",
+    ),
+    "org.eclipse.elk.layered.edgeRouting.splines.mode": (
+        "unsupported",
+        "No public spline routing option model yet",
+        "1.0.0 compatibility exclusion: spline routing modes are out of scope with SPLINES route geometry",
+    ),
+    "org.eclipse.elk.layered.edgeRouting.splines.sloppy.layerSpacingFactor": (
+        "unsupported",
+        "No public spline routing option model yet",
+        "1.0.0 compatibility exclusion: sloppy-spline layer-spacing semantics are out of scope with SPLINES route geometry",
     ),
     "org.eclipse.elk.layered.considerModelOrder.components": (
         "diagnostic",
@@ -421,22 +456,37 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.layered.mergeEdges": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
-        "Edge merging is parsed and diagnosed; merged routing and implicit ports are not implemented yet",
+        "1.0.0 compatibility exclusion: merged routing and implicit merge-port semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.layered.mergeHierarchyEdges": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
-        "Hierarchy-crossing edge merging is parsed and diagnosed; merged routing semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: hierarchy-crossing edge merge semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.layered.nodePlacement.favorStraightEdges": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "Favoring straight edges is parsed and diagnosed; node placement balancing behavior is not implemented yet",
     ),
+    "org.eclipse.elk.layered.priority.direction": (
+        "unsupported",
+        "No public edge-routing priority option model yet",
+        "1.0.0 compatibility exclusion: edge direction priority weighting is out of scope; current routing remains deterministic and option-independent",
+    ),
+    "org.eclipse.elk.layered.priority.shortness": (
+        "unsupported",
+        "No public edge-routing priority option model yet",
+        "1.0.0 compatibility exclusion: edge shortness priority weighting is out of scope; current routing remains deterministic and option-independent",
+    ),
+    "org.eclipse.elk.layered.priority.straightness": (
+        "unsupported",
+        "No public edge-routing priority option model yet",
+        "1.0.0 compatibility exclusion: edge straightness priority weighting is out of scope; current routing remains deterministic and option-independent",
+    ),
     "org.eclipse.elk.layered.unnecessaryBendpoints": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
-        "Unnecessary bendpoint generation is parsed and diagnosed; extra bendpoints are not emitted yet",
+        "1.0.0 compatibility exclusion: unnecessary bendpoint generation is out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.hierarchyHandling": (
         "diagnostic",
@@ -451,12 +501,12 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.insideSelfLoops.activate": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
-        "Inside self-loop activation is parsed and diagnosed; inside self-loop routing semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: inside self-loop routing semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.insideSelfLoops.yo": (
         "diagnostic",
         "`cargo test -p elkrs-core --locked edge_scoped_options`; `cargo test -p elkrs-layered --test basic_layout --locked edge_scoped`; `cargo test -p elkrs-json --test json_partitions --locked edge_scoped_options`; `cargo test -p elkrs-json --test json_errors --locked edge_scoped_options`",
-        "Inside self-loop edge flag is parsed and diagnosed; inside self-loop routing semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: inside self-loop edge routing semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.layered.allowNonFlowPortsToSwitchSides": (
         "diagnostic",
@@ -654,8 +704,8 @@ FEATURE_OVERRIDES = {
     ),
     "INSIDE_SELF_LOOPS": (
         "unsupported",
-        "Inside self-loop activation and edge flag are parsed and diagnosed; inside self-loop routing semantics remain unsupported",
-        "Parity: edge routing variants, junctions, and merging",
+        "Inside self-loop activation and edge flag are parsed and diagnosed; ordinary external self-loops remain Java-backed",
+        "1.0.0 compatibility exclusion: inside self-loop routing semantics are out of scope",
     ),
     "MULTI_EDGES": (
         "java-parity",

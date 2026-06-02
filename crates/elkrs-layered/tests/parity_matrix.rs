@@ -491,6 +491,46 @@ fn port_constraint_rows_document_compatibility_boundaries() {
     }
 }
 
+#[test]
+fn routing_variant_rows_document_compatibility_boundaries() {
+    for (row_id, status) in [
+        ("LAYERED-GRAPH-004", "unsupported"),
+        ("LAYERED-P5-004", "diagnostic"),
+        ("LAYERED-P5-005", "diagnostic"),
+        ("LAYERED-P5-006", "unsupported"),
+        ("LAYERED-META-FEATURE-004", "unsupported"),
+        ("LAYERED-META-OPTION-007", "diagnostic"),
+        ("LAYERED-META-OPTION-010", "diagnostic"),
+        ("LAYERED-META-OPTION-013", "diagnostic"),
+        ("LAYERED-META-OPTION-014", "diagnostic"),
+        ("LAYERED-META-OPTION-016", "unsupported"),
+        ("LAYERED-META-OPTION-051", "unsupported"),
+        ("LAYERED-META-OPTION-052", "unsupported"),
+        ("LAYERED-META-OPTION-053", "unsupported"),
+        ("LAYERED-META-OPTION-054", "unsupported"),
+        ("LAYERED-META-OPTION-055", "unsupported"),
+        ("LAYERED-META-OPTION-075", "diagnostic"),
+        ("LAYERED-META-OPTION-076", "diagnostic"),
+        ("LAYERED-META-OPTION-085", "unsupported"),
+        ("LAYERED-META-OPTION-086", "unsupported"),
+        ("LAYERED-META-OPTION-087", "unsupported"),
+        ("LAYERED-META-OPTION-093", "diagnostic"),
+        ("LAYERED-META-OPTION-139", "unsupported"),
+    ] {
+        assert_eq!(
+            row_status(PARITY_MATRIX, row_id),
+            Some(status),
+            "{row_id} should keep its documented routing compatibility status"
+        );
+        let next_plan = row_next_plan(PARITY_MATRIX, row_id)
+            .unwrap_or_else(|| panic!("{row_id} should have a matrix row"));
+        assert!(
+            next_plan.contains("1.0.0 compatibility exclusion"),
+            "{row_id} should document its 1.0.0 routing compatibility boundary"
+        );
+    }
+}
+
 fn row_status<'a>(matrix: &'a str, row_id: &str) -> Option<&'a str> {
     matrix.lines().find_map(|line| {
         let mut columns = line.split('|').map(str::trim);
