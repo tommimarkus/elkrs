@@ -416,12 +416,12 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.hierarchyHandling": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked hierarchy_handling`; `cargo test -p elkrs-json --test json_partitions --locked hierarchy`; `cargo test -p elkrs-json --test json_errors --locked hierarchy`",
-        "Parity: compound, hierarchy, and non-plugin cluster behavior",
+        "1.0.0 compatibility exclusion: true SEPARATE_CHILDREN multi-run hierarchy semantics are out of scope; current layout keeps single-run include-like behavior with diagnostics for unsupported separate-child requests",
     ),
     "org.eclipse.elk.hypernode": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
-        "Hypernode is parsed and diagnosed; hypernode layout semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: hypernode layout semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.insideSelfLoops.activate": (
         "diagnostic",
@@ -536,7 +536,7 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.topdownLayout": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
-        "Topdown layout is parsed and diagnosed; topdown hierarchy semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: recursive topdown hierarchy layout and scaling semantics are out of scope; the topdown layout flag is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.layered.thoroughness": (
         "diagnostic",
@@ -548,6 +548,26 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-core --locked crossing_minimization_controls`; `cargo test -p elkrs-layered --test basic_layout --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_partitions --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_errors --locked crossing_minimization_controls`",
         "Randomization seed is parsed and diagnosed; random-dependent crossing behavior is not implemented yet",
     ),
+    "org.eclipse.elk.topdown.hierarchicalNodeAspectRatio": (
+        "unsupported",
+        "No public option model yet",
+        "1.0.0 compatibility exclusion: topdown recursive sizing and scaling detail options are out of scope",
+    ),
+    "org.eclipse.elk.topdown.hierarchicalNodeWidth": (
+        "unsupported",
+        "No public option model yet",
+        "1.0.0 compatibility exclusion: topdown recursive sizing and scaling detail options are out of scope",
+    ),
+    "org.eclipse.elk.topdown.nodeType": (
+        "unsupported",
+        "No public option model yet",
+        "1.0.0 compatibility exclusion: topdown recursive sizing and scaling detail options are out of scope",
+    ),
+    "org.eclipse.elk.topdown.scaleFactor": (
+        "unsupported",
+        "No public option model yet",
+        "1.0.0 compatibility exclusion: topdown recursive sizing and scaling detail options are out of scope",
+    ),
 }
 
 
@@ -555,7 +575,7 @@ FEATURE_OVERRIDES = {
     "CLUSTERS": (
         "unsupported",
         "Generated from Java ELK v0.11.0 supported feature metadata; no Rust proof mapped yet",
-        "Parity: compound, hierarchy, and non-plugin cluster behavior",
+        "1.0.0 compatibility exclusion: non-plugin cluster graph model is out of scope until elkrs-core exposes a public cluster representation",
     ),
     "COMPOUND": (
         "java-parity",

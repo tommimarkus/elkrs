@@ -325,6 +325,34 @@ fn min_width_and_node_promotion_metadata_rows_are_diagnostic() {
     }
 }
 
+#[test]
+fn hierarchy_topdown_rows_document_compatibility_exclusions() {
+    for (row_id, status) in [
+        ("LAYERED-GRAPH-010", "unsupported"),
+        ("LAYERED-OPT-007", "diagnostic"),
+        ("LAYERED-META-FEATURE-001", "unsupported"),
+        ("LAYERED-META-OPTION-011", "diagnostic"),
+        ("LAYERED-META-OPTION-012", "diagnostic"),
+        ("LAYERED-META-OPTION-148", "unsupported"),
+        ("LAYERED-META-OPTION-149", "unsupported"),
+        ("LAYERED-META-OPTION-150", "unsupported"),
+        ("LAYERED-META-OPTION-151", "unsupported"),
+        ("LAYERED-META-OPTION-152", "diagnostic"),
+    ] {
+        assert_eq!(
+            row_status(PARITY_MATRIX, row_id),
+            Some(status),
+            "{row_id} should keep its documented compatibility status"
+        );
+        let next_plan = row_next_plan(PARITY_MATRIX, row_id)
+            .unwrap_or_else(|| panic!("{row_id} should have a matrix row"));
+        assert!(
+            next_plan.contains("1.0.0 compatibility exclusion"),
+            "{row_id} should document its 1.0.0 compatibility exclusion boundary"
+        );
+    }
+}
+
 fn row_status<'a>(matrix: &'a str, row_id: &str) -> Option<&'a str> {
     matrix.lines().find_map(|line| {
         let mut columns = line.split('|').map(str::trim);
@@ -336,5 +364,21 @@ fn row_status<'a>(matrix: &'a str, row_id: &str) -> Option<&'a str> {
         columns.next()?;
         columns.next()?;
         Some(columns.next()?.trim_matches('`'))
+    })
+}
+
+fn row_next_plan<'a>(matrix: &'a str, row_id: &str) -> Option<&'a str> {
+    matrix.lines().find_map(|line| {
+        let mut columns = line.split('|').map(str::trim);
+        columns.next()?;
+        let id = columns.next()?;
+        if id != row_id {
+            return None;
+        }
+        columns.next()?;
+        columns.next()?;
+        columns.next()?;
+        columns.next()?;
+        columns.next()
     })
 }
