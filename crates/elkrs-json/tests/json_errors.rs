@@ -304,6 +304,38 @@ fn non_string_node_hierarchy_handling_returns_invalid_error() {
 }
 
 #[test]
+fn unsupported_node_port_constraints_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.portConstraints": "FLOATING" }
+            }
+          ]
+        }"#,
+        "unsupported org.eclipse.elk.portConstraints value: FLOATING",
+    );
+}
+
+#[test]
+fn non_string_node_port_constraints_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.portConstraints": 7 }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.portConstraints must be a string",
+    );
+}
+
+#[test]
 fn non_number_node_spacing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

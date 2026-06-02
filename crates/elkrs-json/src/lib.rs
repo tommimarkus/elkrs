@@ -7,7 +7,8 @@ use elkrs_core::graph::{
     ElementId, ElementRef, ElkEdge, ElkEdgeSection, ElkGraph, ElkLabel, ElkNode, ElkPort,
 };
 use elkrs_core::options::{
-    Algorithm, CoreOption, Direction, EdgeRouting, HierarchyHandling, PortSide, PropertyValue,
+    Algorithm, CoreOption, Direction, EdgeRouting, HierarchyHandling, PortConstraints, PortSide,
+    PropertyValue,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -64,6 +65,7 @@ const LABEL_PORT_HORIZONTAL_SPACING_KEY: &str = "org.eclipse.elk.spacing.labelPo
 const LABEL_PORT_VERTICAL_SPACING_KEY: &str = "org.eclipse.elk.spacing.labelPortVertical";
 const NODE_SELF_LOOP_SPACING_KEY: &str = "org.eclipse.elk.spacing.nodeSelfLoop";
 const PORT_PORT_SPACING_KEY: &str = "org.eclipse.elk.spacing.portPort";
+const PORT_CONSTRAINTS_KEY: &str = "org.eclipse.elk.portConstraints";
 const PORT_SIDE_KEY: &str = "org.eclipse.elk.port.side";
 const LEGACY_PORT_SIDE_KEY: &str = "side";
 const PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY: &str =
@@ -851,6 +853,11 @@ fn apply_node_layout_options(
             NO_MODEL_ORDER_KEY => {
                 node.properties.set_no_model_order(boolean(value, key)?);
             }
+            PORT_CONSTRAINTS_KEY => {
+                if let Some(port_constraints) = parse_port_constraints(value, key)? {
+                    node.properties.set_port_constraints(port_constraints);
+                }
+            }
             PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY => {
                 node.properties
                     .set_port_labels_next_to_port_if_possible(boolean(value, key)?);
@@ -1029,6 +1036,14 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         CoreOption::NoModelOrder,
         NO_MODEL_ORDER_KEY,
     );
+    if let Some(PropertyValue::PortConstraints(port_constraints)) =
+        node.properties.get(CoreOption::PortConstraints)
+    {
+        options.insert(
+            PORT_CONSTRAINTS_KEY.to_string(),
+            serde_json::Value::String(format_port_constraints(*port_constraints).to_string()),
+        );
+    }
     insert_boolean_option(
         &mut options,
         &node.properties,
@@ -1233,10 +1248,38 @@ fn parse_hierarchy_handling(
     }
 }
 
+fn parse_port_constraints(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<Option<PortConstraints>, JsonError> {
+    match string(value, key)? {
+        "FIXED_ORDER" => Ok(Some(PortConstraints::FixedOrder)),
+        "FIXED_POS" => Ok(Some(PortConstraints::FixedPos)),
+        "FIXED_RATIO" => Ok(Some(PortConstraints::FixedRatio)),
+        "FIXED_SIDE" => Ok(Some(PortConstraints::FixedSide)),
+        "FREE" => Ok(Some(PortConstraints::Free)),
+        "UNDEFINED" => Ok(None),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
 fn format_hierarchy_handling(hierarchy_handling: HierarchyHandling) -> &'static str {
     match hierarchy_handling {
         HierarchyHandling::IncludeChildren => "INCLUDE_CHILDREN",
         HierarchyHandling::SeparateChildren => "SEPARATE_CHILDREN",
+    }
+}
+
+fn format_port_constraints(port_constraints: PortConstraints) -> &'static str {
+    match port_constraints {
+        PortConstraints::FixedOrder => "FIXED_ORDER",
+        PortConstraints::FixedPos => "FIXED_POS",
+        PortConstraints::FixedRatio => "FIXED_RATIO",
+        PortConstraints::FixedSide => "FIXED_SIDE",
+        PortConstraints::Free => "FREE",
+        PortConstraints::Undefined => "UNDEFINED",
     }
 }
 

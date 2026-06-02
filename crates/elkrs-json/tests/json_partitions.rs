@@ -1,7 +1,8 @@
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::options::{
-    Algorithm, CoreOption, Direction, EdgeRouting, HierarchyHandling, PortSide, PropertyValue,
+    Algorithm, CoreOption, Direction, EdgeRouting, HierarchyHandling, PortConstraints, PortSide,
+    PropertyValue,
 };
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
@@ -1212,6 +1213,77 @@ fn serializes_node_hierarchy_handling_with_java_key() {
     assert_eq!(
         json["children"][0]["layoutOptions"]["org.eclipse.elk.hierarchyHandling"],
         Value::String("SEPARATE_CHILDREN".to_owned())
+    );
+}
+
+#[test]
+fn imports_node_port_constraints_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "fixed",
+              "layoutOptions": { "org.eclipse.elk.portConstraints": "FIXED_ORDER" }
+            },
+            {
+              "id": "free",
+              "layoutOptions": { "org.eclipse.elk.portConstraints": "FREE" }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.nodes[&ElementId::from("fixed")]
+            .properties
+            .get(CoreOption::PortConstraints),
+        Some(&PropertyValue::PortConstraints(PortConstraints::FixedOrder))
+    );
+    assert_eq!(
+        graph.nodes[&ElementId::from("free")]
+            .properties
+            .get(CoreOption::PortConstraints),
+        Some(&PropertyValue::PortConstraints(PortConstraints::Free))
+    );
+}
+
+#[test]
+fn imports_undefined_node_port_constraints_as_unset() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.portConstraints": "UNDEFINED" }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.nodes[&ElementId::from("node")]
+            .properties
+            .get(CoreOption::PortConstraints),
+        None
+    );
+}
+
+#[test]
+fn serializes_node_port_constraints_with_java_key() {
+    let mut node = ElkNode::new("node");
+    node.properties
+        .set_port_constraints(PortConstraints::FixedSide);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["children"][0]["layoutOptions"]["org.eclipse.elk.portConstraints"],
+        Value::String("FIXED_SIDE".to_owned())
     );
 }
 

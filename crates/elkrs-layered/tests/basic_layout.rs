@@ -5,7 +5,8 @@ use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
-    Algorithm, Direction, EdgeRouting, HierarchyHandling, PortSide, Properties, PropertyValue,
+    Algorithm, Direction, EdgeRouting, HierarchyHandling, PortConstraints, PortSide, Properties,
+    PropertyValue,
 };
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
@@ -1089,6 +1090,47 @@ fn layered_layout_reports_node_unsupported_non_orthogonal_edge_routing() {
             && diagnostic.message.contains("Splines")
             && diagnostic.message.contains("child")
     }));
+}
+
+#[test]
+fn layered_layout_reports_node_unsupported_fixed_port_constraints() {
+    let mut graph = ElkGraph::new("root");
+    let mut child = node("child", 60.0, 30.0);
+    child
+        .properties
+        .set_port_constraints(PortConstraints::FixedOrder);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("port constraints")
+            && diagnostic.message.contains("FixedOrder")
+            && diagnostic.message.contains("child")
+    }));
+}
+
+#[test]
+fn layered_layout_accepts_free_and_undefined_port_constraints_without_diagnostic() {
+    for port_constraints in [PortConstraints::Free, PortConstraints::Undefined] {
+        let mut graph = ElkGraph::new("root");
+        let mut child = node("child", 60.0, 30.0);
+        child.properties.set_port_constraints(port_constraints);
+        graph.add_node(child);
+
+        let report = LayeredLayout.layout(&mut graph).unwrap();
+
+        assert!(
+            report.diagnostics.iter().all(|diagnostic| {
+                diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+                    || !diagnostic.message.contains("port constraints")
+                    || !diagnostic.message.contains("child")
+            }),
+            "{port_constraints:?}"
+        );
+    }
 }
 
 #[test]

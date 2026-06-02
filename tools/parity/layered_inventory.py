@@ -237,9 +237,9 @@ STATUS_OVERRIDES = {
         "Parity: edge routing variants, junctions, and merging",
     ),
     "org.eclipse.elk.portConstraints": (
-        "unsupported",
-        "No public option model yet",
-        "Parity: port constraints and ordering",
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked port_constraints`; `cargo test -p elkrs-json --test json_partitions --locked port_constraints`; `cargo test -p elkrs-json --test json_errors --locked port_constraints`",
+        "Port constraints are parsed and diagnosed; fixed port-order and position semantics are not implemented yet",
     ),
     "org.eclipse.elk.port.side": (
         "java-parity",

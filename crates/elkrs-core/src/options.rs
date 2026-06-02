@@ -53,6 +53,16 @@ pub enum PortSide {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PortConstraints {
+    FixedOrder,
+    FixedPos,
+    FixedRatio,
+    FixedSide,
+    Free,
+    Undefined,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HierarchyHandling {
     SeparateChildren,
     IncludeChildren,
@@ -67,6 +77,7 @@ pub enum PropertyValue {
     Direction(Direction),
     EdgeRouting(EdgeRouting),
     HierarchyHandling(HierarchyHandling),
+    PortConstraints(PortConstraints),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -95,6 +106,7 @@ pub enum CoreOption {
     MergeHierarchyEdges,
     NoLayout,
     NoModelOrder,
+    PortConstraints,
     PortLabelsNextToPortIfPossible,
     PortLabelsTreatAsGroup,
     SeparateConnectedComponents,
@@ -240,6 +252,16 @@ impl Properties {
 
     pub fn set_no_model_order(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::NoModelOrder, enabled)
+    }
+
+    pub fn set_port_constraints(
+        &mut self,
+        port_constraints: PortConstraints,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::PortConstraints,
+            PropertyValue::PortConstraints(port_constraints),
+        )
     }
 
     pub fn set_port_labels_next_to_port_if_possible(
@@ -526,6 +548,14 @@ impl Properties {
 
     pub fn no_model_order(&self) -> bool {
         self.bool_option(CoreOption::NoModelOrder, "no model order")
+    }
+
+    pub fn port_constraints(&self) -> PortConstraints {
+        match self.get(CoreOption::PortConstraints) {
+            Some(PropertyValue::PortConstraints(port_constraints)) => *port_constraints,
+            Some(value) => unreachable!("port constraints stored incompatible value: {value:?}"),
+            _ => PortConstraints::Undefined,
+        }
     }
 
     pub fn port_labels_next_to_port_if_possible(&self) -> bool {
@@ -817,6 +847,16 @@ mod tests {
             properties.hierarchy_handling(),
             HierarchyHandling::SeparateChildren
         );
+    }
+
+    #[test]
+    fn port_constraints_default_to_undefined_and_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.port_constraints(), PortConstraints::Undefined);
+        properties.set_port_constraints(PortConstraints::FixedOrder);
+
+        assert_eq!(properties.port_constraints(), PortConstraints::FixedOrder);
     }
 
     #[test]

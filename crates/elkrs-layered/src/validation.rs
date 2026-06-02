@@ -2,7 +2,8 @@ use elkrs_core::diagnostic::Diagnostic;
 use elkrs_core::graph::{ElkGraph, ElkNode};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
-    Algorithm, CoreOption, EdgeRouting, HierarchyHandling, Properties, PropertyValue,
+    Algorithm, CoreOption, EdgeRouting, HierarchyHandling, PortConstraints, Properties,
+    PropertyValue,
 };
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
@@ -241,6 +242,13 @@ fn collect_node_hierarchy_diagnostics(
             ));
         }
     }
+    match node.properties.port_constraints() {
+        PortConstraints::Undefined | PortConstraints::Free => {}
+        port_constraints => diagnostics.push(unsupported_port_constraints_diagnostic(
+            port_constraints,
+            Some(node.id.as_str()),
+        )),
+    }
     if matches!(
         node.properties.hierarchy_handling(),
         HierarchyHandling::SeparateChildren
@@ -267,6 +275,22 @@ fn unsupported_hierarchy_handling_diagnostic(node_id: Option<&str>) -> Diagnosti
         )
     } else {
         "hierarchy handling SeparateChildren is recognized but not implemented by elkrs-layered yet; laying out children with the current graph".to_owned()
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
+fn unsupported_port_constraints_diagnostic(
+    port_constraints: PortConstraints,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "port constraints {port_constraints:?} on node {node_id} are recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!(
+            "port constraints {port_constraints:?} are recognized but not implemented by elkrs-layered yet"
+        )
     };
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
