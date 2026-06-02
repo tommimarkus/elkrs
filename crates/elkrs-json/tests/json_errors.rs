@@ -711,6 +711,74 @@ fn non_string_node_port_alignment_returns_invalid_error() {
 }
 
 #[test]
+fn unsupported_node_size_constraint_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.nodeSize.constraints": ["MINIMUM_SIZE", "COMMENT_BOX"]
+              }
+            }
+          ]
+        }"#,
+        "unsupported org.eclipse.elk.nodeSize.constraints value: COMMENT_BOX",
+    );
+}
+
+#[test]
+fn non_array_node_size_constraints_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.nodeSize.constraints": 7 }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.nodeSize.constraints must be a string array or Java enumset string",
+    );
+}
+
+#[test]
+fn non_object_node_size_minimum_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.nodeSize.minimum": 7 }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.nodeSize.minimum must be an object with x and y numbers or Java KVector string",
+    );
+}
+
+#[test]
+fn negative_node_size_minimum_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.nodeSize.minimum": { "x": 120, "y": -1 }
+              }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.nodeSize.minimum y must be non-negative",
+    );
+}
+
+#[test]
 fn non_number_node_spacing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

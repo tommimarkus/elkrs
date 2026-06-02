@@ -261,6 +261,44 @@ fn hierarchy_crossing_graph_row_has_java_fixture_evidence() {
 }
 
 #[test]
+fn node_label_and_size_rows_have_java_fixture_evidence() {
+    let fixtures = parity_fixtures();
+
+    for row_id in [
+        "LAYERED-GRAPH-006",
+        "LAYERED-OPT-009",
+        "LAYERED-META-OPTION-109",
+        "LAYERED-META-OPTION-111",
+    ] {
+        assert!(
+            fixtures.iter().any(|fixture| {
+                fixture.id == row_id && fixture.status == ParityFixtureStatus::JavaComparable
+            }),
+            "{row_id} should have a Java-comparable parity fixture"
+        );
+        assert_eq!(
+            row_status(PARITY_MATRIX, row_id),
+            Some("java-parity"),
+            "{row_id} should be marked as java-parity in the parity matrix"
+        );
+    }
+}
+
+#[test]
+fn node_label_placement_row_documents_compatibility_boundary() {
+    assert_eq!(
+        row_status(PARITY_MATRIX, "LAYERED-META-OPTION-108"),
+        Some("parsed"),
+        "node-label placement should be parsed for Java-compatible sizing fixtures without claiming full placement semantics"
+    );
+    assert!(
+        row_next_plan(PARITY_MATRIX, "LAYERED-META-OPTION-108")
+            .is_some_and(|next_plan| next_plan.contains("1.0.0 compatibility exclusion")),
+        "node-label placement row should document the 1.0.0 compatibility exclusion"
+    );
+}
+
+#[test]
 fn alignment_aspect_ratio_metadata_rows_are_diagnostic() {
     for row_id in ["LAYERED-META-OPTION-001", "LAYERED-META-OPTION-002"] {
         assert_eq!(

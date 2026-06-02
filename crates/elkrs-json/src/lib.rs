@@ -10,8 +10,8 @@ use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
     Direction, EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
     InteractiveReferencePoint, LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy,
-    ModelOrderStrategy, NodeLayeringStrategy, NodePromotionStrategy, PortAlignment,
-    PortConstraints, PortSide, PropertyValue,
+    ModelOrderStrategy, NodeLabelPlacement, NodeLayeringStrategy, NodePromotionStrategy,
+    NodeSizeConstraint, PortAlignment, PortConstraints, PortSide, PropertyValue,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -111,9 +111,12 @@ const MIN_WIDTH_UPPER_LAYER_ESTIMATION_SCALING_FACTOR_KEY: &str =
     "org.eclipse.elk.layered.layering.minWidth.upperLayerEstimationScalingFactor";
 const NO_LAYOUT_KEY: &str = "org.eclipse.elk.noLayout";
 const NO_MODEL_ORDER_KEY: &str = "org.eclipse.elk.layered.considerModelOrder.noModelOrder";
+const NODE_LABEL_PLACEMENT_KEY: &str = "org.eclipse.elk.nodeLabels.placement";
 const NODE_PROMOTION_MAX_ITERATIONS_KEY: &str =
     "org.eclipse.elk.layered.layering.nodePromotion.maxIterations";
 const NODE_PROMOTION_STRATEGY_KEY: &str = "org.eclipse.elk.layered.layering.nodePromotion.strategy";
+const NODE_SIZE_CONSTRAINTS_KEY: &str = "org.eclipse.elk.nodeSize.constraints";
+const NODE_SIZE_MINIMUM_KEY: &str = "org.eclipse.elk.nodeSize.minimum";
 const NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.nodeNode";
 const LEGACY_NODE_NODE_SPACING_KEY: &str = "elk.spacing.nodeNode";
 const SPACING_BASE_VALUE_KEY: &str = "org.eclipse.elk.layered.spacing.baseValue";
@@ -1436,6 +1439,18 @@ fn apply_node_layout_options(
                     node.properties.set_node_promotion_strategy(strategy);
                 }
             }
+            NODE_LABEL_PLACEMENT_KEY => {
+                node.properties
+                    .set_node_label_placement(parse_node_label_placement(value, key)?);
+            }
+            NODE_SIZE_CONSTRAINTS_KEY => {
+                node.properties
+                    .set_node_size_constraints(parse_node_size_constraints(value, key)?);
+            }
+            NODE_SIZE_MINIMUM_KEY => {
+                node.properties
+                    .set_node_size_minimum(node_size_minimum(value, key)?);
+            }
             NO_LAYOUT_KEY => {
                 node.properties.set_no_layout(boolean(value, key)?);
             }
@@ -1914,6 +1929,25 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
             serde_json::Value::String(format_node_promotion_strategy(*strategy).to_string()),
         );
     }
+    if let Some(PropertyValue::NodeLabelPlacement(placement)) =
+        node.properties.get(CoreOption::NodeLabelPlacement)
+    {
+        options.insert(
+            NODE_LABEL_PLACEMENT_KEY.to_string(),
+            node_label_placement_value(placement),
+        );
+    }
+    if let Some(PropertyValue::NodeSizeConstraints(constraints)) =
+        node.properties.get(CoreOption::NodeSizeConstraints)
+    {
+        options.insert(
+            NODE_SIZE_CONSTRAINTS_KEY.to_string(),
+            node_size_constraints_value(constraints),
+        );
+    }
+    if let Some(PropertyValue::Size(minimum)) = node.properties.get(CoreOption::NodeSizeMinimum) {
+        options.insert(NODE_SIZE_MINIMUM_KEY.to_string(), size_value(*minimum));
+    }
     insert_boolean_option(
         &mut options,
         &node.properties,
@@ -2086,6 +2120,32 @@ fn integer_array_value(values: &[i64]) -> serde_json::Value {
             .map(|value| serde_json::Value::Number((*value).into()))
             .collect(),
     )
+}
+
+fn node_size_constraints_value(values: &[NodeSizeConstraint]) -> serde_json::Value {
+    serde_json::Value::String(format!(
+        "[{}]",
+        values
+            .iter()
+            .map(|value| format_node_size_constraint(*value))
+            .collect::<Vec<_>>()
+            .join(", ")
+    ))
+}
+
+fn node_label_placement_value(values: &[NodeLabelPlacement]) -> serde_json::Value {
+    serde_json::Value::String(format!(
+        "[{}]",
+        values
+            .iter()
+            .map(|value| format_node_label_placement(*value))
+            .collect::<Vec<_>>()
+            .join(", ")
+    ))
+}
+
+fn size_value(size: Size) -> serde_json::Value {
+    serde_json::Value::String(format!("({},{})", size.width, size.height))
 }
 
 fn port_side_from_json(port: &JsonPort) -> Result<Option<PortSide>, JsonError> {
@@ -2427,6 +2487,184 @@ fn parse_node_promotion_strategy(
     }
 }
 
+fn parse_node_size_constraints(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<Vec<NodeSizeConstraint>, JsonError> {
+    match value {
+        serde_json::Value::Array(values) => values
+            .iter()
+            .map(|value| parse_node_size_constraint(string(value, key)?, key))
+            .collect(),
+        serde_json::Value::String(values) => parse_node_size_constraint_list(values, key),
+        _ => Err(JsonError::Invalid(format!(
+            "{key} must be a string array or Java enumset string"
+        ))),
+    }
+}
+
+fn parse_node_label_placement(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<Vec<NodeLabelPlacement>, JsonError> {
+    match value {
+        serde_json::Value::Array(values) => values
+            .iter()
+            .map(|value| parse_node_label_placement_value(string(value, key)?, key))
+            .collect(),
+        serde_json::Value::String(values) => parse_node_label_placement_list(values, key),
+        _ => Err(JsonError::Invalid(format!(
+            "{key} must be a string array or Java enumset string"
+        ))),
+    }
+}
+
+fn parse_node_label_placement_list(
+    values: &str,
+    key: &str,
+) -> Result<Vec<NodeLabelPlacement>, JsonError> {
+    let trimmed = values.trim();
+    let inner = trimmed
+        .strip_prefix('[')
+        .and_then(|value| value.strip_suffix(']'))
+        .ok_or_else(|| {
+            JsonError::Invalid(format!(
+                "{key} must be a string array or Java enumset string"
+            ))
+        })?;
+    if inner.trim().is_empty() {
+        return Ok(Vec::new());
+    }
+
+    inner
+        .split(',')
+        .map(|value| parse_node_label_placement_value(value.trim(), key))
+        .collect()
+}
+
+fn parse_node_label_placement_value(
+    value: &str,
+    key: &str,
+) -> Result<NodeLabelPlacement, JsonError> {
+    match value {
+        "H_CENTER" => Ok(NodeLabelPlacement::HorizontalCenter),
+        "H_LEFT" => Ok(NodeLabelPlacement::HorizontalLeft),
+        "H_PRIORITY" => Ok(NodeLabelPlacement::HorizontalPriority),
+        "H_RIGHT" => Ok(NodeLabelPlacement::HorizontalRight),
+        "INSIDE" => Ok(NodeLabelPlacement::Inside),
+        "OUTSIDE" => Ok(NodeLabelPlacement::Outside),
+        "V_BOTTOM" => Ok(NodeLabelPlacement::VerticalBottom),
+        "V_CENTER" => Ok(NodeLabelPlacement::VerticalCenter),
+        "V_TOP" => Ok(NodeLabelPlacement::VerticalTop),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
+fn parse_node_size_constraint_list(
+    values: &str,
+    key: &str,
+) -> Result<Vec<NodeSizeConstraint>, JsonError> {
+    let trimmed = values.trim();
+    let inner = trimmed
+        .strip_prefix('[')
+        .and_then(|value| value.strip_suffix(']'))
+        .ok_or_else(|| {
+            JsonError::Invalid(format!(
+                "{key} must be a string array or Java enumset string"
+            ))
+        })?;
+    if inner.trim().is_empty() {
+        return Ok(Vec::new());
+    }
+
+    inner
+        .split(',')
+        .map(|value| parse_node_size_constraint(value.trim(), key))
+        .collect()
+}
+
+fn parse_node_size_constraint(value: &str, key: &str) -> Result<NodeSizeConstraint, JsonError> {
+    match value {
+        "MINIMUM_SIZE" => Ok(NodeSizeConstraint::MinimumSize),
+        "NODE_LABELS" => Ok(NodeSizeConstraint::NodeLabels),
+        "PORTS" => Ok(NodeSizeConstraint::Ports),
+        "PORT_LABELS" => Ok(NodeSizeConstraint::PortLabels),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
+fn node_size_minimum(value: &serde_json::Value, key: &str) -> Result<Size, JsonError> {
+    let (width, height) = match value {
+        serde_json::Value::Object(object) => {
+            let x_key = format!("{key} x");
+            let y_key = format!("{key} y");
+            let width_value = object
+                .get("x")
+                .ok_or_else(|| JsonError::Invalid(format!("{key} must include x")))?;
+            let height_value = object
+                .get("y")
+                .ok_or_else(|| JsonError::Invalid(format!("{key} must include y")))?;
+            (
+                non_negative_number(width_value, &x_key)?,
+                non_negative_number(height_value, &y_key)?,
+            )
+        }
+        serde_json::Value::String(value) => parse_size_string(value, key)?,
+        _ => {
+            return Err(JsonError::Invalid(format!(
+                "{key} must be an object with x and y numbers or Java KVector string"
+            )));
+        }
+    };
+
+    Ok(Size::new(width, height))
+}
+
+fn parse_size_string(value: &str, key: &str) -> Result<(f64, f64), JsonError> {
+    let inner = value
+        .trim()
+        .strip_prefix('(')
+        .and_then(|value| value.strip_suffix(')'))
+        .ok_or_else(|| {
+            JsonError::Invalid(format!(
+                "{key} must be an object with x and y numbers or Java KVector string"
+            ))
+        })?;
+    let mut parts = inner.split(',').map(str::trim);
+    let x = parts
+        .next()
+        .ok_or_else(|| JsonError::Invalid(format!("{key} must include x")))?;
+    let y = parts
+        .next()
+        .ok_or_else(|| JsonError::Invalid(format!("{key} must include y")))?;
+    if parts.next().is_some() {
+        return Err(JsonError::Invalid(format!(
+            "{key} must be an object with x and y numbers or Java KVector string"
+        )));
+    }
+
+    let width = parse_non_negative_finite(x, &format!("{key} x"))?;
+    let height = parse_non_negative_finite(y, &format!("{key} y"))?;
+    Ok((width, height))
+}
+
+fn parse_non_negative_finite(value: &str, key: &str) -> Result<f64, JsonError> {
+    let number = value
+        .parse::<f64>()
+        .ok()
+        .filter(|number| number.is_finite())
+        .ok_or_else(|| JsonError::Invalid(format!("{key} must be a number")))?;
+    if number >= 0.0 {
+        Ok(number)
+    } else {
+        Err(JsonError::Invalid(format!("{key} must be non-negative")))
+    }
+}
+
 fn parse_interactive_reference_point(
     value: &serde_json::Value,
     key: &str,
@@ -2599,6 +2837,29 @@ fn format_node_promotion_strategy(strategy: NodePromotionStrategy) -> &'static s
         NodePromotionStrategy::NodeCountPercentage => "NODECOUNT_PERCENTAGE",
         NodePromotionStrategy::None => "NONE",
         NodePromotionStrategy::NoBoundary => "NO_BOUNDARY",
+    }
+}
+
+fn format_node_size_constraint(constraint: NodeSizeConstraint) -> &'static str {
+    match constraint {
+        NodeSizeConstraint::MinimumSize => "MINIMUM_SIZE",
+        NodeSizeConstraint::NodeLabels => "NODE_LABELS",
+        NodeSizeConstraint::Ports => "PORTS",
+        NodeSizeConstraint::PortLabels => "PORT_LABELS",
+    }
+}
+
+fn format_node_label_placement(placement: NodeLabelPlacement) -> &'static str {
+    match placement {
+        NodeLabelPlacement::HorizontalCenter => "H_CENTER",
+        NodeLabelPlacement::HorizontalLeft => "H_LEFT",
+        NodeLabelPlacement::HorizontalPriority => "H_PRIORITY",
+        NodeLabelPlacement::HorizontalRight => "H_RIGHT",
+        NodeLabelPlacement::Inside => "INSIDE",
+        NodeLabelPlacement::Outside => "OUTSIDE",
+        NodeLabelPlacement::VerticalBottom => "V_BOTTOM",
+        NodeLabelPlacement::VerticalCenter => "V_CENTER",
+        NodeLabelPlacement::VerticalTop => "V_TOP",
     }
 }
 

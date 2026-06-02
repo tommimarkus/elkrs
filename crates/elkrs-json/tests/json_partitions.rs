@@ -4,8 +4,8 @@ use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
     Direction, EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
     InteractiveReferencePoint, LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy,
-    ModelOrderStrategy, NodeLayeringStrategy, NodePromotionStrategy, PortAlignment,
-    PortConstraints, PortSide, PropertyValue,
+    ModelOrderStrategy, NodeLabelPlacement, NodeLayeringStrategy, NodePromotionStrategy,
+    NodeSizeConstraint, PortAlignment, PortConstraints, PortSide, PropertyValue,
 };
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
@@ -2130,6 +2130,152 @@ fn serializes_node_port_alignment_with_java_keys() {
     assert_eq!(
         options["org.eclipse.elk.portAlignment.west"],
         Value::String("END".to_owned())
+    );
+}
+
+#[test]
+fn imports_node_size_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.nodeSize.constraints": ["MINIMUM_SIZE", "NODE_LABELS"],
+                "org.eclipse.elk.nodeSize.minimum": { "x": 120, "y": 45 }
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let node = &graph.nodes[&ElementId::from("node")];
+    assert_eq!(
+        node.properties.node_size_constraints(),
+        &[
+            NodeSizeConstraint::MinimumSize,
+            NodeSizeConstraint::NodeLabels
+        ]
+    );
+    assert_eq!(
+        node.properties.node_size_minimum(),
+        Some(Size::new(120.0, 45.0))
+    );
+}
+
+#[test]
+fn imports_java_string_node_size_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.nodeSize.constraints": "[MINIMUM_SIZE, NODE_LABELS]",
+                "org.eclipse.elk.nodeSize.minimum": "(120.0,45.0)"
+              }
+            },
+            {
+              "id": "fixed",
+              "layoutOptions": {
+                "org.eclipse.elk.nodeSize.constraints": "[]"
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let node = &graph.nodes[&ElementId::from("node")];
+    assert_eq!(
+        node.properties.node_size_constraints(),
+        &[
+            NodeSizeConstraint::MinimumSize,
+            NodeSizeConstraint::NodeLabels
+        ]
+    );
+    assert_eq!(
+        node.properties.node_size_minimum(),
+        Some(Size::new(120.0, 45.0))
+    );
+    assert!(graph.nodes[&ElementId::from("fixed")]
+        .properties
+        .node_size_constraints()
+        .is_empty());
+}
+
+#[test]
+fn imports_node_label_placement_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.nodeLabels.placement": "[INSIDE, H_CENTER, V_CENTER]"
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let node = &graph.nodes[&ElementId::from("node")];
+    assert_eq!(
+        node.properties.node_label_placement(),
+        &[
+            NodeLabelPlacement::Inside,
+            NodeLabelPlacement::HorizontalCenter,
+            NodeLabelPlacement::VerticalCenter
+        ]
+    );
+}
+
+#[test]
+fn serializes_node_label_placement_layout_options_with_java_key() {
+    let mut node = ElkNode::new("node");
+    node.properties.set_node_label_placement(vec![
+        NodeLabelPlacement::Inside,
+        NodeLabelPlacement::HorizontalCenter,
+        NodeLabelPlacement::VerticalCenter,
+    ]);
+
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["children"][0]["layoutOptions"]["org.eclipse.elk.nodeLabels.placement"],
+        Value::String("[INSIDE, H_CENTER, V_CENTER]".to_owned())
+    );
+}
+
+#[test]
+fn serializes_node_size_layout_options_with_java_keys() {
+    let mut node = ElkNode::new("node");
+    node.properties.set_node_size_constraints(vec![
+        NodeSizeConstraint::MinimumSize,
+        NodeSizeConstraint::NodeLabels,
+    ]);
+    node.properties
+        .set_node_size_minimum(Size::new(120.0, 45.0));
+
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let options = &json["children"][0]["layoutOptions"];
+    assert_eq!(
+        options["org.eclipse.elk.nodeSize.constraints"],
+        Value::String("[MINIMUM_SIZE, NODE_LABELS]".to_owned())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.nodeSize.minimum"],
+        Value::String("(120,45)".to_owned())
     );
 }
 

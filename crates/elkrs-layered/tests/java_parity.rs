@@ -251,6 +251,55 @@ fn node_separation_assertion_checks_java_and_rust_bounds() {
 }
 
 #[test]
+fn node_size_at_least_assertion_checks_java_and_rust_node_bounds() {
+    let assertion = ParityAssertion::NodeSizeAtLeast {
+        node_id: "a",
+        width: 120.0,
+        height: 45.0,
+    };
+    let java_graph = graph_with_node_bounds(
+        Point::new(0.0, 0.0),
+        Size::new(120.0, 45.0),
+        Point::new(200.0, 0.0),
+        Size::new(80.0, 40.0),
+    );
+    let rust_graph = graph_with_node_bounds(
+        Point::new(0.0, 0.0),
+        Size::new(120.0, 45.0),
+        Point::new(200.0, 0.0),
+        Size::new(80.0, 40.0),
+    );
+
+    assert_parity_fixture_assertion(
+        &assertion,
+        &java_graph,
+        &rust_graph,
+        "fixture-id",
+        "fixture",
+    );
+
+    let too_small_java_graph = graph_with_node_bounds(
+        Point::new(0.0, 0.0),
+        Size::new(119.0, 45.0),
+        Point::new(200.0, 0.0),
+        Size::new(80.0, 40.0),
+    );
+    assert!(
+        std::panic::catch_unwind(|| {
+            assert_parity_fixture_assertion(
+                &assertion,
+                &too_small_java_graph,
+                &rust_graph,
+                "fixture-id",
+                "fixture",
+            )
+        })
+        .is_err(),
+        "node size assertion should fail when Java output keeps the node too small"
+    );
+}
+
+#[test]
 fn edge_node_endpoint_assertion_checks_java_and_rust_routes() {
     let assertion = ParityAssertion::EdgeNodeEndpoints {
         edge_id: "ab",
@@ -505,6 +554,26 @@ fn assert_parity_fixture_assertion(
                 AssertionContext::new(fixture_id, fixture_name, "Rust"),
             );
         }
+        ParityAssertion::NodeSizeAtLeast {
+            node_id,
+            width,
+            height,
+        } => {
+            assert_node_size_at_least(
+                java_graph,
+                node_id,
+                width,
+                height,
+                AssertionContext::new(fixture_id, fixture_name, "Java"),
+            );
+            assert_node_size_at_least(
+                rust_graph,
+                node_id,
+                width,
+                height,
+                AssertionContext::new(fixture_id, fixture_name, "Rust"),
+            );
+        }
     }
 }
 
@@ -741,6 +810,38 @@ fn node_axis_gap(graph: &ElkGraph, first: &str, second: &str, axis: Axis) -> Opt
         Axis::Y => (second.position.y - (first.position.y + first.size.height))
             .max(first.position.y - (second.position.y + second.size.height)),
     })
+}
+
+fn assert_node_size_at_least(
+    graph: &ElkGraph,
+    node_id: &str,
+    width: f64,
+    height: f64,
+    context: AssertionContext<'_>,
+) {
+    let node = find_node(graph, node_id).unwrap_or_else(|| {
+        panic!(
+            "fixture {} ({}) {} output should contain node {node_id}",
+            context.fixture_id, context.fixture_name, context.engine
+        )
+    });
+
+    assert!(
+        node.size.width + f64::EPSILON >= width,
+        "fixture {} ({}) {} output should size node {node_id} to at least width {width}: {}",
+        context.fixture_id,
+        context.fixture_name,
+        context.engine,
+        node.size.width,
+    );
+    assert!(
+        node.size.height + f64::EPSILON >= height,
+        "fixture {} ({}) {} output should size node {node_id} to at least height {height}: {}",
+        context.fixture_id,
+        context.fixture_name,
+        context.engine,
+        node.size.height,
+    );
 }
 
 fn graph_with_node_endpoint_route(points: Vec<Point>) -> ElkGraph {

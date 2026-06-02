@@ -1,8 +1,11 @@
 #![allow(dead_code)]
 
 use elkrs_core::geometry::{Point, Size};
-use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
-use elkrs_core::options::{Algorithm, Direction, EdgeRouting, HierarchyHandling, PortSide};
+use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkLabel, ElkNode, ElkPort};
+use elkrs_core::options::{
+    Algorithm, Direction, EdgeRouting, HierarchyHandling, NodeLabelPlacement, NodeSizeConstraint,
+    PortSide,
+};
 
 pub fn chain() -> ElkGraph {
     let mut graph = ElkGraph::new("root");
@@ -289,6 +292,41 @@ pub fn layer_node_node_spacing() -> ElkGraph {
     graph
 }
 
+pub fn node_minimum_size() -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    let mut sized = node("sized", 20.0, 10.0);
+    sized
+        .properties
+        .set_node_size_constraints(vec![NodeSizeConstraint::MinimumSize]);
+    sized
+        .properties
+        .set_node_size_minimum(Size::new(120.0, 45.0));
+    graph.add_node(sized);
+    graph.add_node(node("target", 40.0, 30.0));
+    graph.add_edge(edge("sized-target", "sized", "target"));
+    graph
+}
+
+pub fn node_label_sizing() -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    let mut labelled = node("labelled", 20.0, 10.0);
+    labelled
+        .properties
+        .set_node_size_constraints(vec![NodeSizeConstraint::NodeLabels]);
+    labelled.properties.set_node_label_placement(vec![
+        NodeLabelPlacement::Inside,
+        NodeLabelPlacement::HorizontalCenter,
+        NodeLabelPlacement::VerticalCenter,
+    ]);
+    let mut label = ElkLabel::new("Wide node label");
+    label.size = Size::new(90.0, 24.0);
+    labelled.labels.push(label);
+    graph.add_node(labelled);
+    graph.add_node(node("target", 40.0, 30.0));
+    graph.add_edge(edge("labelled-target", "labelled", "target"));
+    graph
+}
+
 pub fn consumer_compound_ports() -> ElkGraph {
     let mut client = node("a-client", 80.0, 40.0);
     client.add_port(port(
@@ -439,6 +477,11 @@ pub enum ParityAssertion {
         second: &'static str,
         axis: Axis,
         minimum: f64,
+    },
+    NodeSizeAtLeast {
+        node_id: &'static str,
+        width: f64,
+        height: f64,
     },
 }
 
@@ -759,6 +802,50 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
                 second: "b",
                 axis: Axis::X,
                 minimum: 300.0,
+            }],
+        },
+        ParityFixture {
+            id: "LAYERED-GRAPH-006",
+            name: "node-label-sizing",
+            status: ParityFixtureStatus::JavaComparable,
+            build: node_label_sizing,
+            assertions: &[ParityAssertion::NodeSizeAtLeast {
+                node_id: "labelled",
+                width: 90.0,
+                height: 24.0,
+            }],
+        },
+        ParityFixture {
+            id: "LAYERED-OPT-009",
+            name: "node-minimum-size",
+            status: ParityFixtureStatus::JavaComparable,
+            build: node_minimum_size,
+            assertions: &[ParityAssertion::NodeSizeAtLeast {
+                node_id: "sized",
+                width: 120.0,
+                height: 45.0,
+            }],
+        },
+        ParityFixture {
+            id: "LAYERED-META-OPTION-109",
+            name: "node-size-constraints-metadata",
+            status: ParityFixtureStatus::JavaComparable,
+            build: node_label_sizing,
+            assertions: &[ParityAssertion::NodeSizeAtLeast {
+                node_id: "labelled",
+                width: 90.0,
+                height: 24.0,
+            }],
+        },
+        ParityFixture {
+            id: "LAYERED-META-OPTION-111",
+            name: "node-size-minimum-metadata",
+            status: ParityFixtureStatus::JavaComparable,
+            build: node_minimum_size,
+            assertions: &[ParityAssertion::NodeSizeAtLeast {
+                node_id: "sized",
+                width: 120.0,
+                height: 45.0,
             }],
         },
         ParityFixture {

@@ -1,5 +1,7 @@
 use std::collections::BTreeMap;
 
+use crate::geometry::Size;
+
 pub const DEFAULT_NODE_NODE_SPACING: f64 = 80.0;
 pub const DEFAULT_LAYER_NODE_NODE_SPACING: f64 = 120.0;
 pub const DEFAULT_COMPONENT_COMPONENT_SPACING: f64 = 20.0;
@@ -127,6 +129,27 @@ pub enum NodePromotionStrategy {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NodeSizeConstraint {
+    MinimumSize,
+    NodeLabels,
+    Ports,
+    PortLabels,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NodeLabelPlacement {
+    HorizontalCenter,
+    HorizontalLeft,
+    HorizontalPriority,
+    HorizontalRight,
+    Inside,
+    Outside,
+    VerticalBottom,
+    VerticalCenter,
+    VerticalTop,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LayerConstraint {
     First,
     FirstSeparate,
@@ -201,10 +224,13 @@ pub enum PropertyValue {
     LayerUnzippingStrategy(LayerUnzippingStrategy),
     LongEdgeOrderingStrategy(LongEdgeOrderingStrategy),
     ModelOrderStrategy(ModelOrderStrategy),
+    NodeLabelPlacement(Vec<NodeLabelPlacement>),
     NodeLayeringStrategy(NodeLayeringStrategy),
     NodePromotionStrategy(NodePromotionStrategy),
+    NodeSizeConstraints(Vec<NodeSizeConstraint>),
     PortAlignment(PortAlignment),
     PortConstraints(PortConstraints),
+    Size(Size),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -273,8 +299,11 @@ pub enum CoreOption {
     MinWidthUpperLayerEstimationScalingFactor,
     NoLayout,
     NoModelOrder,
+    NodeLabelPlacement,
     NodePromotionMaxIterations,
     NodePromotionStrategy,
+    NodeSizeConstraints,
+    NodeSizeMinimum,
     PortAlignmentDefault,
     PortAlignmentEast,
     PortAlignmentNorth,
@@ -757,6 +786,31 @@ impl Properties {
             CoreOption::NodePromotionStrategy,
             PropertyValue::NodePromotionStrategy(strategy),
         )
+    }
+
+    pub fn set_node_label_placement(
+        &mut self,
+        placement: Vec<NodeLabelPlacement>,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::NodeLabelPlacement,
+            PropertyValue::NodeLabelPlacement(placement),
+        )
+    }
+
+    pub fn set_node_size_constraints(
+        &mut self,
+        constraints: Vec<NodeSizeConstraint>,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::NodeSizeConstraints,
+            PropertyValue::NodeSizeConstraints(constraints),
+        )
+    }
+
+    pub fn set_node_size_minimum(&mut self, minimum: Size) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::NodeSizeMinimum, PropertyValue::Size(minimum))
     }
 
     pub fn set_allow_non_flow_ports_to_switch_sides(
@@ -1413,6 +1467,34 @@ impl Properties {
         }
     }
 
+    pub fn node_label_placement(&self) -> &[NodeLabelPlacement] {
+        match self.get(CoreOption::NodeLabelPlacement) {
+            Some(PropertyValue::NodeLabelPlacement(placement)) => placement.as_slice(),
+            Some(value) => {
+                unreachable!("node label placement stored incompatible value: {value:?}")
+            }
+            _ => &[],
+        }
+    }
+
+    pub fn node_size_constraints(&self) -> &[NodeSizeConstraint] {
+        match self.get(CoreOption::NodeSizeConstraints) {
+            Some(PropertyValue::NodeSizeConstraints(constraints)) => constraints.as_slice(),
+            Some(value) => {
+                unreachable!("node size constraints stored incompatible value: {value:?}")
+            }
+            _ => &[],
+        }
+    }
+
+    pub fn node_size_minimum(&self) -> Option<Size> {
+        match self.get(CoreOption::NodeSizeMinimum) {
+            Some(PropertyValue::Size(minimum)) => Some(*minimum),
+            Some(value) => unreachable!("node size minimum stored incompatible value: {value:?}"),
+            _ => None,
+        }
+    }
+
     pub fn allow_non_flow_ports_to_switch_sides(&self) -> bool {
         self.bool_option(
             CoreOption::AllowNonFlowPortsToSwitchSides,
@@ -1851,6 +1933,32 @@ mod tests {
     }
 
     #[test]
+    fn node_size_options_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.node_size_constraints(), &[]);
+        assert_eq!(properties.node_size_minimum(), None);
+
+        properties.set_node_size_constraints(vec![
+            NodeSizeConstraint::MinimumSize,
+            NodeSizeConstraint::NodeLabels,
+        ]);
+        properties.set_node_size_minimum(crate::geometry::Size::new(120.0, 45.0));
+
+        assert_eq!(
+            properties.node_size_constraints(),
+            &[
+                NodeSizeConstraint::MinimumSize,
+                NodeSizeConstraint::NodeLabels
+            ]
+        );
+        assert_eq!(
+            properties.node_size_minimum(),
+            Some(crate::geometry::Size::new(120.0, 45.0))
+        );
+    }
+
+    #[test]
     fn alignment_and_aspect_ratio_options_can_be_set() {
         let mut properties = Properties::default();
 
@@ -2181,6 +2289,35 @@ mod tests {
         assert_eq!(properties.component_group_id(), Some(2));
         assert_eq!(properties.crossing_minimization_id(), Some(4));
         assert_eq!(properties.cycle_breaking_id(), Some(6));
+    }
+
+    #[test]
+    fn node_label_placement_options_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert!(properties.node_label_placement().is_empty());
+        properties.set_node_label_placement(vec![
+            NodeLabelPlacement::Inside,
+            NodeLabelPlacement::HorizontalCenter,
+            NodeLabelPlacement::VerticalCenter,
+        ]);
+
+        assert_eq!(
+            properties.node_label_placement(),
+            &[
+                NodeLabelPlacement::Inside,
+                NodeLabelPlacement::HorizontalCenter,
+                NodeLabelPlacement::VerticalCenter
+            ]
+        );
+        assert_eq!(
+            properties.get(CoreOption::NodeLabelPlacement),
+            Some(&PropertyValue::NodeLabelPlacement(vec![
+                NodeLabelPlacement::Inside,
+                NodeLabelPlacement::HorizontalCenter,
+                NodeLabelPlacement::VerticalCenter,
+            ]))
+        );
     }
 
     #[test]

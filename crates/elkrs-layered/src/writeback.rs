@@ -25,6 +25,7 @@ pub(crate) fn write_back(graph: &mut ElkGraph, layered: &LGraph) {
 fn write_node_layout(node: &mut ElkNode, layered_node: &LNode) -> bool {
     if node.id == layered_node.id {
         node.position = layered_node.position;
+        node.size = layered_node.size;
         for layered_port in layered_node.ports.values() {
             if let Some(port) = node.ports.get_mut(&layered_port.id) {
                 port.position = layered_port.position;

@@ -2,14 +2,14 @@ mod support;
 
 use elkrs_core::diagnostic::Severity;
 use elkrs_core::geometry::{Point, Size};
-use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
+use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkLabel, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CrossingMinimizationStrategy, Direction,
     EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
     InteractiveReferencePoint, LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy,
-    ModelOrderStrategy, NodeLayeringStrategy, NodePromotionStrategy, PortAlignment,
-    PortConstraints, PortSide, Properties, PropertyValue,
+    ModelOrderStrategy, NodeLayeringStrategy, NodePromotionStrategy, NodeSizeConstraint,
+    PortAlignment, PortConstraints, PortSide, Properties, PropertyValue,
 };
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
@@ -254,6 +254,47 @@ fn layered_layout_preserves_no_layout_node_position() {
             || !diagnostic.message.contains("no layout")
             || !diagnostic.message.contains("fixed")
     }));
+}
+
+#[test]
+fn layered_layout_applies_node_size_minimum_constraint() {
+    let mut graph = ElkGraph::new("root");
+    let mut sized = node("sized", 20.0, 10.0);
+    sized
+        .properties
+        .set_node_size_constraints(vec![NodeSizeConstraint::MinimumSize]);
+    sized
+        .properties
+        .set_node_size_minimum(Size::new(120.0, 45.0));
+    graph.add_node(sized);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    let sized = &graph.nodes[&ElementId::from("sized")];
+    assert_eq!(sized.size, Size::new(120.0, 45.0));
+    assert!(report.diagnostics.iter().all(|diagnostic| {
+        diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            || !diagnostic.message.contains("node size")
+            || !diagnostic.message.contains("sized")
+    }));
+}
+
+#[test]
+fn layered_layout_grows_node_for_node_size_label_constraint() {
+    let mut graph = ElkGraph::new("root");
+    let mut labelled = node("labelled", 20.0, 10.0);
+    labelled
+        .properties
+        .set_node_size_constraints(vec![NodeSizeConstraint::NodeLabels]);
+    let mut label = ElkLabel::new("caption");
+    label.size = Size::new(90.0, 24.0);
+    labelled.labels.push(label);
+    graph.add_node(labelled);
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let labelled = &graph.nodes[&ElementId::from("labelled")];
+    assert_eq!(labelled.size, Size::new(90.0, 24.0));
 }
 
 #[test]

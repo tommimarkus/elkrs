@@ -53,6 +53,16 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-core --locked edge_scoped_options`; `cargo test -p elkrs-layered --test basic_layout --locked edge_scoped`; `cargo test -p elkrs-json --test json_partitions --locked edge_scoped_options`; `cargo test -p elkrs-json --test json_errors --locked edge_scoped_options`",
         "Edge thickness is parsed and diagnosed; thickness-aware edge routing and spacing are not implemented yet",
     ),
+    "org.eclipse.elk.edgeLabels.inline": (
+        "unsupported",
+        "Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet",
+        "1.0.0 compatibility exclusion: edge-label inline placement is out of scope; edge label text and geometry remain JSON round-trip only",
+    ),
+    "org.eclipse.elk.edgeLabels.placement": (
+        "unsupported",
+        "Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet",
+        "1.0.0 compatibility exclusion: edge-label placement is out of scope; edge label text and geometry remain JSON round-trip only",
+    ),
     "org.eclipse.elk.spacing.nodeNode": (
         "java-parity",
         '`cargo test -p elkrs-layered --test quality --locked custom_node_spacing_separates_same_layer_nodes`, `cargo test -p elkrs-json --test json_partitions --locked spacing`, `cargo test -p elkrs-json --test json_errors --locked spacing`, `cargo test -p elkrs-layered --test parity_matrix --locked spacing_metadata_rows_have_java_fixture_evidence`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
@@ -96,12 +106,12 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.spacing.commentComment": (
         "parsed",
         "`cargo test -p elkrs-json --test json_partitions --locked additional_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_additional_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_additional_spacing`",
-        "Parsed and validated; comment layout semantics remain open",
+        "1.0.0 compatibility exclusion: comment layout spacing semantics are out of scope; the option is parsed and validated only",
     ),
     "org.eclipse.elk.spacing.commentNode": (
         "parsed",
         "`cargo test -p elkrs-json --test json_partitions --locked additional_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_additional_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_additional_spacing`",
-        "Parsed and validated; comment layout semantics remain open",
+        "1.0.0 compatibility exclusion: comment-node spacing semantics are out of scope; the option is parsed and validated only",
     ),
     "org.eclipse.elk.spacing.componentComponent": (
         "java-parity",
@@ -116,7 +126,7 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.spacing.edgeLabel": (
         "parsed",
         "`cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_label_and_port_spacing`",
-        "Parsed and validated; edge label placement semantics remain open",
+        "1.0.0 compatibility exclusion: edge-label placement spacing semantics are out of scope; the option is parsed and validated only",
     ),
     "org.eclipse.elk.spacing.edgeEdge": (
         "java-parity",
@@ -126,22 +136,22 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.spacing.labelLabel": (
         "parsed",
         "`cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_label_and_port_spacing`",
-        "Parsed and validated; label placement semantics remain open",
+        "1.0.0 compatibility exclusion: label-label placement spacing semantics are out of scope; the option is parsed and validated only",
     ),
     "org.eclipse.elk.spacing.labelNode": (
         "parsed",
         "`cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_label_and_port_spacing`",
-        "Parsed and validated; label placement semantics remain open",
+        "1.0.0 compatibility exclusion: label-node placement spacing semantics are out of scope; the option is parsed and validated only",
     ),
     "org.eclipse.elk.spacing.labelPortHorizontal": (
         "parsed",
         "`cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_label_and_port_spacing`",
-        "Parsed and validated; label-port placement semantics remain open",
+        "1.0.0 compatibility exclusion: label-port placement spacing semantics are out of scope; the option is parsed and validated only",
     ),
     "org.eclipse.elk.spacing.labelPortVertical": (
         "parsed",
         "`cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_label_and_port_spacing`",
-        "Parsed and validated; label-port placement semantics remain open",
+        "1.0.0 compatibility exclusion: label-port placement spacing semantics are out of scope; the option is parsed and validated only",
     ),
     "org.eclipse.elk.spacing.nodeSelfLoop": (
         "java-parity",
@@ -167,6 +177,16 @@ STATUS_OVERRIDES = {
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "Connected-components compaction is parsed and diagnosed; component compaction semantics are not implemented yet",
+    ),
+    "org.eclipse.elk.layered.edgeLabels.centerLabelPlacementStrategy": (
+        "unsupported",
+        "Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet",
+        "1.0.0 compatibility exclusion: edge center-label placement strategy is out of scope; edge label text and geometry remain JSON round-trip only",
+    ),
+    "org.eclipse.elk.layered.edgeLabels.sideSelection": (
+        "unsupported",
+        "Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet",
+        "1.0.0 compatibility exclusion: edge label side-selection semantics are out of scope; edge label text and geometry remain JSON round-trip only",
     ),
     "org.eclipse.elk.layered.considerModelOrder.components": (
         "diagnostic",
@@ -496,12 +516,17 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.portLabels.nextToPortIfPossible": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
-        "Port-label next-to-port behavior is parsed and diagnosed; port-label placement semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: port-label placement semantics are out of scope; the option is parsed, serialized, and diagnosed only",
+    ),
+    "org.eclipse.elk.portLabels.placement": (
+        "unsupported",
+        "Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet",
+        "1.0.0 compatibility exclusion: port-label placement semantics are out of scope; no public enumset model is exposed yet",
     ),
     "org.eclipse.elk.portLabels.treatAsGroup": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
-        "Port-label group treatment is parsed and diagnosed; port-label placement semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: port-label group placement semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.spacing.portsSurrounding": (
         "unsupported",
@@ -511,22 +536,32 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.nodeSize.options": (
         "unsupported",
         "No public option model yet",
-        "Parity: labels and node sizing model",
+        "1.0.0 compatibility exclusion: advanced node-size option flags are out of scope; explicit minimum-size and node-label sizing constraints are Java-backed",
     ),
     "org.eclipse.elk.nodeSize.constraints": (
-        "unsupported",
-        "No public option model yet",
-        "Parity: labels and node sizing model",
+        "java-parity",
+        '`cargo test -p elkrs-core --locked node_size_options_can_be_set`; `cargo test -p elkrs-json --test json_partitions --locked node_size`; `cargo test -p elkrs-json --test json_errors --locked node_size`; `cargo test -p elkrs-layered --test basic_layout --locked node_size`; `cargo test -p elkrs-layered --test parity_matrix --locked node_label_and_size_rows_have_java_fixture_evidence`; plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for Java-backed `MINIMUM_SIZE` and `NODE_LABELS`; `PORTS` and `PORT_LABELS` are diagnosed as a 1.0.0 compatibility exclusion",
     ),
     "org.eclipse.elk.nodeSize.minimum": (
-        "unsupported",
-        "No public option model yet",
-        "Parity: labels and node sizing model",
+        "java-parity",
+        '`cargo test -p elkrs-core --locked node_size_options_can_be_set`; `cargo test -p elkrs-json --test json_partitions --locked node_size`; `cargo test -p elkrs-json --test json_errors --locked node_size`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_node_size_minimum_constraint`; `cargo test -p elkrs-layered --test parity_matrix --locked node_label_and_size_rows_have_java_fixture_evidence`; plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for Java-backed node minimum-size growth",
     ),
     "org.eclipse.elk.nodeSize.fixedGraphSize": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
-        "Fixed graph size is parsed and diagnosed; node-size semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: fixed graph-size semantics are out of scope; the option is parsed, serialized, and diagnosed only",
+    ),
+    "org.eclipse.elk.nodeLabels.padding": (
+        "unsupported",
+        "Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet",
+        "1.0.0 compatibility exclusion: node-label padding is out of scope; node labels are Java-backed only as node-size inputs",
+    ),
+    "org.eclipse.elk.nodeLabels.placement": (
+        "parsed",
+        "`cargo test -p elkrs-core --locked node_label_placement_options_can_be_set`; `cargo test -p elkrs-json --test json_partitions --locked node_label_placement`; `cargo test -p elkrs-layered --test parity_matrix --locked node_label_placement_row_documents_compatibility_boundary`",
+        "1.0.0 compatibility exclusion: node-label placement behavior is out of scope; the option is parsed and serialized only to activate Java-compatible node-label sizing fixtures",
     ),
     "org.eclipse.elk.noLayout": (
         "semantic",
@@ -600,7 +635,7 @@ FEATURE_OVERRIDES = {
     "EDGE_LABELS": (
         "parsed",
         "`cargo test -p elkrs-json --test json_roundtrip --locked round_trips_node_and_edge_label_text`; layout does not place edge labels yet",
-        "Parity: labels and node sizing model",
+        "1.0.0 compatibility exclusion: edge-label placement semantics are out of scope; edge label text and geometry remain JSON round-trip only",
     ),
     "HIERARCHY": (
         "semantic",

@@ -5,8 +5,8 @@ use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
     EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
     InteractiveReferencePoint, LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy,
-    ModelOrderStrategy, NodeLayeringStrategy, NodePromotionStrategy, PortAlignment,
-    PortConstraints, Properties, PropertyValue,
+    ModelOrderStrategy, NodeLayeringStrategy, NodePromotionStrategy, NodeSizeConstraint,
+    PortAlignment, PortConstraints, Properties, PropertyValue,
 };
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
@@ -998,6 +998,12 @@ fn collect_node_hierarchy_diagnostics(
             Some(node.id.as_str()),
         )),
     }
+    collect_unsupported_node_size_constraint_diagnostics(
+        &node.properties,
+        Some(node.id.as_str()),
+        diagnostics,
+    );
+    validate_node_size_minimum(&node.properties, node.id.as_str())?;
     if matches!(
         node.properties.hierarchy_handling(),
         HierarchyHandling::SeparateChildren
@@ -1018,6 +1024,57 @@ fn collect_node_hierarchy_diagnostics(
         collect_node_hierarchy_diagnostics(child, diagnostics)?;
     }
     Ok(())
+}
+
+fn collect_unsupported_node_size_constraint_diagnostics(
+    properties: &Properties,
+    node_id: Option<&str>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    for constraint in properties.node_size_constraints() {
+        if matches!(
+            constraint,
+            NodeSizeConstraint::Ports | NodeSizeConstraint::PortLabels
+        ) {
+            diagnostics.push(unsupported_node_size_constraint_diagnostic(
+                *constraint,
+                node_id,
+            ));
+        }
+    }
+}
+
+fn unsupported_node_size_constraint_diagnostic(
+    constraint: NodeSizeConstraint,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "node size constraint {constraint:?} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!(
+            "node size constraint {constraint:?} is recognized but not implemented by elkrs-layered yet"
+        )
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
+fn validate_node_size_minimum(properties: &Properties, node_id: &str) -> Result<(), LayoutError> {
+    let Some(minimum) = properties.node_size_minimum() else {
+        return Ok(());
+    };
+    if minimum.width.is_finite()
+        && minimum.width >= 0.0
+        && minimum.height.is_finite()
+        && minimum.height >= 0.0
+    {
+        return Ok(());
+    }
+
+    Err(LayoutError::InvalidOption(format!(
+        "node size minimum on node {node_id} must be finite and non-negative"
+    )))
 }
 
 fn unsupported_hierarchy_handling_diagnostic(node_id: Option<&str>) -> Diagnostic {

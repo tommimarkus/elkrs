@@ -1,8 +1,9 @@
 use std::collections::BTreeMap;
 
+use elkrs_core::geometry::Size;
 use elkrs_core::graph::{ElementId, ElementRef, ElkGraph, ElkNode};
 use elkrs_core::layout::LayoutError;
-use elkrs_core::options::{CoreOption, PropertyValue};
+use elkrs_core::options::{CoreOption, NodeSizeConstraint, PropertyValue};
 
 use crate::internal::{LEdge, LEdgeKind, LEndpoint, LGraph, LNode, LPort};
 
@@ -76,7 +77,7 @@ fn import_node(
 
     nodes.push(LNode {
         id: node.id.clone(),
-        size: node.size,
+        size: effective_node_size(node),
         position: node.position,
         layer: 0,
         no_layout: node.properties.no_layout(),
@@ -88,6 +89,27 @@ fn import_node(
         import_node(child, Some(node.id.clone()), nodes, node_ids)?;
     }
     Ok(())
+}
+
+fn effective_node_size(node: &ElkNode) -> Size {
+    let mut size = node.size;
+    let constraints = node.properties.node_size_constraints();
+
+    if constraints.contains(&NodeSizeConstraint::MinimumSize) {
+        if let Some(minimum) = node.properties.node_size_minimum() {
+            size.width = size.width.max(minimum.width);
+            size.height = size.height.max(minimum.height);
+        }
+    }
+
+    if constraints.contains(&NodeSizeConstraint::NodeLabels) {
+        for label in &node.labels {
+            size.width = size.width.max(label.position.x + label.size.width);
+            size.height = size.height.max(label.position.y + label.size.height);
+        }
+    }
+
+    size
 }
 
 fn node_port_port_spacing(node: &ElkNode) -> Option<f64> {
