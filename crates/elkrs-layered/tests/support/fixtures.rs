@@ -523,6 +523,18 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             }],
         },
         ParityFixture {
+            id: "LAYERED-META-OPTION-006",
+            name: "direction-metadata",
+            status: ParityFixtureStatus::JavaComparable,
+            build: direction_right,
+            assertions: &[ParityAssertion::NodeOrder {
+                first: "a",
+                second: "b",
+                axis: Axis::X,
+                order: Order::LessThan,
+            }],
+        },
+        ParityFixture {
             id: "LAYERED-OPT-002",
             name: "direction-left",
             status: ParityFixtureStatus::JavaComparable,

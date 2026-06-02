@@ -33,8 +33,8 @@ STATUS_OVERRIDES = {
     ),
     "org.eclipse.elk.direction": (
         "java-parity",
-        '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_respects_left_direction`, `cargo test -p elkrs-json --test json_partitions --locked direction`, `cargo test -p elkrs-json --test json_errors --locked direction`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
-        "Complete",
+        '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_respects_left_direction`, `cargo test -p elkrs-json --test json_partitions --locked direction`, `cargo test -p elkrs-json --test json_errors --locked direction`, `cargo test -p elkrs-layered --test parity_matrix --locked direction_metadata_row_has_java_fixture_evidence`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for Java-backed direction fixture",
     ),
     "org.eclipse.elk.spacing.nodeNode": (
         "java-parity",
