@@ -29,6 +29,10 @@ const PARENT_UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
     (CoreOption::LayoutPartitioning, "layout partitioning"),
     (CoreOption::MergeEdges, "merge edges"),
     (
+        CoreOption::SeparateConnectedComponents,
+        "separate connected components",
+    ),
+    (
         CoreOption::SemiInteractiveCrossingMinimization,
         "semi-interactive crossing minimization",
     ),

@@ -65,6 +65,7 @@ const PORT_SIDE_KEY: &str = "org.eclipse.elk.port.side";
 const LEGACY_PORT_SIDE_KEY: &str = "side";
 const PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY: &str =
     "org.eclipse.elk.portLabels.nextToPortIfPossible";
+const SEPARATE_CONNECTED_COMPONENTS_KEY: &str = "org.eclipse.elk.separateConnectedComponents";
 const SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY: &str =
     "org.eclipse.elk.layered.crossingMinimization.semiInteractive";
 const TOPDOWN_LAYOUT_KEY: &str = "org.eclipse.elk.topdownLayout";
@@ -485,6 +486,9 @@ fn apply_layout_options(
             PORT_PORT_SPACING_KEY => graph
                 .properties
                 .set_spacing_port_port(non_negative_number(value, key)?),
+            SEPARATE_CONNECTED_COMPONENTS_KEY => graph
+                .properties
+                .set_separate_connected_components(boolean(value, key)?),
             SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY => graph
                 .properties
                 .set_semi_interactive_crossing_minimization(boolean(value, key)?),
@@ -694,6 +698,12 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     insert_boolean_option(
         &mut options,
         &graph.properties,
+        CoreOption::SeparateConnectedComponents,
+        SEPARATE_CONNECTED_COMPONENTS_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
         CoreOption::SemiInteractiveCrossingMinimization,
         SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY,
     );
@@ -806,6 +816,10 @@ fn apply_node_layout_options(
             PORT_PORT_SPACING_KEY => {
                 node.properties
                     .set_spacing_port_port(non_negative_number(value, key)?);
+            }
+            SEPARATE_CONNECTED_COMPONENTS_KEY => {
+                node.properties
+                    .set_separate_connected_components(boolean(value, key)?);
             }
             SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY => {
                 node.properties
@@ -958,6 +972,12 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
     if let Some(PropertyValue::Number(spacing)) = node.properties.get(CoreOption::SpacingPortPort) {
         options.insert(PORT_PORT_SPACING_KEY.to_string(), (*spacing).into());
     }
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::SeparateConnectedComponents,
+        SEPARATE_CONNECTED_COMPONENTS_KEY,
+    );
     insert_boolean_option(
         &mut options,
         &node.properties,

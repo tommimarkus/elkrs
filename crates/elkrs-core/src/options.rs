@@ -91,6 +91,7 @@ pub enum CoreOption {
     NoLayout,
     NoModelOrder,
     PortLabelsNextToPortIfPossible,
+    SeparateConnectedComponents,
     SemiInteractiveCrossingMinimization,
     SpacingNodeNode,
     SpacingLayerNodeNode,
@@ -227,6 +228,10 @@ impl Properties {
         enabled: bool,
     ) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::PortLabelsNextToPortIfPossible, enabled)
+    }
+
+    pub fn set_separate_connected_components(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::SeparateConnectedComponents, enabled)
     }
 
     pub fn set_semi_interactive_crossing_minimization(
@@ -485,6 +490,13 @@ impl Properties {
         )
     }
 
+    pub fn separate_connected_components(&self) -> bool {
+        self.bool_option(
+            CoreOption::SeparateConnectedComponents,
+            "separate connected components",
+        )
+    }
+
     pub fn semi_interactive_crossing_minimization(&self) -> bool {
         self.bool_option(
             CoreOption::SemiInteractiveCrossingMinimization,
@@ -610,6 +622,7 @@ mod tests {
         assert!(!properties.interactive_layout());
         assert!(!properties.layout_partitioning());
         assert!(!properties.merge_edges());
+        assert!(!properties.separate_connected_components());
         assert!(!properties.semi_interactive_crossing_minimization());
         assert!(!properties.topdown_layout());
         assert!(!properties.unnecessary_bendpoints());
@@ -624,6 +637,7 @@ mod tests {
         properties.set_interactive_layout(true);
         properties.set_layout_partitioning(true);
         properties.set_merge_edges(true);
+        properties.set_separate_connected_components(true);
         properties.set_semi_interactive_crossing_minimization(true);
         properties.set_topdown_layout(true);
         properties.set_unnecessary_bendpoints(true);
@@ -638,6 +652,7 @@ mod tests {
         assert!(properties.interactive_layout());
         assert!(properties.layout_partitioning());
         assert!(properties.merge_edges());
+        assert!(properties.separate_connected_components());
         assert!(properties.semi_interactive_crossing_minimization());
         assert!(properties.topdown_layout());
         assert!(properties.unnecessary_bendpoints());

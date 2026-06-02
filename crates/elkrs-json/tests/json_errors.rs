@@ -493,7 +493,7 @@ fn assert_invalid_contains(input: &str, expected: &str) {
     );
 }
 
-fn parent_boolean_option_keys() -> [&'static str; 13] {
+fn parent_boolean_option_keys() -> [&'static str; 14] {
     [
         "org.eclipse.elk.interactiveLayout",
         "org.eclipse.elk.layered.compaction.connectedComponents",
@@ -507,6 +507,7 @@ fn parent_boolean_option_keys() -> [&'static str; 13] {
         "org.eclipse.elk.layered.unnecessaryBendpoints",
         "org.eclipse.elk.nodeSize.fixedGraphSize",
         "org.eclipse.elk.partitioning.activate",
+        "org.eclipse.elk.separateConnectedComponents",
         "org.eclipse.elk.topdownLayout",
     ]
 }

@@ -227,6 +227,7 @@ fn imports_parent_boolean_layout_options() {
             "org.eclipse.elk.layered.unnecessaryBendpoints": true,
             "org.eclipse.elk.nodeSize.fixedGraphSize": true,
             "org.eclipse.elk.partitioning.activate": true,
+            "org.eclipse.elk.separateConnectedComponents": true,
             "org.eclipse.elk.topdownLayout": true
           }
         }"#,
@@ -260,6 +261,7 @@ fn imports_disabled_parent_boolean_layout_options() {
             "org.eclipse.elk.layered.unnecessaryBendpoints": false,
             "org.eclipse.elk.nodeSize.fixedGraphSize": false,
             "org.eclipse.elk.partitioning.activate": false,
+            "org.eclipse.elk.separateConnectedComponents": false,
             "org.eclipse.elk.topdownLayout": false
           }
         }"#,
@@ -318,6 +320,7 @@ fn imports_node_parent_boolean_layout_options() {
                 "org.eclipse.elk.layered.unnecessaryBendpoints": true,
                 "org.eclipse.elk.nodeSize.fixedGraphSize": true,
                 "org.eclipse.elk.partitioning.activate": true,
+                "org.eclipse.elk.separateConnectedComponents": true,
                 "org.eclipse.elk.topdownLayout": true
               }
             }
@@ -357,6 +360,7 @@ fn imports_disabled_node_parent_boolean_layout_options() {
                 "org.eclipse.elk.layered.unnecessaryBendpoints": false,
                 "org.eclipse.elk.nodeSize.fixedGraphSize": false,
                 "org.eclipse.elk.partitioning.activate": false,
+                "org.eclipse.elk.separateConnectedComponents": false,
                 "org.eclipse.elk.topdownLayout": false
               }
             }
@@ -1471,7 +1475,7 @@ fn serialized_value(graph: &ElkGraph) -> Value {
     serde_json::from_str(&to_string_pretty(graph).unwrap()).unwrap()
 }
 
-fn parent_boolean_options() -> [(&'static str, CoreOption); 13] {
+fn parent_boolean_options() -> [(&'static str, CoreOption); 14] {
     [
         (
             "org.eclipse.elk.interactiveLayout",
@@ -1517,6 +1521,10 @@ fn parent_boolean_options() -> [(&'static str, CoreOption); 13] {
         (
             "org.eclipse.elk.partitioning.activate",
             CoreOption::LayoutPartitioning,
+        ),
+        (
+            "org.eclipse.elk.separateConnectedComponents",
+            CoreOption::SeparateConnectedComponents,
         ),
         ("org.eclipse.elk.topdownLayout", CoreOption::TopdownLayout),
     ]
@@ -1565,6 +1573,7 @@ fn set_parent_boolean_options(graph: &mut ElkGraph, enabled: bool) {
     graph.properties.set_unnecessary_bendpoints(enabled);
     graph.properties.set_fixed_graph_size(enabled);
     graph.properties.set_layout_partitioning(enabled);
+    graph.properties.set_separate_connected_components(enabled);
     graph.properties.set_topdown_layout(enabled);
 }
 
@@ -1582,6 +1591,7 @@ fn set_parent_boolean_node_options(node: &mut ElkNode, enabled: bool) {
     node.properties.set_unnecessary_bendpoints(enabled);
     node.properties.set_fixed_graph_size(enabled);
     node.properties.set_layout_partitioning(enabled);
+    node.properties.set_separate_connected_components(enabled);
     node.properties.set_topdown_layout(enabled);
 }
 

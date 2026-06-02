@@ -1133,7 +1133,7 @@ fn node(id: &str, width: f64, height: f64) -> ElkNode {
 
 type BoolOptionSetter = fn(&mut Properties, bool) -> Option<PropertyValue>;
 
-fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 13] {
+fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 14] {
     [
         ("interactive layout", Properties::set_interactive_layout),
         (
@@ -1165,6 +1165,10 @@ fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 13] {
         ),
         ("fixed graph size", Properties::set_fixed_graph_size),
         ("layout partitioning", Properties::set_layout_partitioning),
+        (
+            "separate connected components",
+            Properties::set_separate_connected_components,
+        ),
         ("topdown layout", Properties::set_topdown_layout),
     ]
 }
