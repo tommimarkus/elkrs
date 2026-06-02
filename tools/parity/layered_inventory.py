@@ -26,12 +26,17 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.alignment": (
         "diagnostic",
         "`cargo test -p elkrs-core --locked alignment_and_aspect`; `cargo test -p elkrs-layered --test basic_layout --locked alignment_and_aspect`; `cargo test -p elkrs-json --test json_partitions --locked alignment_and_aspect`; `cargo test -p elkrs-json --test json_errors --locked alignment_and_aspect`",
-        "Alignment is parsed and diagnosed; node placement alignment semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: node placement alignment semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.aspectRatio": (
         "diagnostic",
         "`cargo test -p elkrs-core --locked alignment_and_aspect`; `cargo test -p elkrs-layered --test basic_layout --locked alignment_and_aspect`; `cargo test -p elkrs-json --test json_partitions --locked alignment_and_aspect`; `cargo test -p elkrs-json --test json_errors --locked alignment_and_aspect`",
-        "Aspect ratio is parsed and diagnosed; component compaction and aspect-aware placement semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: aspect-aware component compaction and placement semantics are out of scope; the option is parsed, serialized, and diagnosed only",
+    ),
+    "org.eclipse.elk.contentAlignment": (
+        "unsupported",
+        "No public content-alignment option model yet",
+        "1.0.0 compatibility exclusion: content-alignment placement semantics are out of scope until elkrs-core exposes a public alignment contract",
     ),
     "org.eclipse.elk.commentBox": (
         "diagnostic",
@@ -93,15 +98,55 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-json --test json_partitions --locked additional_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_additional_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_additional_spacing`",
         "Parsed and validated; wrapping edge spacing semantics remain open",
     ),
+    "org.eclipse.elk.layered.wrapping.correctionFactor": (
+        "unsupported",
+        "No public graph-wrapping option model yet",
+        "1.0.0 compatibility exclusion: graph wrapping correction-factor semantics are out of scope",
+    ),
+    "org.eclipse.elk.layered.wrapping.cutting.cuts": (
+        "unsupported",
+        "No public graph-wrapping cut model yet",
+        "1.0.0 compatibility exclusion: manually specified graph-wrapping cuts are out of scope",
+    ),
+    "org.eclipse.elk.layered.wrapping.cutting.msd.freedom": (
+        "unsupported",
+        "No public graph-wrapping option model yet",
+        "1.0.0 compatibility exclusion: graph-wrapping MSD freedom semantics are out of scope",
+    ),
+    "org.eclipse.elk.layered.wrapping.cutting.strategy": (
+        "unsupported",
+        "No public graph-wrapping option model yet",
+        "1.0.0 compatibility exclusion: graph-wrapping cutting strategies are out of scope",
+    ),
+    "org.eclipse.elk.layered.wrapping.multiEdge.distancePenalty": (
+        "unsupported",
+        "No public graph-wrapping option model yet",
+        "1.0.0 compatibility exclusion: graph-wrapping multi-edge distance penalty semantics are out of scope",
+    ),
     "org.eclipse.elk.layered.wrapping.multiEdge.improveCuts": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
-        "Wrapped-edge cut improvement is parsed and diagnosed; graph wrapping semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: graph-wrapping cut-improvement semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.layered.wrapping.multiEdge.improveWrappedEdges": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
-        "Wrapped-edge improvement is parsed and diagnosed; graph wrapping semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: graph-wrapping edge-improvement semantics are out of scope; the option is parsed, serialized, and diagnosed only",
+    ),
+    "org.eclipse.elk.layered.wrapping.strategy": (
+        "unsupported",
+        "No public graph-wrapping option model yet",
+        "1.0.0 compatibility exclusion: graph wrapping strategy semantics are out of scope",
+    ),
+    "org.eclipse.elk.layered.wrapping.validify.forbiddenIndices": (
+        "unsupported",
+        "No public graph-wrapping validification model yet",
+        "1.0.0 compatibility exclusion: graph-wrapping forbidden-index validification is out of scope",
+    ),
+    "org.eclipse.elk.layered.wrapping.validify.strategy": (
+        "unsupported",
+        "No public graph-wrapping validification model yet",
+        "1.0.0 compatibility exclusion: graph-wrapping validification strategies are out of scope",
     ),
     "org.eclipse.elk.spacing.commentComment": (
         "parsed",
@@ -186,7 +231,17 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.layered.compaction.connectedComponents": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
-        "Connected-components compaction is parsed and diagnosed; component compaction semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: connected-component compaction semantics are out of scope; the option is parsed, serialized, and diagnosed only",
+    ),
+    "org.eclipse.elk.layered.compaction.postCompaction.constraints": (
+        "unsupported",
+        "No public post-compaction option model yet",
+        "1.0.0 compatibility exclusion: post-compaction constraint calculation is out of scope",
+    ),
+    "org.eclipse.elk.layered.compaction.postCompaction.strategy": (
+        "unsupported",
+        "No public post-compaction option model yet",
+        "1.0.0 compatibility exclusion: post-compaction strategies are out of scope",
     ),
     "org.eclipse.elk.layered.edgeLabels.centerLabelPlacementStrategy": (
         "unsupported",
@@ -466,7 +521,37 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.layered.nodePlacement.favorStraightEdges": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
-        "Favoring straight edges is parsed and diagnosed; node placement balancing behavior is not implemented yet",
+        "1.0.0 compatibility exclusion: straight-edge-biased node placement balancing is out of scope; the option is parsed, serialized, and diagnosed only",
+    ),
+    "org.eclipse.elk.layered.nodePlacement.bk.edgeStraightening": (
+        "unsupported",
+        "No public Brandes-Koepf placement option model yet",
+        "1.0.0 compatibility exclusion: Brandes-Koepf edge-straightening semantics are out of scope",
+    ),
+    "org.eclipse.elk.layered.nodePlacement.bk.fixedAlignment": (
+        "unsupported",
+        "No public Brandes-Koepf placement option model yet",
+        "1.0.0 compatibility exclusion: Brandes-Koepf fixed-alignment semantics are out of scope",
+    ),
+    "org.eclipse.elk.layered.nodePlacement.linearSegments.deflectionDampening": (
+        "unsupported",
+        "No public linear-segments placement option model yet",
+        "1.0.0 compatibility exclusion: linear-segments deflection-dampening placement is out of scope",
+    ),
+    "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility": (
+        "unsupported",
+        "No public network-simplex placement option model yet",
+        "1.0.0 compatibility exclusion: network-simplex node-flexibility placement is out of scope",
+    ),
+    "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default": (
+        "unsupported",
+        "No public network-simplex placement option model yet",
+        "1.0.0 compatibility exclusion: network-simplex default node-flexibility placement is out of scope",
+    ),
+    "org.eclipse.elk.layered.nodePlacement.strategy": (
+        "unsupported",
+        "No public node-placement strategy option model yet",
+        "1.0.0 compatibility exclusion: node-placement strategy selection beyond the current deterministic placement pass is out of scope",
     ),
     "org.eclipse.elk.layered.priority.direction": (
         "unsupported",
@@ -613,6 +698,21 @@ STATUS_OVERRIDES = {
         "Generated from Java ELK v0.11.0 option metadata; no Rust proof mapped yet",
         "1.0.0 compatibility exclusion: node-label padding is out of scope; node labels are Java-backed only as node-size inputs",
     ),
+    "org.eclipse.elk.margins": (
+        "unsupported",
+        "No public margin object model yet",
+        "1.0.0 compatibility exclusion: margin-aware node placement is out of scope until elkrs-core exposes a public margin contract",
+    ),
+    "org.eclipse.elk.padding": (
+        "unsupported",
+        "No public padding object model yet",
+        "1.0.0 compatibility exclusion: configurable padding-aware placement is out of scope; current compound child padding remains an internal fixed behavior",
+    ),
+    "org.eclipse.elk.position": (
+        "unsupported",
+        "No public position option model yet",
+        "1.0.0 compatibility exclusion: input-position-aware interactive placement is out of scope; layout overwrites node positions except for `org.eclipse.elk.noLayout`",
+    ),
     "org.eclipse.elk.nodeLabels.placement": (
         "parsed",
         "`cargo test -p elkrs-core --locked node_label_placement_options_can_be_set`; `cargo test -p elkrs-json --test json_partitions --locked node_label_placement`; `cargo test -p elkrs-layered --test parity_matrix --locked node_label_placement_row_documents_compatibility_boundary`",
@@ -626,7 +726,7 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.separateConnectedComponents": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
-        "Separate connected components is parsed and diagnosed; component splitting semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: separate connected-component splitting semantics are out of scope; disconnected component spacing remains Java-backed through `org.eclipse.elk.spacing.componentComponent`",
     ),
     "org.eclipse.elk.partitioning.activate": (
         "diagnostic",

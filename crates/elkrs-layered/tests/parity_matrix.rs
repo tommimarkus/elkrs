@@ -578,6 +578,59 @@ fn crossing_constraint_rows_document_compatibility_boundaries() {
     }
 }
 
+#[test]
+fn placement_compaction_wrapping_rows_document_compatibility_boundaries() {
+    assert_eq!(
+        row_status(PARITY_MATRIX, "LAYERED-P4-003"),
+        Some("java-parity"),
+        "LAYERED-P4-003 should stay promoted for Java-backed disconnected component spacing"
+    );
+
+    for (row_id, status) in [
+        ("LAYERED-P4-002", "unsupported"),
+        ("LAYERED-P4-004", "diagnostic"),
+        ("LAYERED-META-OPTION-001", "diagnostic"),
+        ("LAYERED-META-OPTION-002", "diagnostic"),
+        ("LAYERED-META-OPTION-004", "unsupported"),
+        ("LAYERED-META-OPTION-018", "diagnostic"),
+        ("LAYERED-META-OPTION-019", "unsupported"),
+        ("LAYERED-META-OPTION-020", "unsupported"),
+        ("LAYERED-META-OPTION-077", "unsupported"),
+        ("LAYERED-META-OPTION-078", "unsupported"),
+        ("LAYERED-META-OPTION-079", "diagnostic"),
+        ("LAYERED-META-OPTION-080", "unsupported"),
+        ("LAYERED-META-OPTION-081", "unsupported"),
+        ("LAYERED-META-OPTION-082", "unsupported"),
+        ("LAYERED-META-OPTION-083", "unsupported"),
+        ("LAYERED-META-OPTION-095", "unsupported"),
+        ("LAYERED-META-OPTION-096", "unsupported"),
+        ("LAYERED-META-OPTION-097", "unsupported"),
+        ("LAYERED-META-OPTION-098", "unsupported"),
+        ("LAYERED-META-OPTION-099", "unsupported"),
+        ("LAYERED-META-OPTION-100", "diagnostic"),
+        ("LAYERED-META-OPTION-101", "diagnostic"),
+        ("LAYERED-META-OPTION-102", "unsupported"),
+        ("LAYERED-META-OPTION-103", "unsupported"),
+        ("LAYERED-META-OPTION-104", "unsupported"),
+        ("LAYERED-META-OPTION-105", "unsupported"),
+        ("LAYERED-META-OPTION-113", "unsupported"),
+        ("LAYERED-META-OPTION-129", "unsupported"),
+        ("LAYERED-META-OPTION-132", "diagnostic"),
+    ] {
+        assert_eq!(
+            row_status(PARITY_MATRIX, row_id),
+            Some(status),
+            "{row_id} should keep its documented placement compatibility status"
+        );
+        let next_plan = row_next_plan(PARITY_MATRIX, row_id)
+            .unwrap_or_else(|| panic!("{row_id} should have a matrix row"));
+        assert!(
+            next_plan.contains("1.0.0 compatibility exclusion"),
+            "{row_id} should document its 1.0.0 placement compatibility boundary"
+        );
+    }
+}
+
 fn row_status<'a>(matrix: &'a str, row_id: &str) -> Option<&'a str> {
     matrix.lines().find_map(|line| {
         let mut columns = line.split('|').map(str::trim);
