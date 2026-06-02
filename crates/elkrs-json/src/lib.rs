@@ -8,7 +8,8 @@ use elkrs_core::graph::{
 };
 use elkrs_core::options::{
     Algorithm, ComponentOrderingStrategy, CoreOption, Direction, EdgeRouting, GreedySwitchType,
-    HierarchyHandling, ModelOrderStrategy, PortAlignment, PortConstraints, PortSide, PropertyValue,
+    GroupOrderingStrategy, HierarchyHandling, LongEdgeOrderingStrategy, ModelOrderStrategy,
+    PortAlignment, PortConstraints, PortSide, PropertyValue,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -18,6 +19,19 @@ const LEGACY_ALGORITHM_KEY: &str = "elk.algorithm";
 const COMMENT_BOX_KEY: &str = "org.eclipse.elk.commentBox";
 const CONSIDER_MODEL_ORDER_COMPONENTS_KEY: &str =
     "org.eclipse.elk.layered.considerModelOrder.components";
+const CROSSING_COUNTER_NODE_INFLUENCE_KEY: &str =
+    "org.eclipse.elk.layered.considerModelOrder.crossingCounterNodeInfluence";
+const CROSSING_COUNTER_PORT_INFLUENCE_KEY: &str =
+    "org.eclipse.elk.layered.considerModelOrder.crossingCounterPortInfluence";
+const CYCLE_BREAKING_GROUP_ORDER_STRATEGY_KEY: &str =
+    "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbGroupOrderStrategy";
+const CYCLE_BREAKING_PREFERRED_SOURCE_ID_KEY: &str =
+    "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredSourceId";
+const CYCLE_BREAKING_PREFERRED_TARGET_ID_KEY: &str =
+    "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredTargetId";
+const CROSSING_MINIMIZATION_GROUP_ORDER_STRATEGY_KEY: &str =
+    "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmGroupOrderStrategy";
+const LONG_EDGE_STRATEGY_KEY: &str = "org.eclipse.elk.layered.considerModelOrder.longEdgeStrategy";
 const CONSIDER_MODEL_ORDER_STRATEGY_KEY: &str =
     "org.eclipse.elk.layered.considerModelOrder.strategy";
 const CONNECTED_COMPONENTS_COMPACTION_KEY: &str =
@@ -423,6 +437,31 @@ fn apply_layout_options(
                     None
                 }
             }
+            CROSSING_COUNTER_NODE_INFLUENCE_KEY => graph
+                .properties
+                .set_crossing_counter_node_influence(number(value, key)?),
+            CROSSING_COUNTER_PORT_INFLUENCE_KEY => graph
+                .properties
+                .set_crossing_counter_port_influence(number(value, key)?),
+            CYCLE_BREAKING_GROUP_ORDER_STRATEGY_KEY => {
+                graph.properties.set_cycle_breaking_group_order_strategy(
+                    parse_group_ordering_strategy(value, key)?,
+                )
+            }
+            CYCLE_BREAKING_PREFERRED_SOURCE_ID_KEY => graph
+                .properties
+                .set_cycle_breaking_preferred_source_id(integer(value, key)?),
+            CYCLE_BREAKING_PREFERRED_TARGET_ID_KEY => graph
+                .properties
+                .set_cycle_breaking_preferred_target_id(integer(value, key)?),
+            CROSSING_MINIMIZATION_GROUP_ORDER_STRATEGY_KEY => graph
+                .properties
+                .set_crossing_minimization_group_order_strategy(parse_group_ordering_strategy(
+                    value, key,
+                )?),
+            LONG_EDGE_STRATEGY_KEY => graph
+                .properties
+                .set_long_edge_ordering_strategy(parse_long_edge_ordering_strategy(value, key)?),
             CONSIDER_MODEL_ORDER_STRATEGY_KEY => {
                 if let Some(strategy) = parse_model_order_strategy(value, key)? {
                     graph.properties.set_consider_model_order_strategy(strategy)
@@ -584,6 +623,68 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         options.insert(
             CONSIDER_MODEL_ORDER_COMPONENTS_KEY.to_string(),
             serde_json::Value::String(format_component_ordering_strategy(*strategy).to_string()),
+        );
+    }
+    if let Some(PropertyValue::Number(influence)) = graph
+        .properties
+        .get(CoreOption::CrossingCounterNodeInfluence)
+    {
+        options.insert(
+            CROSSING_COUNTER_NODE_INFLUENCE_KEY.to_string(),
+            (*influence).into(),
+        );
+    }
+    if let Some(PropertyValue::Number(influence)) = graph
+        .properties
+        .get(CoreOption::CrossingCounterPortInfluence)
+    {
+        options.insert(
+            CROSSING_COUNTER_PORT_INFLUENCE_KEY.to_string(),
+            (*influence).into(),
+        );
+    }
+    if let Some(PropertyValue::GroupOrderingStrategy(strategy)) = graph
+        .properties
+        .get(CoreOption::CycleBreakingGroupOrderStrategy)
+    {
+        options.insert(
+            CYCLE_BREAKING_GROUP_ORDER_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_group_ordering_strategy(*strategy).to_string()),
+        );
+    }
+    if let Some(PropertyValue::Integer(id)) = graph
+        .properties
+        .get(CoreOption::CycleBreakingPreferredSourceId)
+    {
+        options.insert(
+            CYCLE_BREAKING_PREFERRED_SOURCE_ID_KEY.to_string(),
+            (*id).into(),
+        );
+    }
+    if let Some(PropertyValue::Integer(id)) = graph
+        .properties
+        .get(CoreOption::CycleBreakingPreferredTargetId)
+    {
+        options.insert(
+            CYCLE_BREAKING_PREFERRED_TARGET_ID_KEY.to_string(),
+            (*id).into(),
+        );
+    }
+    if let Some(PropertyValue::GroupOrderingStrategy(strategy)) = graph
+        .properties
+        .get(CoreOption::CrossingMinimizationGroupOrderStrategy)
+    {
+        options.insert(
+            CROSSING_MINIMIZATION_GROUP_ORDER_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_group_ordering_strategy(*strategy).to_string()),
+        );
+    }
+    if let Some(PropertyValue::LongEdgeOrderingStrategy(strategy)) =
+        graph.properties.get(CoreOption::LongEdgeOrderingStrategy)
+    {
+        options.insert(
+            LONG_EDGE_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_long_edge_ordering_strategy(*strategy).to_string()),
         );
     }
     if let Some(PropertyValue::ModelOrderStrategy(strategy)) =
@@ -865,6 +966,39 @@ fn apply_node_layout_options(
                         .set_consider_model_order_components(strategy);
                 }
             }
+            CROSSING_COUNTER_NODE_INFLUENCE_KEY => {
+                node.properties
+                    .set_crossing_counter_node_influence(number(value, key)?);
+            }
+            CROSSING_COUNTER_PORT_INFLUENCE_KEY => {
+                node.properties
+                    .set_crossing_counter_port_influence(number(value, key)?);
+            }
+            CYCLE_BREAKING_GROUP_ORDER_STRATEGY_KEY => {
+                node.properties.set_cycle_breaking_group_order_strategy(
+                    parse_group_ordering_strategy(value, key)?,
+                );
+            }
+            CYCLE_BREAKING_PREFERRED_SOURCE_ID_KEY => {
+                node.properties
+                    .set_cycle_breaking_preferred_source_id(integer(value, key)?);
+            }
+            CYCLE_BREAKING_PREFERRED_TARGET_ID_KEY => {
+                node.properties
+                    .set_cycle_breaking_preferred_target_id(integer(value, key)?);
+            }
+            CROSSING_MINIMIZATION_GROUP_ORDER_STRATEGY_KEY => {
+                node.properties
+                    .set_crossing_minimization_group_order_strategy(parse_group_ordering_strategy(
+                        value, key,
+                    )?);
+            }
+            LONG_EDGE_STRATEGY_KEY => {
+                node.properties
+                    .set_long_edge_ordering_strategy(parse_long_edge_ordering_strategy(
+                        value, key,
+                    )?);
+            }
             CONSIDER_MODEL_ORDER_STRATEGY_KEY => {
                 if let Some(strategy) = parse_model_order_strategy(value, key)? {
                     node.properties.set_consider_model_order_strategy(strategy);
@@ -1040,6 +1174,68 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         options.insert(
             CONSIDER_MODEL_ORDER_COMPONENTS_KEY.to_string(),
             serde_json::Value::String(format_component_ordering_strategy(*strategy).to_string()),
+        );
+    }
+    if let Some(PropertyValue::Number(influence)) = node
+        .properties
+        .get(CoreOption::CrossingCounterNodeInfluence)
+    {
+        options.insert(
+            CROSSING_COUNTER_NODE_INFLUENCE_KEY.to_string(),
+            (*influence).into(),
+        );
+    }
+    if let Some(PropertyValue::Number(influence)) = node
+        .properties
+        .get(CoreOption::CrossingCounterPortInfluence)
+    {
+        options.insert(
+            CROSSING_COUNTER_PORT_INFLUENCE_KEY.to_string(),
+            (*influence).into(),
+        );
+    }
+    if let Some(PropertyValue::GroupOrderingStrategy(strategy)) = node
+        .properties
+        .get(CoreOption::CycleBreakingGroupOrderStrategy)
+    {
+        options.insert(
+            CYCLE_BREAKING_GROUP_ORDER_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_group_ordering_strategy(*strategy).to_string()),
+        );
+    }
+    if let Some(PropertyValue::Integer(id)) = node
+        .properties
+        .get(CoreOption::CycleBreakingPreferredSourceId)
+    {
+        options.insert(
+            CYCLE_BREAKING_PREFERRED_SOURCE_ID_KEY.to_string(),
+            (*id).into(),
+        );
+    }
+    if let Some(PropertyValue::Integer(id)) = node
+        .properties
+        .get(CoreOption::CycleBreakingPreferredTargetId)
+    {
+        options.insert(
+            CYCLE_BREAKING_PREFERRED_TARGET_ID_KEY.to_string(),
+            (*id).into(),
+        );
+    }
+    if let Some(PropertyValue::GroupOrderingStrategy(strategy)) = node
+        .properties
+        .get(CoreOption::CrossingMinimizationGroupOrderStrategy)
+    {
+        options.insert(
+            CROSSING_MINIMIZATION_GROUP_ORDER_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_group_ordering_strategy(*strategy).to_string()),
+        );
+    }
+    if let Some(PropertyValue::LongEdgeOrderingStrategy(strategy)) =
+        node.properties.get(CoreOption::LongEdgeOrderingStrategy)
+    {
+        options.insert(
+            LONG_EDGE_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_long_edge_ordering_strategy(*strategy).to_string()),
         );
     }
     if let Some(PropertyValue::ModelOrderStrategy(strategy)) =
@@ -1491,6 +1687,34 @@ fn parse_greedy_switch_type(
     }
 }
 
+fn parse_group_ordering_strategy(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<GroupOrderingStrategy, JsonError> {
+    match string(value, key)? {
+        "ENFORCED" => Ok(GroupOrderingStrategy::Enforced),
+        "MODEL_ORDER" => Ok(GroupOrderingStrategy::ModelOrder),
+        "ONLY_WITHIN_GROUP" => Ok(GroupOrderingStrategy::OnlyWithinGroup),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
+fn parse_long_edge_ordering_strategy(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<LongEdgeOrderingStrategy, JsonError> {
+    match string(value, key)? {
+        "DUMMY_NODE_OVER" => Ok(LongEdgeOrderingStrategy::DummyNodeOver),
+        "DUMMY_NODE_UNDER" => Ok(LongEdgeOrderingStrategy::DummyNodeUnder),
+        "EQUAL" => Ok(LongEdgeOrderingStrategy::Equal),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
 fn parse_hierarchy_handling(
     value: &serde_json::Value,
     key: &str,
@@ -1565,6 +1789,22 @@ fn format_greedy_switch_type(greedy_switch_type: GreedySwitchType) -> &'static s
         GreedySwitchType::Off => "OFF",
         GreedySwitchType::OneSided => "ONE_SIDED",
         GreedySwitchType::TwoSided => "TWO_SIDED",
+    }
+}
+
+fn format_group_ordering_strategy(strategy: GroupOrderingStrategy) -> &'static str {
+    match strategy {
+        GroupOrderingStrategy::Enforced => "ENFORCED",
+        GroupOrderingStrategy::ModelOrder => "MODEL_ORDER",
+        GroupOrderingStrategy::OnlyWithinGroup => "ONLY_WITHIN_GROUP",
+    }
+}
+
+fn format_long_edge_ordering_strategy(strategy: LongEdgeOrderingStrategy) -> &'static str {
+    match strategy {
+        LongEdgeOrderingStrategy::DummyNodeOver => "DUMMY_NODE_OVER",
+        LongEdgeOrderingStrategy::DummyNodeUnder => "DUMMY_NODE_UNDER",
+        LongEdgeOrderingStrategy::Equal => "EQUAL",
     }
 }
 

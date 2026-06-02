@@ -6,8 +6,8 @@ use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPo
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
     Algorithm, ComponentOrderingStrategy, Direction, EdgeRouting, GreedySwitchType,
-    HierarchyHandling, ModelOrderStrategy, PortAlignment, PortConstraints, PortSide, Properties,
-    PropertyValue,
+    GroupOrderingStrategy, HierarchyHandling, LongEdgeOrderingStrategy, ModelOrderStrategy,
+    PortAlignment, PortConstraints, PortSide, Properties, PropertyValue,
 };
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
@@ -1249,6 +1249,122 @@ fn layered_layout_accepts_off_greedy_switch_types_without_diagnostic() {
     assert!(report.diagnostics.iter().all(|diagnostic| {
         diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
             || !diagnostic.message.contains("greedy switch")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_unsupported_model_order_group_options() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_crossing_counter_node_influence(0.25);
+    graph.properties.set_crossing_counter_port_influence(0.5);
+    graph
+        .properties
+        .set_cycle_breaking_group_order_strategy(GroupOrderingStrategy::ModelOrder);
+    graph.properties.set_cycle_breaking_preferred_source_id(-3);
+    graph.properties.set_cycle_breaking_preferred_target_id(9);
+    graph
+        .properties
+        .set_crossing_minimization_group_order_strategy(GroupOrderingStrategy::Enforced);
+    graph
+        .properties
+        .set_long_edge_ordering_strategy(LongEdgeOrderingStrategy::Equal);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("crossing counter node influence")
+            && diagnostic.message.contains("0.25")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("crossing counter port influence")
+            && diagnostic.message.contains("0.5")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("cycle breaking group order strategy")
+            && diagnostic.message.contains("ModelOrder")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("cycle breaking preferred source ID")
+            && diagnostic.message.contains("-3")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("crossing minimization group order strategy")
+            && diagnostic.message.contains("Enforced")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("long edge ordering strategy")
+            && diagnostic.message.contains("Equal")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_node_unsupported_model_order_group_options() {
+    let mut graph = ElkGraph::new("root");
+    let mut child = node("child", 60.0, 30.0);
+    child.properties.set_crossing_counter_node_influence(1.25);
+    child.properties.set_crossing_counter_port_influence(1.5);
+    child
+        .properties
+        .set_cycle_breaking_group_order_strategy(GroupOrderingStrategy::OnlyWithinGroup);
+    child.properties.set_cycle_breaking_preferred_source_id(2);
+    child.properties.set_cycle_breaking_preferred_target_id(4);
+    child
+        .properties
+        .set_crossing_minimization_group_order_strategy(GroupOrderingStrategy::ModelOrder);
+    child
+        .properties
+        .set_long_edge_ordering_strategy(LongEdgeOrderingStrategy::DummyNodeOver);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("crossing counter node influence")
+            && diagnostic.message.contains("1.25")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("cycle breaking preferred target ID")
+            && diagnostic.message.contains("4")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("long edge ordering strategy")
+            && diagnostic.message.contains("DummyNodeOver")
+            && diagnostic.message.contains("child")
     }));
 }
 

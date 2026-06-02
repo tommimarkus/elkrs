@@ -2,7 +2,8 @@ use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::options::{
     Algorithm, ComponentOrderingStrategy, CoreOption, Direction, EdgeRouting, GreedySwitchType,
-    HierarchyHandling, ModelOrderStrategy, PortAlignment, PortConstraints, PortSide, PropertyValue,
+    GroupOrderingStrategy, HierarchyHandling, LongEdgeOrderingStrategy, ModelOrderStrategy,
+    PortAlignment, PortConstraints, PortSide, PropertyValue,
 };
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
@@ -1464,6 +1465,229 @@ fn serializes_node_greedy_switch_with_java_keys() {
     assert_eq!(
         options["org.eclipse.elk.layered.crossingMinimization.greedySwitchHierarchical.type"],
         Value::String("TWO_SIDED".to_owned())
+    );
+}
+
+#[test]
+fn imports_java_model_order_group_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.considerModelOrder.crossingCounterNodeInfluence": 0.25,
+            "org.eclipse.elk.layered.considerModelOrder.crossingCounterPortInfluence": "0.5",
+            "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbGroupOrderStrategy": "MODEL_ORDER",
+            "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredSourceId": -3,
+            "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredTargetId": "9",
+            "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmGroupOrderStrategy": "ENFORCED",
+            "org.eclipse.elk.layered.considerModelOrder.longEdgeStrategy": "EQUAL"
+          }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::CrossingCounterNodeInfluence),
+        Some(&PropertyValue::Number(0.25))
+    );
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::CrossingCounterPortInfluence),
+        Some(&PropertyValue::Number(0.5))
+    );
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::CycleBreakingGroupOrderStrategy),
+        Some(&PropertyValue::GroupOrderingStrategy(
+            GroupOrderingStrategy::ModelOrder
+        ))
+    );
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::CycleBreakingPreferredSourceId),
+        Some(&PropertyValue::Integer(-3))
+    );
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::CycleBreakingPreferredTargetId),
+        Some(&PropertyValue::Integer(9))
+    );
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::CrossingMinimizationGroupOrderStrategy),
+        Some(&PropertyValue::GroupOrderingStrategy(
+            GroupOrderingStrategy::Enforced
+        ))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::LongEdgeOrderingStrategy),
+        Some(&PropertyValue::LongEdgeOrderingStrategy(
+            LongEdgeOrderingStrategy::Equal
+        ))
+    );
+}
+
+#[test]
+fn serializes_model_order_group_with_java_keys() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_crossing_counter_node_influence(0.25);
+    graph.properties.set_crossing_counter_port_influence(0.5);
+    graph
+        .properties
+        .set_cycle_breaking_group_order_strategy(GroupOrderingStrategy::OnlyWithinGroup);
+    graph.properties.set_cycle_breaking_preferred_source_id(3);
+    graph.properties.set_cycle_breaking_preferred_target_id(9);
+    graph
+        .properties
+        .set_crossing_minimization_group_order_strategy(GroupOrderingStrategy::Enforced);
+    graph
+        .properties
+        .set_long_edge_ordering_strategy(LongEdgeOrderingStrategy::DummyNodeUnder);
+
+    let json = serialized_value(&graph);
+    let options = &json["layoutOptions"];
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.crossingCounterNodeInfluence"],
+        Value::from(0.25)
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.crossingCounterPortInfluence"],
+        Value::from(0.5)
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbGroupOrderStrategy"],
+        Value::String("ONLY_WITHIN_GROUP".to_owned())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredSourceId"],
+        Value::Number(3.into())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredTargetId"],
+        Value::Number(9.into())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmGroupOrderStrategy"],
+        Value::String("ENFORCED".to_owned())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.longEdgeStrategy"],
+        Value::String("DUMMY_NODE_UNDER".to_owned())
+    );
+}
+
+#[test]
+fn imports_node_model_order_group_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "parent",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.considerModelOrder.crossingCounterNodeInfluence": 1.25,
+                "org.eclipse.elk.layered.considerModelOrder.crossingCounterPortInfluence": 1.5,
+                "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbGroupOrderStrategy": "ONLY_WITHIN_GROUP",
+                "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredSourceId": 2,
+                "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredTargetId": 4,
+                "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmGroupOrderStrategy": "MODEL_ORDER",
+                "org.eclipse.elk.layered.considerModelOrder.longEdgeStrategy": "DUMMY_NODE_OVER"
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+    let properties = &graph.nodes[&ElementId::from("parent")].properties;
+
+    assert_eq!(
+        properties.get(CoreOption::CrossingCounterNodeInfluence),
+        Some(&PropertyValue::Number(1.25))
+    );
+    assert_eq!(
+        properties.get(CoreOption::CrossingCounterPortInfluence),
+        Some(&PropertyValue::Number(1.5))
+    );
+    assert_eq!(
+        properties.get(CoreOption::CycleBreakingGroupOrderStrategy),
+        Some(&PropertyValue::GroupOrderingStrategy(
+            GroupOrderingStrategy::OnlyWithinGroup
+        ))
+    );
+    assert_eq!(
+        properties.get(CoreOption::CycleBreakingPreferredSourceId),
+        Some(&PropertyValue::Integer(2))
+    );
+    assert_eq!(
+        properties.get(CoreOption::CycleBreakingPreferredTargetId),
+        Some(&PropertyValue::Integer(4))
+    );
+    assert_eq!(
+        properties.get(CoreOption::CrossingMinimizationGroupOrderStrategy),
+        Some(&PropertyValue::GroupOrderingStrategy(
+            GroupOrderingStrategy::ModelOrder
+        ))
+    );
+    assert_eq!(
+        properties.get(CoreOption::LongEdgeOrderingStrategy),
+        Some(&PropertyValue::LongEdgeOrderingStrategy(
+            LongEdgeOrderingStrategy::DummyNodeOver
+        ))
+    );
+}
+
+#[test]
+fn serializes_node_model_order_group_with_java_keys() {
+    let mut node = ElkNode::new("node");
+    node.properties.set_crossing_counter_node_influence(1.25);
+    node.properties.set_crossing_counter_port_influence(1.5);
+    node.properties
+        .set_cycle_breaking_group_order_strategy(GroupOrderingStrategy::Enforced);
+    node.properties.set_cycle_breaking_preferred_source_id(-2);
+    node.properties.set_cycle_breaking_preferred_target_id(-4);
+    node.properties
+        .set_crossing_minimization_group_order_strategy(GroupOrderingStrategy::ModelOrder);
+    node.properties
+        .set_long_edge_ordering_strategy(LongEdgeOrderingStrategy::DummyNodeOver);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let options = &json["children"][0]["layoutOptions"];
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.crossingCounterNodeInfluence"],
+        Value::from(1.25)
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.crossingCounterPortInfluence"],
+        Value::from(1.5)
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbGroupOrderStrategy"],
+        Value::String("ENFORCED".to_owned())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredSourceId"],
+        Value::Number((-2).into())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredTargetId"],
+        Value::Number((-4).into())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmGroupOrderStrategy"],
+        Value::String("MODEL_ORDER".to_owned())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.longEdgeStrategy"],
+        Value::String("DUMMY_NODE_OVER".to_owned())
     );
 }
 

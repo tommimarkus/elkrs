@@ -423,6 +423,63 @@ fn non_string_node_greedy_switch_hierarchical_type_returns_invalid_error() {
 }
 
 #[test]
+fn model_order_group_non_number_crossing_counter_node_influence_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.considerModelOrder.crossingCounterNodeInfluence": true
+          }
+        }"#,
+        "org.eclipse.elk.layered.considerModelOrder.crossingCounterNodeInfluence must be a number",
+    );
+}
+
+#[test]
+fn model_order_group_non_integer_cycle_breaking_preferred_source_id_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredSourceId": 1.5
+          }
+        }"#,
+        "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredSourceId must be an integer",
+    );
+}
+
+#[test]
+fn model_order_group_unsupported_cycle_breaking_group_order_strategy_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbGroupOrderStrategy": "AUTO"
+          }
+        }"#,
+        "unsupported org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbGroupOrderStrategy value: AUTO",
+    );
+}
+
+#[test]
+fn model_order_group_non_string_node_long_edge_strategy_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.considerModelOrder.longEdgeStrategy": 7
+              }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.layered.considerModelOrder.longEdgeStrategy must be a string",
+    );
+}
+
+#[test]
 fn unsupported_node_port_constraints_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

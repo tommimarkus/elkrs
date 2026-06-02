@@ -68,6 +68,20 @@ pub enum GreedySwitchType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GroupOrderingStrategy {
+    Enforced,
+    ModelOrder,
+    OnlyWithinGroup,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LongEdgeOrderingStrategy {
+    DummyNodeOver,
+    DummyNodeUnder,
+    Equal,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PortSide {
     North,
     East,
@@ -110,8 +124,10 @@ pub enum PropertyValue {
     ComponentOrderingStrategy(ComponentOrderingStrategy),
     Direction(Direction),
     EdgeRouting(EdgeRouting),
+    GroupOrderingStrategy(GroupOrderingStrategy),
     GreedySwitchType(GreedySwitchType),
     HierarchyHandling(HierarchyHandling),
+    LongEdgeOrderingStrategy(LongEdgeOrderingStrategy),
     ModelOrderStrategy(ModelOrderStrategy),
     PortAlignment(PortAlignment),
     PortConstraints(PortConstraints),
@@ -125,6 +141,12 @@ pub enum CoreOption {
     ConsiderModelOrderStrategy,
     ConnectedComponentsCompaction,
     ConsiderPortOrder,
+    CrossingCounterNodeInfluence,
+    CrossingCounterPortInfluence,
+    CrossingMinimizationGroupOrderStrategy,
+    CycleBreakingGroupOrderStrategy,
+    CycleBreakingPreferredSourceId,
+    CycleBreakingPreferredTargetId,
     DebugMode,
     Direction,
     EdgeRouting,
@@ -144,6 +166,7 @@ pub enum CoreOption {
     LayerUnzippingMinimizeEdgeLength,
     LayerUnzippingResetOnLongEdges,
     LayoutPartitioning,
+    LongEdgeOrderingStrategy,
     MergeEdges,
     MergeHierarchyEdges,
     NoLayout,
@@ -223,6 +246,54 @@ impl Properties {
 
     pub fn set_consider_port_order(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::ConsiderPortOrder, enabled)
+    }
+
+    pub fn set_crossing_counter_node_influence(&mut self, influence: f64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::CrossingCounterNodeInfluence,
+            PropertyValue::Number(influence),
+        )
+    }
+
+    pub fn set_crossing_counter_port_influence(&mut self, influence: f64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::CrossingCounterPortInfluence,
+            PropertyValue::Number(influence),
+        )
+    }
+
+    pub fn set_cycle_breaking_group_order_strategy(
+        &mut self,
+        strategy: GroupOrderingStrategy,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::CycleBreakingGroupOrderStrategy,
+            PropertyValue::GroupOrderingStrategy(strategy),
+        )
+    }
+
+    pub fn set_cycle_breaking_preferred_source_id(&mut self, id: i64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::CycleBreakingPreferredSourceId,
+            PropertyValue::Integer(id),
+        )
+    }
+
+    pub fn set_cycle_breaking_preferred_target_id(&mut self, id: i64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::CycleBreakingPreferredTargetId,
+            PropertyValue::Integer(id),
+        )
+    }
+
+    pub fn set_crossing_minimization_group_order_strategy(
+        &mut self,
+        strategy: GroupOrderingStrategy,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::CrossingMinimizationGroupOrderStrategy,
+            PropertyValue::GroupOrderingStrategy(strategy),
+        )
     }
 
     pub fn set_debug_mode(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -333,6 +404,16 @@ impl Properties {
 
     pub fn set_layout_partitioning(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::LayoutPartitioning, enabled)
+    }
+
+    pub fn set_long_edge_ordering_strategy(
+        &mut self,
+        strategy: LongEdgeOrderingStrategy,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::LongEdgeOrderingStrategy,
+            PropertyValue::LongEdgeOrderingStrategy(strategy),
+        )
     }
 
     pub fn set_merge_edges(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -593,6 +674,48 @@ impl Properties {
         self.bool_option(CoreOption::ConsiderPortOrder, "consider port order")
     }
 
+    pub fn crossing_counter_node_influence(&self) -> Option<f64> {
+        self.number_option(
+            CoreOption::CrossingCounterNodeInfluence,
+            "crossing counter node influence",
+        )
+    }
+
+    pub fn crossing_counter_port_influence(&self) -> Option<f64> {
+        self.number_option(
+            CoreOption::CrossingCounterPortInfluence,
+            "crossing counter port influence",
+        )
+    }
+
+    pub fn cycle_breaking_group_order_strategy(&self) -> Option<GroupOrderingStrategy> {
+        self.group_ordering_strategy_option(
+            CoreOption::CycleBreakingGroupOrderStrategy,
+            "cycle breaking group order strategy",
+        )
+    }
+
+    pub fn cycle_breaking_preferred_source_id(&self) -> Option<i64> {
+        self.integer_option(
+            CoreOption::CycleBreakingPreferredSourceId,
+            "cycle breaking preferred source ID",
+        )
+    }
+
+    pub fn cycle_breaking_preferred_target_id(&self) -> Option<i64> {
+        self.integer_option(
+            CoreOption::CycleBreakingPreferredTargetId,
+            "cycle breaking preferred target ID",
+        )
+    }
+
+    pub fn crossing_minimization_group_order_strategy(&self) -> Option<GroupOrderingStrategy> {
+        self.group_ordering_strategy_option(
+            CoreOption::CrossingMinimizationGroupOrderStrategy,
+            "crossing minimization group order strategy",
+        )
+    }
+
     pub fn debug_mode(&self) -> bool {
         self.bool_option(CoreOption::DebugMode, "debug mode")
     }
@@ -709,6 +832,16 @@ impl Properties {
 
     pub fn layout_partitioning(&self) -> bool {
         self.bool_option(CoreOption::LayoutPartitioning, "layout partitioning")
+    }
+
+    pub fn long_edge_ordering_strategy(&self) -> Option<LongEdgeOrderingStrategy> {
+        match self.get(CoreOption::LongEdgeOrderingStrategy) {
+            Some(PropertyValue::LongEdgeOrderingStrategy(strategy)) => Some(*strategy),
+            Some(value) => {
+                unreachable!("long edge ordering strategy stored incompatible value: {value:?}")
+            }
+            _ => None,
+        }
     }
 
     pub fn merge_edges(&self) -> bool {
@@ -876,6 +1009,34 @@ impl Properties {
             Some(PropertyValue::Bool(enabled)) => *enabled,
             Some(value) => unreachable!("{name} option stored incompatible value: {value:?}"),
             _ => false,
+        }
+    }
+
+    fn integer_option(&self, option: CoreOption, name: &str) -> Option<i64> {
+        match self.get(option) {
+            Some(PropertyValue::Integer(value)) => Some(*value),
+            Some(value) => unreachable!("{name} stored incompatible value: {value:?}"),
+            _ => None,
+        }
+    }
+
+    fn number_option(&self, option: CoreOption, name: &str) -> Option<f64> {
+        match self.get(option) {
+            Some(PropertyValue::Number(value)) => Some(*value),
+            Some(value) => unreachable!("{name} stored incompatible value: {value:?}"),
+            _ => None,
+        }
+    }
+
+    fn group_ordering_strategy_option(
+        &self,
+        option: CoreOption,
+        name: &str,
+    ) -> Option<GroupOrderingStrategy> {
+        match self.get(option) {
+            Some(PropertyValue::GroupOrderingStrategy(strategy)) => Some(*strategy),
+            Some(value) => unreachable!("{name} stored incompatible value: {value:?}"),
+            _ => None,
         }
     }
 
@@ -1148,6 +1309,47 @@ mod tests {
         assert_eq!(
             properties.greedy_switch_hierarchical_type(),
             Some(GreedySwitchType::TwoSided)
+        );
+    }
+
+    #[test]
+    fn model_order_group_options_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.crossing_counter_node_influence(), None);
+        assert_eq!(properties.crossing_counter_port_influence(), None);
+        assert_eq!(properties.cycle_breaking_group_order_strategy(), None);
+        assert_eq!(properties.cycle_breaking_preferred_source_id(), None);
+        assert_eq!(properties.cycle_breaking_preferred_target_id(), None);
+        assert_eq!(
+            properties.crossing_minimization_group_order_strategy(),
+            None
+        );
+        assert_eq!(properties.long_edge_ordering_strategy(), None);
+
+        properties.set_crossing_counter_node_influence(0.25);
+        properties.set_crossing_counter_port_influence(0.5);
+        properties.set_cycle_breaking_group_order_strategy(GroupOrderingStrategy::ModelOrder);
+        properties.set_cycle_breaking_preferred_source_id(-3);
+        properties.set_cycle_breaking_preferred_target_id(9);
+        properties.set_crossing_minimization_group_order_strategy(GroupOrderingStrategy::Enforced);
+        properties.set_long_edge_ordering_strategy(LongEdgeOrderingStrategy::Equal);
+
+        assert_eq!(properties.crossing_counter_node_influence(), Some(0.25));
+        assert_eq!(properties.crossing_counter_port_influence(), Some(0.5));
+        assert_eq!(
+            properties.cycle_breaking_group_order_strategy(),
+            Some(GroupOrderingStrategy::ModelOrder)
+        );
+        assert_eq!(properties.cycle_breaking_preferred_source_id(), Some(-3));
+        assert_eq!(properties.cycle_breaking_preferred_target_id(), Some(9));
+        assert_eq!(
+            properties.crossing_minimization_group_order_strategy(),
+            Some(GroupOrderingStrategy::Enforced)
+        );
+        assert_eq!(
+            properties.long_edge_ordering_strategy(),
+            Some(LongEdgeOrderingStrategy::Equal)
         );
     }
 

@@ -3,8 +3,8 @@ use elkrs_core::graph::{ElkGraph, ElkNode};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
     Algorithm, ComponentOrderingStrategy, CoreOption, EdgeRouting, GreedySwitchType,
-    HierarchyHandling, ModelOrderStrategy, PortAlignment, PortConstraints, Properties,
-    PropertyValue,
+    GroupOrderingStrategy, HierarchyHandling, LongEdgeOrderingStrategy, ModelOrderStrategy,
+    PortAlignment, PortConstraints, Properties, PropertyValue,
 };
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
@@ -104,6 +104,7 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
         &mut diagnostics,
     );
     collect_unsupported_model_order_diagnostics(properties, None, &mut diagnostics);
+    collect_unsupported_model_order_group_diagnostics(properties, None, &mut diagnostics);
     collect_unsupported_greedy_switch_diagnostics(properties, None, &mut diagnostics);
     match properties.edge_routing() {
         EdgeRouting::Orthogonal => {}
@@ -281,6 +282,117 @@ fn unsupported_model_order_strategy_diagnostic(
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
 
+fn collect_unsupported_model_order_group_diagnostics(
+    properties: &Properties,
+    node_id: Option<&str>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    if let Some(influence) = properties.crossing_counter_node_influence() {
+        diagnostics.push(unsupported_number_option_diagnostic(
+            "crossing counter node influence",
+            influence,
+            node_id,
+        ));
+    }
+    if let Some(influence) = properties.crossing_counter_port_influence() {
+        diagnostics.push(unsupported_number_option_diagnostic(
+            "crossing counter port influence",
+            influence,
+            node_id,
+        ));
+    }
+    if let Some(strategy) = properties.cycle_breaking_group_order_strategy() {
+        diagnostics.push(unsupported_group_ordering_strategy_diagnostic(
+            "cycle breaking group order strategy",
+            strategy,
+            node_id,
+        ));
+    }
+    if let Some(id) = properties.cycle_breaking_preferred_source_id() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "cycle breaking preferred source ID",
+            id,
+            node_id,
+        ));
+    }
+    if let Some(id) = properties.cycle_breaking_preferred_target_id() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "cycle breaking preferred target ID",
+            id,
+            node_id,
+        ));
+    }
+    if let Some(strategy) = properties.crossing_minimization_group_order_strategy() {
+        diagnostics.push(unsupported_group_ordering_strategy_diagnostic(
+            "crossing minimization group order strategy",
+            strategy,
+            node_id,
+        ));
+    }
+    if let Some(strategy) = properties.long_edge_ordering_strategy() {
+        diagnostics.push(unsupported_long_edge_ordering_strategy_diagnostic(
+            strategy, node_id,
+        ));
+    }
+}
+
+fn unsupported_number_option_diagnostic(
+    name: &str,
+    value: f64,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!("{name} {value} on node {node_id} is recognized but not implemented by elkrs-layered yet")
+    } else {
+        format!("{name} {value} is recognized but not implemented by elkrs-layered yet")
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
+fn unsupported_integer_option_diagnostic(
+    name: &str,
+    value: i64,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!("{name} {value} on node {node_id} is recognized but not implemented by elkrs-layered yet")
+    } else {
+        format!("{name} {value} is recognized but not implemented by elkrs-layered yet")
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
+fn unsupported_group_ordering_strategy_diagnostic(
+    name: &str,
+    strategy: GroupOrderingStrategy,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "{name} {strategy:?} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!("{name} {strategy:?} is recognized but not implemented by elkrs-layered yet")
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
+fn unsupported_long_edge_ordering_strategy_diagnostic(
+    strategy: LongEdgeOrderingStrategy,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "long edge ordering strategy {strategy:?} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!(
+            "long edge ordering strategy {strategy:?} is recognized but not implemented by elkrs-layered yet"
+        )
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
 fn collect_unsupported_greedy_switch_diagnostics(
     properties: &Properties,
     node_id: Option<&str>,
@@ -397,6 +509,11 @@ fn collect_node_hierarchy_diagnostics(
         diagnostics,
     );
     collect_unsupported_model_order_diagnostics(
+        &node.properties,
+        Some(node.id.as_str()),
+        diagnostics,
+    );
+    collect_unsupported_model_order_group_diagnostics(
         &node.properties,
         Some(node.id.as_str()),
         diagnostics,
