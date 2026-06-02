@@ -531,6 +531,53 @@ fn routing_variant_rows_document_compatibility_boundaries() {
     }
 }
 
+#[test]
+fn crossing_constraint_rows_document_compatibility_boundaries() {
+    for row_id in [
+        "LAYERED-P3-002",
+        "LAYERED-META-OPTION-021",
+        "LAYERED-META-OPTION-022",
+        "LAYERED-META-OPTION-023",
+        "LAYERED-META-OPTION-024",
+        "LAYERED-META-OPTION-025",
+        "LAYERED-META-OPTION-026",
+        "LAYERED-META-OPTION-027",
+        "LAYERED-META-OPTION-028",
+        "LAYERED-META-OPTION-029",
+        "LAYERED-META-OPTION-030",
+        "LAYERED-META-OPTION-031",
+        "LAYERED-META-OPTION-032",
+        "LAYERED-META-OPTION-033",
+        "LAYERED-META-OPTION-034",
+        "LAYERED-META-OPTION-035",
+        "LAYERED-META-OPTION-036",
+        "LAYERED-META-OPTION-037",
+        "LAYERED-META-OPTION-038",
+        "LAYERED-META-OPTION-039",
+        "LAYERED-META-OPTION-040",
+        "LAYERED-META-OPTION-041",
+        "LAYERED-META-OPTION-042",
+        "LAYERED-META-OPTION-043",
+        "LAYERED-META-OPTION-044",
+        "LAYERED-META-OPTION-045",
+        "LAYERED-META-OPTION-046",
+        "LAYERED-META-OPTION-092",
+        "LAYERED-META-OPTION-131",
+    ] {
+        assert_eq!(
+            row_status(PARITY_MATRIX, row_id),
+            Some("diagnostic"),
+            "{row_id} should keep its documented crossing-constraint diagnostic status"
+        );
+        let next_plan = row_next_plan(PARITY_MATRIX, row_id)
+            .unwrap_or_else(|| panic!("{row_id} should have a matrix row"));
+        assert!(
+            next_plan.contains("1.0.0 compatibility exclusion"),
+            "{row_id} should document its 1.0.0 crossing compatibility boundary"
+        );
+    }
+}
+
 fn row_status<'a>(matrix: &'a str, row_id: &str) -> Option<&'a str> {
     matrix.lines().find_map(|line| {
         let mut columns = line.split('|').map(str::trim);
