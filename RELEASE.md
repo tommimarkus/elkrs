@@ -1,5 +1,10 @@
 # Release Checklist
 
+This repository initializes `release-policy`: SemVer workspace versions,
+annotated `v<version>` git tags, GitHub Releases, pinned Git dependencies, and
+no crates.io publication yet. Do not publish, tag, mutate release tags, create
+GitHub Releases, or push release state without explicit release authority.
+
 Before publishing a release:
 
 1. Confirm `README.md`, `CLEANROOM.md`, `CONTRIBUTING.md`, and `CHANGELOG.md` match the actual supported behavior.
@@ -18,7 +23,12 @@ Before publishing a release:
    cargo doc --workspace --locked --no-deps
    ```
 
-4. Build the repo-local Java ELK runner, then run the ignored optional parity
+4. For routine SemVer calculations, dry-run the bundled `release-policy`
+   `version-bump` helper before editing release-prep surfaces. Keep
+   `elkrs-core`, `elkrs-json`, and `elkrs-layered` on the same version unless a
+   release note documents the exception.
+
+5. Build the repo-local Java ELK runner, then run the ignored optional parity
    harness before publishing:
 
    ```bash
@@ -26,10 +36,10 @@ Before publishing a release:
    ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored
    ```
 
-5. Create and push a version tag matching the crate versions:
+6. Create and push an annotated version tag matching the crate versions:
 
    ```bash
-   git tag v0.2.0
+   git tag -a v0.2.0 -m "elkrs v0.2.0"
    git push origin v0.2.0
    ```
 

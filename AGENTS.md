@@ -10,6 +10,15 @@
 
 Integration tests live in each crate's `tests/` directory. Shared layered helpers are in `crates/elkrs-layered/tests/support/`. Parity tracking is in `docs/parity/elk-layered-v0.11.0.md`. The optional Java oracle runner lives in `tools/java-elk-json-runner/`.
 
+## Initialized Policies
+
+This repository initializes `souroldgeezer-policy` for agent workflow:
+
+- `git-workflow-policy`: feature branches or git worktrees by default, clean worktree, no direct `main`.
+- `release-policy`: SemVer workspace versions, annotated `v<version>` git tags, GitHub Releases, pinned Git dependencies, no crates.io publication yet.
+
+Local-only direct `main` work is allowed only when explicitly authorized for the current task. It does not authorize pushing, tagging, force-pushing, branch deletion, GitHub Releases, or publication. Check `git status --short --branch` before edits, staging, commits, tags, or provider operations; preserve unrelated changes and stage explicit paths only.
+
 ## Build, Test, and Development Commands
 
 Run the default verification gate before sending changes:
@@ -38,7 +47,11 @@ Add tests near the behavior being changed. Use integration tests for public crat
 
 ## Versioning & Git Tags
 
-Use SemVer across the workspace and keep `elkrs-core`, `elkrs-json`, and `elkrs-layered` on the same version unless there is a documented reason not to. During `0.x`, public API breakage bumps the minor version, for example `0.1.0` to `0.2.0`; compatible fixes bump patch. Release tags must match crate versions exactly: `git tag -a v0.1.0 -m "elkrs v0.1.0"` then `git push origin v0.1.0`. Version tags run the Release workflow.
+Use SemVer across the workspace and keep `elkrs-core`, `elkrs-json`, and `elkrs-layered` on the same version unless there is a documented reason not to. During `0.x`, public API breakage bumps the minor version, for example `0.1.0` to `0.2.0`; compatible fixes bump patch. The `1.0.0` target requires all in-scope ELK Layered v0.11.0 parity rows to be `java-parity` or covered by documented compatibility exclusions.
+
+The workspace version source is the three crate `Cargo.toml` files. Release-prep surfaces include `Cargo.lock`, `README.md`, `RELEASE.md`, `CHANGELOG.md`, and `docs/releases/<version>.md`. For routine SemVer calculation, prefer the bundled `release-policy` `version-bump` helper in dry-run mode before applying manifest edits.
+
+Release tags must match crate versions exactly and must be annotated: `git tag -a v0.1.0 -m "elkrs v0.1.0"` then `git push origin v0.1.0`. Version tags run the Release workflow. Do not create or mutate tags, GitHub Releases, or publication state without explicit release authority and the full release gate.
 
 ## Commit & Pull Request Guidelines
 

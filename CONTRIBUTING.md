@@ -29,3 +29,10 @@ stdin and writes ELK-style JSON to stdout. The repo-local runner uses SDKMAN:
 tools/java-elk-json-runner/bin/build
 ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored
 ```
+
+## Workflow and Release Policy
+
+Follow the initialized workflow and release policy in `AGENTS.md`. In short:
+use a feature branch or git worktree for non-trivial work, keep unrelated
+changes untouched, stage explicit paths only, and do not push release tags or
+publish release state without maintainer authority.
