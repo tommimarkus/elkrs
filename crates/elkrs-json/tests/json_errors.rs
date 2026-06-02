@@ -462,6 +462,37 @@ fn model_order_group_unsupported_cycle_breaking_group_order_strategy_returns_inv
 }
 
 #[test]
+fn model_order_enforced_group_orders_non_array_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmEnforcedGroupOrders": 7
+          }
+        }"#,
+        "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmEnforcedGroupOrders must be an integer array",
+    );
+}
+
+#[test]
+fn model_order_enforced_group_orders_non_integer_member_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmEnforcedGroupOrders": [1, true]
+              }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmEnforcedGroupOrders must contain only integers",
+    );
+}
+
+#[test]
 fn model_order_group_non_string_node_long_edge_strategy_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

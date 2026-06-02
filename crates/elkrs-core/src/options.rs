@@ -118,6 +118,7 @@ pub enum HierarchyHandling {
 pub enum PropertyValue {
     Bool(bool),
     Integer(i64),
+    IntegerList(Vec<i64>),
     Number(f64),
     Text(String),
     Algorithm(Algorithm),
@@ -144,6 +145,7 @@ pub enum CoreOption {
     ConsiderPortOrder,
     CrossingCounterNodeInfluence,
     CrossingCounterPortInfluence,
+    CrossingMinimizationEnforcedGroupOrders,
     CrossingMinimizationId,
     CrossingMinimizationGroupOrderStrategy,
     CycleBreakingGroupOrderStrategy,
@@ -298,6 +300,16 @@ impl Properties {
         self.values.insert(
             CoreOption::CrossingMinimizationId,
             PropertyValue::Integer(id),
+        )
+    }
+
+    pub fn set_crossing_minimization_enforced_group_orders(
+        &mut self,
+        orders: Vec<i64>,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::CrossingMinimizationEnforcedGroupOrders,
+            PropertyValue::IntegerList(orders),
         )
     }
 
@@ -738,6 +750,16 @@ impl Properties {
             CoreOption::CrossingMinimizationId,
             "crossing minimization ID",
         )
+    }
+
+    pub fn crossing_minimization_enforced_group_orders(&self) -> Option<&[i64]> {
+        match self.get(CoreOption::CrossingMinimizationEnforcedGroupOrders) {
+            Some(PropertyValue::IntegerList(orders)) => Some(orders.as_slice()),
+            Some(value) => unreachable!(
+                "crossing minimization enforced group orders stored incompatible value: {value:?}"
+            ),
+            _ => None,
+        }
     }
 
     pub fn crossing_minimization_group_order_strategy(&self) -> Option<GroupOrderingStrategy> {
@@ -1385,6 +1407,27 @@ mod tests {
         assert_eq!(
             properties.long_edge_ordering_strategy(),
             Some(LongEdgeOrderingStrategy::Equal)
+        );
+    }
+
+    #[test]
+    fn model_order_enforced_group_orders_can_be_set() {
+        let mut properties = Properties::default();
+        let orders = [1, 2, 6, 7, 10, 11];
+
+        assert_eq!(
+            properties.crossing_minimization_enforced_group_orders(),
+            None
+        );
+        properties.set_crossing_minimization_enforced_group_orders(orders.to_vec());
+
+        assert_eq!(
+            properties.crossing_minimization_enforced_group_orders(),
+            Some(orders.as_slice())
+        );
+        assert_eq!(
+            properties.get(CoreOption::CrossingMinimizationEnforcedGroupOrders),
+            Some(&PropertyValue::IntegerList(orders.to_vec()))
         );
     }
 

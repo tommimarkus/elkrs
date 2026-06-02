@@ -1584,6 +1584,45 @@ fn serializes_model_order_group_with_java_keys() {
 }
 
 #[test]
+fn imports_java_model_order_enforced_group_orders_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmEnforcedGroupOrders": [1, 2, 6, 7, 10, 11]
+          }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::CrossingMinimizationEnforcedGroupOrders),
+        Some(&PropertyValue::IntegerList(vec![1, 2, 6, 7, 10, 11]))
+    );
+}
+
+#[test]
+fn serializes_model_order_enforced_group_orders_with_java_key() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_crossing_minimization_enforced_group_orders(vec![1, 2, 6]);
+
+    let json = serialized_value(&graph);
+    let options = &json["layoutOptions"];
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmEnforcedGroupOrders"],
+        Value::Array(vec![
+            Value::Number(1.into()),
+            Value::Number(2.into()),
+            Value::Number(6.into())
+        ])
+    );
+}
+
+#[test]
 fn imports_node_model_order_group_layout_options() {
     let graph = from_str(
         r#"{
@@ -1688,6 +1727,50 @@ fn serializes_node_model_order_group_with_java_keys() {
     assert_eq!(
         options["org.eclipse.elk.layered.considerModelOrder.longEdgeStrategy"],
         Value::String("DUMMY_NODE_OVER".to_owned())
+    );
+}
+
+#[test]
+fn imports_node_model_order_enforced_group_orders_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "parent",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmEnforcedGroupOrders": [1, 2, 6]
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+    let properties = &graph.nodes[&ElementId::from("parent")].properties;
+
+    assert_eq!(
+        properties.get(CoreOption::CrossingMinimizationEnforcedGroupOrders),
+        Some(&PropertyValue::IntegerList(vec![1, 2, 6]))
+    );
+}
+
+#[test]
+fn serializes_node_model_order_enforced_group_orders_with_java_key() {
+    let mut node = ElkNode::new("node");
+    node.properties
+        .set_crossing_minimization_enforced_group_orders(vec![7, 10, 11]);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let options = &json["children"][0]["layoutOptions"];
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmEnforcedGroupOrders"],
+        Value::Array(vec![
+            Value::Number(7.into()),
+            Value::Number(10.into()),
+            Value::Number(11.into())
+        ])
     );
 }
 

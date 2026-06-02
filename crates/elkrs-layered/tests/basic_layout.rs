@@ -1369,6 +1369,48 @@ fn layered_layout_reports_node_unsupported_model_order_group_options() {
 }
 
 #[test]
+fn layered_layout_reports_unsupported_model_order_enforced_group_orders() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_crossing_minimization_enforced_group_orders(vec![1, 2, 6]);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("crossing minimization enforced group orders")
+            && diagnostic.message.contains("[1, 2, 6]")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_node_unsupported_model_order_enforced_group_orders() {
+    let mut graph = ElkGraph::new("root");
+    let mut child = node("child", 60.0, 30.0);
+    child
+        .properties
+        .set_crossing_minimization_enforced_group_orders(vec![7, 10, 11]);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("crossing minimization enforced group orders")
+            && diagnostic.message.contains("[7, 10, 11]")
+            && diagnostic.message.contains("child")
+    }));
+}
+
+#[test]
 fn layered_layout_reports_node_unsupported_model_order_group_ids() {
     let mut graph = ElkGraph::new("root");
     let mut child = node("child", 60.0, 30.0);

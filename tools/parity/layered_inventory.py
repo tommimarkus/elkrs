@@ -181,6 +181,11 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-core --locked model_order_group`; `cargo test -p elkrs-layered --test basic_layout --locked model_order_group`; `cargo test -p elkrs-json --test json_partitions --locked model_order_group`; `cargo test -p elkrs-json --test json_errors --locked model_order_group`",
         "Cycle-breaking preferred target ID is parsed and diagnosed; group model-order semantics are not implemented yet",
     ),
+    "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmEnforcedGroupOrders": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked model_order_enforced_group_orders`; `cargo test -p elkrs-layered --test basic_layout --locked model_order_enforced_group_orders`; `cargo test -p elkrs-json --test json_partitions --locked model_order_enforced_group_orders`; `cargo test -p elkrs-json --test json_errors --locked model_order_enforced_group_orders`",
+        "Crossing-minimization enforced group orders are parsed and diagnosed; group model-order semantics are not implemented yet",
+    ),
     "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmGroupOrderStrategy": (
         "diagnostic",
         "`cargo test -p elkrs-core --locked model_order_group`; `cargo test -p elkrs-layered --test basic_layout --locked model_order_group`; `cargo test -p elkrs-json --test json_partitions --locked model_order_group`; `cargo test -p elkrs-json --test json_errors --locked model_order_group`",

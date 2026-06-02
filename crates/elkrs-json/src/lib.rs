@@ -31,6 +31,8 @@ const CYCLE_BREAKING_PREFERRED_TARGET_ID_KEY: &str =
     "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredTargetId";
 const CROSSING_MINIMIZATION_GROUP_ORDER_STRATEGY_KEY: &str =
     "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmGroupOrderStrategy";
+const CROSSING_MINIMIZATION_ENFORCED_GROUP_ORDERS_KEY: &str =
+    "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmEnforcedGroupOrders";
 const COMPONENT_GROUP_ID_KEY: &str =
     "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.componentGroupId";
 const CROSSING_MINIMIZATION_ID_KEY: &str =
@@ -465,6 +467,9 @@ fn apply_layout_options(
                 .set_crossing_minimization_group_order_strategy(parse_group_ordering_strategy(
                     value, key,
                 )?),
+            CROSSING_MINIMIZATION_ENFORCED_GROUP_ORDERS_KEY => graph
+                .properties
+                .set_crossing_minimization_enforced_group_orders(integer_array(value, key)?),
             LONG_EDGE_STRATEGY_KEY => graph
                 .properties
                 .set_long_edge_ordering_strategy(parse_long_edge_ordering_strategy(value, key)?),
@@ -683,6 +688,15 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         options.insert(
             CROSSING_MINIMIZATION_GROUP_ORDER_STRATEGY_KEY.to_string(),
             serde_json::Value::String(format_group_ordering_strategy(*strategy).to_string()),
+        );
+    }
+    if let Some(PropertyValue::IntegerList(orders)) = graph
+        .properties
+        .get(CoreOption::CrossingMinimizationEnforcedGroupOrders)
+    {
+        options.insert(
+            CROSSING_MINIMIZATION_ENFORCED_GROUP_ORDERS_KEY.to_string(),
+            integer_array_value(orders),
         );
     }
     if let Some(PropertyValue::LongEdgeOrderingStrategy(strategy)) =
@@ -999,6 +1013,10 @@ fn apply_node_layout_options(
                         value, key,
                     )?);
             }
+            CROSSING_MINIMIZATION_ENFORCED_GROUP_ORDERS_KEY => {
+                node.properties
+                    .set_crossing_minimization_enforced_group_orders(integer_array(value, key)?);
+            }
             COMPONENT_GROUP_ID_KEY => {
                 node.properties.set_component_group_id(integer(value, key)?);
             }
@@ -1244,6 +1262,15 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         options.insert(
             CROSSING_MINIMIZATION_GROUP_ORDER_STRATEGY_KEY.to_string(),
             serde_json::Value::String(format_group_ordering_strategy(*strategy).to_string()),
+        );
+    }
+    if let Some(PropertyValue::IntegerList(orders)) = node
+        .properties
+        .get(CoreOption::CrossingMinimizationEnforcedGroupOrders)
+    {
+        options.insert(
+            CROSSING_MINIMIZATION_ENFORCED_GROUP_ORDERS_KEY.to_string(),
+            integer_array_value(orders),
         );
     }
     if let Some(PropertyValue::Integer(id)) = node.properties.get(CoreOption::ComponentGroupId) {
@@ -1553,6 +1580,15 @@ fn insert_hierarchy_handling(
         HIERARCHY_HANDLING_KEY.to_string(),
         serde_json::Value::String(format_hierarchy_handling(hierarchy_handling).to_string()),
     );
+}
+
+fn integer_array_value(values: &[i64]) -> serde_json::Value {
+    serde_json::Value::Array(
+        values
+            .iter()
+            .map(|value| serde_json::Value::Number((*value).into()))
+            .collect(),
+    )
 }
 
 fn port_side_from_json(port: &JsonPort) -> Result<Option<PortSide>, JsonError> {
@@ -1936,6 +1972,21 @@ fn integer(value: &serde_json::Value, key: &str) -> Result<i64, JsonError> {
             .parse::<i64>()
             .map_err(|_| JsonError::Invalid(format!("{key} must be an integer"))),
         _ => Err(JsonError::Invalid(format!("{key} must be an integer"))),
+    }
+}
+
+fn integer_array(value: &serde_json::Value, key: &str) -> Result<Vec<i64>, JsonError> {
+    match value {
+        serde_json::Value::Array(values) => values
+            .iter()
+            .map(|value| {
+                integer(value, key)
+                    .map_err(|_| JsonError::Invalid(format!("{key} must contain only integers")))
+            })
+            .collect(),
+        _ => Err(JsonError::Invalid(format!(
+            "{key} must be an integer array"
+        ))),
     }
 }
 

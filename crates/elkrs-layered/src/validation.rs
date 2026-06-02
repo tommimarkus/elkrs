@@ -336,6 +336,13 @@ fn collect_unsupported_model_order_group_diagnostics(
             node_id,
         ));
     }
+    if let Some(orders) = properties.crossing_minimization_enforced_group_orders() {
+        diagnostics.push(unsupported_integer_list_option_diagnostic(
+            "crossing minimization enforced group orders",
+            orders,
+            node_id,
+        ));
+    }
     if let Some(strategy) = properties.crossing_minimization_group_order_strategy() {
         diagnostics.push(unsupported_group_ordering_strategy_diagnostic(
             "crossing minimization group order strategy",
@@ -379,6 +386,19 @@ fn unsupported_integer_option_diagnostic(
         format!("{name} {value} on node {node_id} is recognized but not implemented by elkrs-layered yet")
     } else {
         format!("{name} {value} is recognized but not implemented by elkrs-layered yet")
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
+fn unsupported_integer_list_option_diagnostic(
+    name: &str,
+    values: &[i64],
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!("{name} {values:?} on node {node_id} is recognized but not implemented by elkrs-layered yet")
+    } else {
+        format!("{name} {values:?} is recognized but not implemented by elkrs-layered yet")
     };
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
