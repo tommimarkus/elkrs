@@ -29,8 +29,8 @@ Before publishing a release:
 5. Create and push a version tag matching the crate versions:
 
    ```bash
-   git tag v0.1.0
-   git push origin v0.1.0
+   git tag v0.2.0
+   git push origin v0.2.0
    ```
 
    The `Release` workflow verifies the workspace, runs the Java parity oracle,
@@ -41,8 +41,8 @@ Downstream Cargo consumers should use pinned Git dependencies until this project
 has a crates.io account and token:
 
 ```toml
-elkrs-json = { git = "https://github.com/tommimarkus/elkrs", tag = "v0.1.0" }
-elkrs-layered = { git = "https://github.com/tommimarkus/elkrs", tag = "v0.1.0" }
+elkrs-json = { git = "https://github.com/tommimarkus/elkrs", tag = "v0.2.0" }
+elkrs-layered = { git = "https://github.com/tommimarkus/elkrs", tag = "v0.2.0" }
 ```
 
 Do not publish if any release notes imply full ELK coverage, Dediren adapter support, CLI support, or Java coordinate parity.

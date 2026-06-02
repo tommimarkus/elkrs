@@ -26,7 +26,7 @@ Current scope:
 Security:
 
 - Vulnerability reporting and supported versions are documented in `SECURITY.md`.
-- The initial `0.1.x` supply-chain target is SCVS Level 1 and SLSA Build Level 1 evidence for GitHub-built release artifacts.
+- The current `0.2.x` supply-chain target is SCVS Level 1 and SLSA Build Level 1 evidence for GitHub-built release artifacts.
 
 Not current scope:
 
@@ -47,14 +47,14 @@ cargo doc --workspace --locked --no-deps
 
 Distribution:
 
-- Version tags (`v0.1.0`, etc.) run the release workflow.
+- Version tags (`v0.2.0`, etc.) run the release workflow.
 - Current distribution is GitHub Releases and pinned Git dependencies, not
   crates.io.
 - Downstream Cargo projects can depend on a release tag, for example:
 
   ```toml
-  elkrs-json = { git = "https://github.com/tommimarkus/elkrs", tag = "v0.1.0" }
-  elkrs-layered = { git = "https://github.com/tommimarkus/elkrs", tag = "v0.1.0" }
+  elkrs-json = { git = "https://github.com/tommimarkus/elkrs", tag = "v0.2.0" }
+  elkrs-layered = { git = "https://github.com/tommimarkus/elkrs", tag = "v0.2.0" }
   ```
 
 - The release workflow attaches a source archive, source file manifests, SBOMs,
