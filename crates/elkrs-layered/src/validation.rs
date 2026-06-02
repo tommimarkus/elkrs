@@ -2,8 +2,9 @@ use elkrs_core::diagnostic::Diagnostic;
 use elkrs_core::graph::{ElkGraph, ElkNode};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
-    Algorithm, ComponentOrderingStrategy, CoreOption, EdgeRouting, HierarchyHandling,
-    ModelOrderStrategy, PortAlignment, PortConstraints, Properties, PropertyValue,
+    Algorithm, ComponentOrderingStrategy, CoreOption, EdgeRouting, GreedySwitchType,
+    HierarchyHandling, ModelOrderStrategy, PortAlignment, PortConstraints, Properties,
+    PropertyValue,
 };
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
@@ -103,6 +104,7 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
         &mut diagnostics,
     );
     collect_unsupported_model_order_diagnostics(properties, None, &mut diagnostics);
+    collect_unsupported_greedy_switch_diagnostics(properties, None, &mut diagnostics);
     match properties.edge_routing() {
         EdgeRouting::Orthogonal => {}
         edge_routing => diagnostics.push(unsupported_edge_routing_diagnostic(edge_routing, None)),
@@ -279,6 +281,69 @@ fn unsupported_model_order_strategy_diagnostic(
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
 
+fn collect_unsupported_greedy_switch_diagnostics(
+    properties: &Properties,
+    node_id: Option<&str>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    if let Some(threshold) = properties.greedy_switch_activation_threshold() {
+        diagnostics.push(unsupported_greedy_switch_threshold_diagnostic(
+            threshold, node_id,
+        ));
+    }
+
+    match properties.greedy_switch_type() {
+        None | Some(GreedySwitchType::Off) => {}
+        Some(greedy_switch_type) => diagnostics.push(unsupported_greedy_switch_type_diagnostic(
+            "greedy switch type",
+            greedy_switch_type,
+            node_id,
+        )),
+    }
+
+    match properties.greedy_switch_hierarchical_type() {
+        None | Some(GreedySwitchType::Off) => {}
+        Some(greedy_switch_type) => diagnostics.push(unsupported_greedy_switch_type_diagnostic(
+            "hierarchical greedy switch type",
+            greedy_switch_type,
+            node_id,
+        )),
+    }
+}
+
+fn unsupported_greedy_switch_threshold_diagnostic(
+    threshold: i64,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "greedy switch activation threshold {threshold} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!(
+            "greedy switch activation threshold {threshold} is recognized but not implemented by elkrs-layered yet"
+        )
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
+fn unsupported_greedy_switch_type_diagnostic(
+    name: &str,
+    greedy_switch_type: GreedySwitchType,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "{name} {greedy_switch_type:?} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!(
+            "{name} {greedy_switch_type:?} is recognized but not implemented by elkrs-layered yet"
+        )
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
 fn collect_unsupported_port_alignment_diagnostics(
     properties: &Properties,
     node_id: Option<&str>,
@@ -332,6 +397,11 @@ fn collect_node_hierarchy_diagnostics(
         diagnostics,
     );
     collect_unsupported_model_order_diagnostics(
+        &node.properties,
+        Some(node.id.as_str()),
+        diagnostics,
+    );
+    collect_unsupported_greedy_switch_diagnostics(
         &node.properties,
         Some(node.id.as_str()),
         diagnostics,

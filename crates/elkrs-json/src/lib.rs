@@ -7,8 +7,8 @@ use elkrs_core::graph::{
     ElementId, ElementRef, ElkEdge, ElkEdgeSection, ElkGraph, ElkLabel, ElkNode, ElkPort,
 };
 use elkrs_core::options::{
-    Algorithm, ComponentOrderingStrategy, CoreOption, Direction, EdgeRouting, HierarchyHandling,
-    ModelOrderStrategy, PortAlignment, PortConstraints, PortSide, PropertyValue,
+    Algorithm, ComponentOrderingStrategy, CoreOption, Direction, EdgeRouting, GreedySwitchType,
+    HierarchyHandling, ModelOrderStrategy, PortAlignment, PortConstraints, PortSide, PropertyValue,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -34,6 +34,12 @@ const FORCE_NODE_MODEL_ORDER_KEY: &str =
     "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder";
 const GENERATE_POSITION_AND_LAYER_IDS_KEY: &str =
     "org.eclipse.elk.layered.generatePositionAndLayerIds";
+const GREEDY_SWITCH_ACTIVATION_THRESHOLD_KEY: &str =
+    "org.eclipse.elk.layered.crossingMinimization.greedySwitch.activationThreshold";
+const GREEDY_SWITCH_TYPE_KEY: &str =
+    "org.eclipse.elk.layered.crossingMinimization.greedySwitch.type";
+const GREEDY_SWITCH_HIERARCHICAL_TYPE_KEY: &str =
+    "org.eclipse.elk.layered.crossingMinimization.greedySwitchHierarchical.type";
 const HIGH_DEGREE_NODE_TREATMENT_KEY: &str = "org.eclipse.elk.layered.highDegreeNodes.treatment";
 const HIERARCHY_HANDLING_KEY: &str = "org.eclipse.elk.hierarchyHandling";
 const HYPERNODE_KEY: &str = "org.eclipse.elk.hypernode";
@@ -449,6 +455,15 @@ fn apply_layout_options(
             GENERATE_POSITION_AND_LAYER_IDS_KEY => graph
                 .properties
                 .set_generate_position_and_layer_ids(boolean(value, key)?),
+            GREEDY_SWITCH_ACTIVATION_THRESHOLD_KEY => graph
+                .properties
+                .set_greedy_switch_activation_threshold(non_negative_integer(value, key)?),
+            GREEDY_SWITCH_TYPE_KEY => graph
+                .properties
+                .set_greedy_switch_type(parse_greedy_switch_type(value, key)?),
+            GREEDY_SWITCH_HIERARCHICAL_TYPE_KEY => graph
+                .properties
+                .set_greedy_switch_hierarchical_type(parse_greedy_switch_type(value, key)?),
             HIGH_DEGREE_NODE_TREATMENT_KEY => graph
                 .properties
                 .set_high_degree_node_treatment(boolean(value, key)?),
@@ -637,6 +652,32 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         CoreOption::GeneratePositionAndLayerIds,
         GENERATE_POSITION_AND_LAYER_IDS_KEY,
     );
+    if let Some(PropertyValue::Integer(threshold)) = graph
+        .properties
+        .get(CoreOption::GreedySwitchActivationThreshold)
+    {
+        options.insert(
+            GREEDY_SWITCH_ACTIVATION_THRESHOLD_KEY.to_string(),
+            (*threshold).into(),
+        );
+    }
+    if let Some(PropertyValue::GreedySwitchType(greedy_switch_type)) =
+        graph.properties.get(CoreOption::GreedySwitchType)
+    {
+        options.insert(
+            GREEDY_SWITCH_TYPE_KEY.to_string(),
+            serde_json::Value::String(format_greedy_switch_type(*greedy_switch_type).to_string()),
+        );
+    }
+    if let Some(PropertyValue::GreedySwitchType(greedy_switch_type)) = graph
+        .properties
+        .get(CoreOption::GreedySwitchHierarchicalType)
+    {
+        options.insert(
+            GREEDY_SWITCH_HIERARCHICAL_TYPE_KEY.to_string(),
+            serde_json::Value::String(format_greedy_switch_type(*greedy_switch_type).to_string()),
+        );
+    }
     insert_boolean_option(
         &mut options,
         &graph.properties,
@@ -863,6 +904,18 @@ fn apply_node_layout_options(
                 node.properties
                     .set_generate_position_and_layer_ids(boolean(value, key)?);
             }
+            GREEDY_SWITCH_ACTIVATION_THRESHOLD_KEY => {
+                node.properties
+                    .set_greedy_switch_activation_threshold(non_negative_integer(value, key)?);
+            }
+            GREEDY_SWITCH_TYPE_KEY => {
+                node.properties
+                    .set_greedy_switch_type(parse_greedy_switch_type(value, key)?);
+            }
+            GREEDY_SWITCH_HIERARCHICAL_TYPE_KEY => {
+                node.properties
+                    .set_greedy_switch_hierarchical_type(parse_greedy_switch_type(value, key)?);
+            }
             HIGH_DEGREE_NODE_TREATMENT_KEY => {
                 node.properties
                     .set_high_degree_node_treatment(boolean(value, key)?);
@@ -1055,6 +1108,32 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         CoreOption::GeneratePositionAndLayerIds,
         GENERATE_POSITION_AND_LAYER_IDS_KEY,
     );
+    if let Some(PropertyValue::Integer(threshold)) = node
+        .properties
+        .get(CoreOption::GreedySwitchActivationThreshold)
+    {
+        options.insert(
+            GREEDY_SWITCH_ACTIVATION_THRESHOLD_KEY.to_string(),
+            (*threshold).into(),
+        );
+    }
+    if let Some(PropertyValue::GreedySwitchType(greedy_switch_type)) =
+        node.properties.get(CoreOption::GreedySwitchType)
+    {
+        options.insert(
+            GREEDY_SWITCH_TYPE_KEY.to_string(),
+            serde_json::Value::String(format_greedy_switch_type(*greedy_switch_type).to_string()),
+        );
+    }
+    if let Some(PropertyValue::GreedySwitchType(greedy_switch_type)) = node
+        .properties
+        .get(CoreOption::GreedySwitchHierarchicalType)
+    {
+        options.insert(
+            GREEDY_SWITCH_HIERARCHICAL_TYPE_KEY.to_string(),
+            serde_json::Value::String(format_greedy_switch_type(*greedy_switch_type).to_string()),
+        );
+    }
     insert_boolean_option(
         &mut options,
         &node.properties,
@@ -1398,6 +1477,20 @@ fn parse_model_order_strategy(
     }
 }
 
+fn parse_greedy_switch_type(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<GreedySwitchType, JsonError> {
+    match string(value, key)? {
+        "OFF" => Ok(GreedySwitchType::Off),
+        "ONE_SIDED" => Ok(GreedySwitchType::OneSided),
+        "TWO_SIDED" => Ok(GreedySwitchType::TwoSided),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
 fn parse_hierarchy_handling(
     value: &serde_json::Value,
     key: &str,
@@ -1464,6 +1557,14 @@ fn format_model_order_strategy(strategy: ModelOrderStrategy) -> &'static str {
         ModelOrderStrategy::None => "NONE",
         ModelOrderStrategy::PreferEdges => "PREFER_EDGES",
         ModelOrderStrategy::PreferNodes => "PREFER_NODES",
+    }
+}
+
+fn format_greedy_switch_type(greedy_switch_type: GreedySwitchType) -> &'static str {
+    match greedy_switch_type {
+        GreedySwitchType::Off => "OFF",
+        GreedySwitchType::OneSided => "ONE_SIDED",
+        GreedySwitchType::TwoSided => "TWO_SIDED",
     }
 }
 
@@ -1557,6 +1658,27 @@ fn number(value: &serde_json::Value, key: &str) -> Result<f64, JsonError> {
     .filter(|number| number.is_finite());
 
     number.ok_or_else(|| JsonError::Invalid(format!("{key} must be a number")))
+}
+
+fn integer(value: &serde_json::Value, key: &str) -> Result<i64, JsonError> {
+    match value {
+        serde_json::Value::Number(number) => number
+            .as_i64()
+            .ok_or_else(|| JsonError::Invalid(format!("{key} must be an integer"))),
+        serde_json::Value::String(number) => number
+            .parse::<i64>()
+            .map_err(|_| JsonError::Invalid(format!("{key} must be an integer"))),
+        _ => Err(JsonError::Invalid(format!("{key} must be an integer"))),
+    }
+}
+
+fn non_negative_integer(value: &serde_json::Value, key: &str) -> Result<i64, JsonError> {
+    let integer = integer(value, key)?;
+    if integer >= 0 {
+        Ok(integer)
+    } else {
+        Err(JsonError::Invalid(format!("{key} must be non-negative")))
+    }
 }
 
 fn non_negative_number(value: &serde_json::Value, key: &str) -> Result<f64, JsonError> {

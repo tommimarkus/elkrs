@@ -366,6 +366,63 @@ fn non_string_node_model_order_components_returns_invalid_error() {
 }
 
 #[test]
+fn negative_greedy_switch_activation_threshold_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.crossingMinimization.greedySwitch.activationThreshold": -1
+          }
+        }"#,
+        "org.eclipse.elk.layered.crossingMinimization.greedySwitch.activationThreshold must be non-negative",
+    );
+}
+
+#[test]
+fn non_integer_greedy_switch_activation_threshold_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.crossingMinimization.greedySwitch.activationThreshold": 1.5
+          }
+        }"#,
+        "org.eclipse.elk.layered.crossingMinimization.greedySwitch.activationThreshold must be an integer",
+    );
+}
+
+#[test]
+fn unsupported_greedy_switch_type_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.crossingMinimization.greedySwitch.type": "AUTO"
+          }
+        }"#,
+        "unsupported org.eclipse.elk.layered.crossingMinimization.greedySwitch.type value: AUTO",
+    );
+}
+
+#[test]
+fn non_string_node_greedy_switch_hierarchical_type_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.crossingMinimization.greedySwitchHierarchical.type": 7
+              }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.layered.crossingMinimization.greedySwitchHierarchical.type must be a string",
+    );
+}
+
+#[test]
 fn unsupported_node_port_constraints_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

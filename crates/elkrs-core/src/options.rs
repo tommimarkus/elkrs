@@ -61,6 +61,13 @@ pub enum ModelOrderStrategy {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GreedySwitchType {
+    Off,
+    OneSided,
+    TwoSided,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PortSide {
     North,
     East,
@@ -96,12 +103,14 @@ pub enum HierarchyHandling {
 #[derive(Debug, Clone, PartialEq)]
 pub enum PropertyValue {
     Bool(bool),
+    Integer(i64),
     Number(f64),
     Text(String),
     Algorithm(Algorithm),
     ComponentOrderingStrategy(ComponentOrderingStrategy),
     Direction(Direction),
     EdgeRouting(EdgeRouting),
+    GreedySwitchType(GreedySwitchType),
     HierarchyHandling(HierarchyHandling),
     ModelOrderStrategy(ModelOrderStrategy),
     PortAlignment(PortAlignment),
@@ -124,6 +133,9 @@ pub enum CoreOption {
     FixedGraphSize,
     ForceNodeModelOrder,
     GeneratePositionAndLayerIds,
+    GreedySwitchActivationThreshold,
+    GreedySwitchHierarchicalType,
+    GreedySwitchType,
     HighDegreeNodeTreatment,
     HierarchyHandling,
     Hypernode,
@@ -247,6 +259,36 @@ impl Properties {
 
     pub fn set_generate_position_and_layer_ids(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::GeneratePositionAndLayerIds, enabled)
+    }
+
+    pub fn set_greedy_switch_activation_threshold(
+        &mut self,
+        threshold: i64,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::GreedySwitchActivationThreshold,
+            PropertyValue::Integer(threshold),
+        )
+    }
+
+    pub fn set_greedy_switch_type(
+        &mut self,
+        greedy_switch_type: GreedySwitchType,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::GreedySwitchType,
+            PropertyValue::GreedySwitchType(greedy_switch_type),
+        )
+    }
+
+    pub fn set_greedy_switch_hierarchical_type(
+        &mut self,
+        greedy_switch_type: GreedySwitchType,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::GreedySwitchHierarchicalType,
+            PropertyValue::GreedySwitchType(greedy_switch_type),
+        )
     }
 
     pub fn set_high_degree_node_treatment(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -592,6 +634,34 @@ impl Properties {
             CoreOption::GeneratePositionAndLayerIds,
             "generate position and layer ids",
         )
+    }
+
+    pub fn greedy_switch_activation_threshold(&self) -> Option<i64> {
+        match self.get(CoreOption::GreedySwitchActivationThreshold) {
+            Some(PropertyValue::Integer(threshold)) => Some(*threshold),
+            Some(value) => unreachable!(
+                "greedy switch activation threshold stored incompatible value: {value:?}"
+            ),
+            _ => None,
+        }
+    }
+
+    pub fn greedy_switch_type(&self) -> Option<GreedySwitchType> {
+        match self.get(CoreOption::GreedySwitchType) {
+            Some(PropertyValue::GreedySwitchType(greedy_switch_type)) => Some(*greedy_switch_type),
+            Some(value) => unreachable!("greedy switch type stored incompatible value: {value:?}"),
+            _ => None,
+        }
+    }
+
+    pub fn greedy_switch_hierarchical_type(&self) -> Option<GreedySwitchType> {
+        match self.get(CoreOption::GreedySwitchHierarchicalType) {
+            Some(PropertyValue::GreedySwitchType(greedy_switch_type)) => Some(*greedy_switch_type),
+            Some(value) => {
+                unreachable!("hierarchical greedy switch type stored incompatible value: {value:?}")
+            }
+            _ => None,
+        }
     }
 
     pub fn high_degree_node_treatment(&self) -> bool {
@@ -1055,6 +1125,29 @@ mod tests {
         assert_eq!(
             properties.consider_model_order_strategy(),
             Some(ModelOrderStrategy::PreferNodes)
+        );
+    }
+
+    #[test]
+    fn greedy_switch_options_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.greedy_switch_activation_threshold(), None);
+        assert_eq!(properties.greedy_switch_type(), None);
+        assert_eq!(properties.greedy_switch_hierarchical_type(), None);
+
+        properties.set_greedy_switch_activation_threshold(42);
+        properties.set_greedy_switch_type(GreedySwitchType::OneSided);
+        properties.set_greedy_switch_hierarchical_type(GreedySwitchType::TwoSided);
+
+        assert_eq!(properties.greedy_switch_activation_threshold(), Some(42));
+        assert_eq!(
+            properties.greedy_switch_type(),
+            Some(GreedySwitchType::OneSided)
+        );
+        assert_eq!(
+            properties.greedy_switch_hierarchical_type(),
+            Some(GreedySwitchType::TwoSided)
         );
     }
 

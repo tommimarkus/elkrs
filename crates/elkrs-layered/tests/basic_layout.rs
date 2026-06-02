@@ -5,8 +5,9 @@ use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
-    Algorithm, ComponentOrderingStrategy, Direction, EdgeRouting, HierarchyHandling,
-    ModelOrderStrategy, PortAlignment, PortConstraints, PortSide, Properties, PropertyValue,
+    Algorithm, ComponentOrderingStrategy, Direction, EdgeRouting, GreedySwitchType,
+    HierarchyHandling, ModelOrderStrategy, PortAlignment, PortConstraints, PortSide, Properties,
+    PropertyValue,
 };
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
@@ -1142,6 +1143,112 @@ fn layered_layout_accepts_none_model_order_options_without_diagnostic() {
     assert!(report.diagnostics.iter().all(|diagnostic| {
         diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
             || !diagnostic.message.contains("consider model order")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_unsupported_greedy_switch_options() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_greedy_switch_activation_threshold(42);
+    graph
+        .properties
+        .set_greedy_switch_type(GreedySwitchType::TwoSided);
+    graph
+        .properties
+        .set_greedy_switch_hierarchical_type(GreedySwitchType::OneSided);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("greedy switch activation threshold")
+            && diagnostic.message.contains("42")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("greedy switch type")
+            && diagnostic.message.contains("TwoSided")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("hierarchical greedy switch type")
+            && diagnostic.message.contains("OneSided")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_node_unsupported_greedy_switch_options() {
+    let mut graph = ElkGraph::new("root");
+    let mut child = node("child", 60.0, 30.0);
+    child.properties.set_greedy_switch_activation_threshold(7);
+    child
+        .properties
+        .set_greedy_switch_type(GreedySwitchType::OneSided);
+    child
+        .properties
+        .set_greedy_switch_hierarchical_type(GreedySwitchType::TwoSided);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("greedy switch activation threshold")
+            && diagnostic.message.contains("7")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("greedy switch type")
+            && diagnostic.message.contains("OneSided")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("hierarchical greedy switch type")
+            && diagnostic.message.contains("TwoSided")
+            && diagnostic.message.contains("child")
+    }));
+}
+
+#[test]
+fn layered_layout_accepts_off_greedy_switch_types_without_diagnostic() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_greedy_switch_type(GreedySwitchType::Off);
+    graph
+        .properties
+        .set_greedy_switch_hierarchical_type(GreedySwitchType::Off);
+    let mut child = node("child", 60.0, 30.0);
+    child
+        .properties
+        .set_greedy_switch_type(GreedySwitchType::Off);
+    child
+        .properties
+        .set_greedy_switch_hierarchical_type(GreedySwitchType::Off);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().all(|diagnostic| {
+        diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            || !diagnostic.message.contains("greedy switch")
     }));
 }
 

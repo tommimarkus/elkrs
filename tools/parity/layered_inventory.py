@@ -176,6 +176,21 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "Forced node model order is parsed and diagnosed; crossing minimization constraints are not implemented yet",
     ),
+    "org.eclipse.elk.layered.crossingMinimization.greedySwitch.activationThreshold": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked greedy_switch`; `cargo test -p elkrs-layered --test basic_layout --locked greedy_switch`; `cargo test -p elkrs-json --test json_partitions --locked greedy_switch`; `cargo test -p elkrs-json --test json_errors --locked greedy_switch`",
+        "Greedy switch activation threshold is parsed and diagnosed; greedy-switch crossing minimization is not implemented yet",
+    ),
+    "org.eclipse.elk.layered.crossingMinimization.greedySwitch.type": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked greedy_switch`; `cargo test -p elkrs-layered --test basic_layout --locked greedy_switch`; `cargo test -p elkrs-json --test json_partitions --locked greedy_switch`; `cargo test -p elkrs-json --test json_errors --locked greedy_switch`",
+        "Greedy switch type is parsed and diagnosed; greedy-switch crossing minimization is not implemented yet",
+    ),
+    "org.eclipse.elk.layered.crossingMinimization.greedySwitchHierarchical.type": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked greedy_switch`; `cargo test -p elkrs-layered --test basic_layout --locked greedy_switch`; `cargo test -p elkrs-json --test json_partitions --locked greedy_switch`; `cargo test -p elkrs-json --test json_errors --locked greedy_switch`",
+        "Hierarchical greedy switch type is parsed and diagnosed; hierarchical greedy-switch crossing minimization is not implemented yet",
+    ),
     "org.eclipse.elk.layered.crossingMinimization.semiInteractive": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",

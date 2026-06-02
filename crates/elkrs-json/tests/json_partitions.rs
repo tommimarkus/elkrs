@@ -1,8 +1,8 @@
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::options::{
-    Algorithm, ComponentOrderingStrategy, CoreOption, Direction, EdgeRouting, HierarchyHandling,
-    ModelOrderStrategy, PortAlignment, PortConstraints, PortSide, PropertyValue,
+    Algorithm, ComponentOrderingStrategy, CoreOption, Direction, EdgeRouting, GreedySwitchType,
+    HierarchyHandling, ModelOrderStrategy, PortAlignment, PortConstraints, PortSide, PropertyValue,
 };
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
@@ -1343,6 +1343,127 @@ fn serializes_node_model_order_with_java_keys() {
     assert_eq!(
         options["org.eclipse.elk.layered.considerModelOrder.strategy"],
         Value::String("PREFER_EDGES".to_owned())
+    );
+}
+
+#[test]
+fn imports_java_greedy_switch_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.crossingMinimization.greedySwitch.activationThreshold": 42,
+            "org.eclipse.elk.layered.crossingMinimization.greedySwitch.type": "ONE_SIDED",
+            "org.eclipse.elk.layered.crossingMinimization.greedySwitchHierarchical.type": "TWO_SIDED"
+          }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::GreedySwitchActivationThreshold),
+        Some(&PropertyValue::Integer(42))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::GreedySwitchType),
+        Some(&PropertyValue::GreedySwitchType(GreedySwitchType::OneSided))
+    );
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::GreedySwitchHierarchicalType),
+        Some(&PropertyValue::GreedySwitchType(GreedySwitchType::TwoSided))
+    );
+}
+
+#[test]
+fn serializes_greedy_switch_with_java_keys() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_greedy_switch_activation_threshold(7);
+    graph
+        .properties
+        .set_greedy_switch_type(GreedySwitchType::TwoSided);
+    graph
+        .properties
+        .set_greedy_switch_hierarchical_type(GreedySwitchType::Off);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["layoutOptions"]
+            ["org.eclipse.elk.layered.crossingMinimization.greedySwitch.activationThreshold"],
+        Value::Number(7.into())
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.layered.crossingMinimization.greedySwitch.type"],
+        Value::String("TWO_SIDED".to_owned())
+    );
+    assert_eq!(
+        json["layoutOptions"]
+            ["org.eclipse.elk.layered.crossingMinimization.greedySwitchHierarchical.type"],
+        Value::String("OFF".to_owned())
+    );
+}
+
+#[test]
+fn imports_node_greedy_switch_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "parent",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.crossingMinimization.greedySwitch.activationThreshold": "9",
+                "org.eclipse.elk.layered.crossingMinimization.greedySwitch.type": "OFF",
+                "org.eclipse.elk.layered.crossingMinimization.greedySwitchHierarchical.type": "ONE_SIDED"
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+    let properties = &graph.nodes[&ElementId::from("parent")].properties;
+
+    assert_eq!(
+        properties.get(CoreOption::GreedySwitchActivationThreshold),
+        Some(&PropertyValue::Integer(9))
+    );
+    assert_eq!(
+        properties.get(CoreOption::GreedySwitchType),
+        Some(&PropertyValue::GreedySwitchType(GreedySwitchType::Off))
+    );
+    assert_eq!(
+        properties.get(CoreOption::GreedySwitchHierarchicalType),
+        Some(&PropertyValue::GreedySwitchType(GreedySwitchType::OneSided))
+    );
+}
+
+#[test]
+fn serializes_node_greedy_switch_with_java_keys() {
+    let mut node = ElkNode::new("node");
+    node.properties.set_greedy_switch_activation_threshold(11);
+    node.properties
+        .set_greedy_switch_type(GreedySwitchType::OneSided);
+    node.properties
+        .set_greedy_switch_hierarchical_type(GreedySwitchType::TwoSided);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let options = &json["children"][0]["layoutOptions"];
+    assert_eq!(
+        options["org.eclipse.elk.layered.crossingMinimization.greedySwitch.activationThreshold"],
+        Value::Number(11.into())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.crossingMinimization.greedySwitch.type"],
+        Value::String("ONE_SIDED".to_owned())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.crossingMinimization.greedySwitchHierarchical.type"],
+        Value::String("TWO_SIDED".to_owned())
     );
 }
 
