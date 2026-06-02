@@ -93,6 +93,7 @@ const LAYER_CHOICE_CONSTRAINT_KEY: &str = "org.eclipse.elk.layered.layering.laye
 const LAYER_CONSTRAINT_KEY: &str = "org.eclipse.elk.layered.layering.layerConstraint";
 const LAYER_ID_KEY: &str = "org.eclipse.elk.layered.layering.layerId";
 const LAYERING_STRATEGY_KEY: &str = "org.eclipse.elk.layered.layering.strategy";
+const LAYER_UNZIPPING_LAYER_SPLIT_KEY: &str = "org.eclipse.elk.layered.layerUnzipping.layerSplit";
 const LAYER_UNZIPPING_MINIMIZE_EDGE_LENGTH_KEY: &str =
     "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength";
 const LAYER_UNZIPPING_RESET_ON_LONG_EDGES_KEY: &str =
@@ -1289,6 +1290,10 @@ fn apply_node_layout_options(
             LAYER_ID_KEY => {
                 node.properties.set_layer_id(integer(value, key)?);
             }
+            LAYER_UNZIPPING_LAYER_SPLIT_KEY => {
+                node.properties
+                    .set_layer_unzipping_layer_split(positive_integer(value, key)?);
+            }
             LAYER_UNZIPPING_MINIMIZE_EDGE_LENGTH_KEY => {
                 node.properties
                     .set_layer_unzipping_minimize_edge_length(boolean(value, key)?);
@@ -1717,6 +1722,11 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
     }
     if let Some(PropertyValue::Integer(id)) = node.properties.get(CoreOption::LayerId) {
         options.insert(LAYER_ID_KEY.to_string(), (*id).into());
+    }
+    if let Some(PropertyValue::Integer(split)) =
+        node.properties.get(CoreOption::LayerUnzippingLayerSplit)
+    {
+        options.insert(LAYER_UNZIPPING_LAYER_SPLIT_KEY.to_string(), (*split).into());
     }
     insert_boolean_option(
         &mut options,
@@ -2490,6 +2500,15 @@ fn non_negative_integer(value: &serde_json::Value, key: &str) -> Result<i64, Jso
         Ok(integer)
     } else {
         Err(JsonError::Invalid(format!("{key} must be non-negative")))
+    }
+}
+
+fn positive_integer(value: &serde_json::Value, key: &str) -> Result<i64, JsonError> {
+    let integer = integer(value, key)?;
+    if integer > 0 {
+        Ok(integer)
+    } else {
+        Err(JsonError::Invalid(format!("{key} must be positive")))
     }
 }
 

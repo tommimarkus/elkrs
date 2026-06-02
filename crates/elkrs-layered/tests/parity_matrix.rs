@@ -269,6 +269,15 @@ fn high_degree_node_numeric_metadata_rows_are_diagnostic() {
     }
 }
 
+#[test]
+fn layer_unzipping_layer_split_metadata_row_is_diagnostic() {
+    assert_eq!(
+        row_status(PARITY_MATRIX, "LAYERED-META-OPTION-062"),
+        Some("diagnostic"),
+        "LAYERED-META-OPTION-062 should be marked as diagnostic in the parity matrix"
+    );
+}
+
 fn row_status<'a>(matrix: &'a str, row_id: &str) -> Option<&'a str> {
     matrix.lines().find_map(|line| {
         let mut columns = line.split('|').map(str::trim);

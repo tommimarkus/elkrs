@@ -1082,6 +1082,42 @@ fn high_degree_numeric_negative_options_return_invalid_errors() {
     }
 }
 
+#[test]
+fn layer_unzipping_layer_split_non_integer_option_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.layerUnzipping.layerSplit": 1.5
+              }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.layered.layerUnzipping.layerSplit must be an integer",
+    );
+}
+
+#[test]
+fn layer_unzipping_layer_split_non_positive_option_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.layerUnzipping.layerSplit": 0
+              }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.layered.layerUnzipping.layerSplit must be positive",
+    );
+}
+
 fn assert_invalid_contains(input: &str, expected: &str) {
     let error = from_str(input).unwrap_err();
 

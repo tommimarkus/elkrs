@@ -667,6 +667,13 @@ fn collect_unsupported_layer_assignment_diagnostics(
             node_id,
         ));
     }
+    if let Some(split) = properties.layer_unzipping_layer_split() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "layer unzipping layer split",
+            split,
+            node_id,
+        ));
+    }
     if let Some(threshold) = properties.high_degree_node_threshold() {
         diagnostics.push(unsupported_integer_option_diagnostic(
             "high degree node threshold",

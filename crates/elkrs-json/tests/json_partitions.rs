@@ -2617,6 +2617,46 @@ fn serializes_high_degree_node_numeric_options_with_java_keys() {
 }
 
 #[test]
+fn imports_layer_unzipping_layer_split_layout_option() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.layerUnzipping.layerSplit": 3
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let node = &graph.nodes[&ElementId::from("node")];
+    assert_eq!(
+        node.properties.get(CoreOption::LayerUnzippingLayerSplit),
+        Some(&PropertyValue::Integer(3))
+    );
+}
+
+#[test]
+fn serializes_layer_unzipping_layer_split_with_java_key() {
+    let mut node = ElkNode::new("node");
+    node.properties.set_layer_unzipping_layer_split(3);
+
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let node_options = &json["children"][0]["layoutOptions"];
+    assert_eq!(
+        node_options["org.eclipse.elk.layered.layerUnzipping.layerSplit"],
+        Value::Number(3.into())
+    );
+}
+
+#[test]
 fn imports_all_defined_port_side_layout_options() {
     let graph = from_str(
         r#"{

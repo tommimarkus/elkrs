@@ -1942,6 +1942,24 @@ fn layered_layout_reports_unsupported_high_degree_node_numeric_options() {
 }
 
 #[test]
+fn layered_layout_reports_unsupported_layer_unzipping_layer_split() {
+    let mut graph = ElkGraph::new("root");
+    let mut child = node("child", 60.0, 30.0);
+    child.properties.set_layer_unzipping_layer_split(3);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("layer unzipping layer split")
+            && diagnostic.message.contains("3")
+            && diagnostic.message.contains("child")
+    }));
+}
+
+#[test]
 fn layered_layout_reports_unsupported_parent_boolean_options() {
     for (name, setter) in parent_boolean_option_cases() {
         let mut graph = ElkGraph::new("root");

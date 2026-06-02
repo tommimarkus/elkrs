@@ -230,6 +230,7 @@ pub enum CoreOption {
     LayerConstraint,
     LayerId,
     LayeringStrategy,
+    LayerUnzippingLayerSplit,
     LayerUnzippingMinimizeEdgeLength,
     LayerUnzippingResetOnLongEdges,
     LayoutPartition,
@@ -616,6 +617,13 @@ impl Properties {
         enabled: bool,
     ) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::LayerUnzippingMinimizeEdgeLength, enabled)
+    }
+
+    pub fn set_layer_unzipping_layer_split(&mut self, split: i64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::LayerUnzippingLayerSplit,
+            PropertyValue::Integer(split),
+        )
     }
 
     pub fn set_layer_unzipping_reset_on_long_edges(
@@ -1214,6 +1222,13 @@ impl Properties {
         )
     }
 
+    pub fn layer_unzipping_layer_split(&self) -> Option<i64> {
+        self.integer_option(
+            CoreOption::LayerUnzippingLayerSplit,
+            "layer unzipping layer split",
+        )
+    }
+
     pub fn layer_unzipping_reset_on_long_edges(&self) -> bool {
         self.bool_option(
             CoreOption::LayerUnzippingResetOnLongEdges,
@@ -1756,6 +1771,17 @@ mod tests {
         );
         assert_eq!(properties.layer_id(), Some(7));
         assert_eq!(properties.layout_partition(), Some(3));
+    }
+
+    #[test]
+    fn layer_unzipping_layer_split_option_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.layer_unzipping_layer_split(), None);
+
+        properties.set_layer_unzipping_layer_split(2);
+
+        assert_eq!(properties.layer_unzipping_layer_split(), Some(2));
     }
 
     #[test]

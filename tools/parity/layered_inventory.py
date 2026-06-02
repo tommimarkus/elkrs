@@ -348,6 +348,11 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-core --locked layer_assignment_options`; `cargo test -p elkrs-layered --test basic_layout --locked layer_assignment`; `cargo test -p elkrs-json --test json_partitions --locked layer_assignment`; `cargo test -p elkrs-json --test json_errors --locked layer_assignment`",
         "Node layering strategy is parsed and diagnosed; alternate layer assignment strategies are not implemented yet",
     ),
+    "org.eclipse.elk.layered.layerUnzipping.layerSplit": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked layer_unzipping_layer_split`; `cargo test -p elkrs-layered --test basic_layout --locked layer_unzipping_layer_split`; `cargo test -p elkrs-json --test json_partitions --locked layer_unzipping_layer_split`; `cargo test -p elkrs-json --test json_errors --locked layer_unzipping_layer_split`",
+        "Layer unzipping layer split is parsed and diagnosed; layer unzipping semantics are not implemented yet",
+    ),
     "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
