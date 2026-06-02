@@ -1,5 +1,6 @@
 docs/superpowers/
 .worktrees/
+/.cache/
 /target/
 .codex/config.toml
 /tools/java-elk-json-runner/.gradle/

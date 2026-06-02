@@ -28,6 +28,8 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           persist-credentials: false
+      - name: Add Cargo tool cache to PATH
+        run: echo "$PWD/.cache/cargo-install/bin" >> "$GITHUB_PATH"
 
       - name: Validate release ref
         id: version
@@ -80,14 +82,14 @@ jobs:
 
       - name: Verify Java parity oracle
         run: |
-          gradle --no-daemon -p tools/java-elk-json-runner installDist
+          gradle --no-daemon -g .cache/gradle-user-home -p tools/java-elk-json-runner installDist
           ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/build/install/java-elk-json-runner/bin/java-elk-json-runner" \
             cargo test -p elkrs-layered --test java_parity --locked -- --ignored
 
       - name: Install release tools
         run: |
-          cargo install cargo-audit --locked
-          cargo install cargo-cyclonedx --locked
+          cargo install cargo-audit --locked --root .cache/cargo-install
+          cargo install cargo-cyclonedx --locked --root .cache/cargo-install
 
       - name: Audit dependencies
         run: cargo audit

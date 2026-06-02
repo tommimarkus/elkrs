@@ -15,7 +15,8 @@ Before publishing a release:
 3. Run the local gate:
 
    ```bash
-   cargo install cargo-audit --locked
+   export PATH="$PWD/.cache/cargo-install/bin:$PATH"
+   cargo install cargo-audit --locked --root .cache/cargo-install
    cargo audit
    cargo fmt --all --check
    cargo clippy --workspace --all-targets --locked -- -D warnings

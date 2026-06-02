@@ -21,6 +21,10 @@ Local-only direct `main` work is allowed only when explicitly authorized for the
 
 ## Build, Test, and Development Commands
 
+Tool caches should stay under workspace `.cache/` whenever the tool supports a
+project config or cache path flag. `.cargo/audit.toml` keeps the RustSec
+advisory DB under `.cache/cargo-audit`; install Cargo tools with
+`--root .cache/cargo-install` and add `.cache/cargo-install/bin` to `PATH`.
 Run the default verification gate before sending changes:
 
 ```bash
@@ -33,6 +37,8 @@ cargo doc --workspace --locked --no-deps
 Use `cargo audit` when changing dependencies or release files. Run Java parity only when SDKMAN is available:
 
 ```bash
+export PATH="$PWD/.cache/cargo-install/bin:$PATH"
+cargo audit
 tools/java-elk-json-runner/bin/build
 ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored
 ```

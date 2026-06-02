@@ -3,6 +3,7 @@ set -euo pipefail
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 tool_dir="$(cd -- "${script_dir}/.." && pwd)"
+repo_root="$(cd -- "${tool_dir}/../.." && pwd)"
 
 if [[ -z "${SDKMAN_DIR:-}" ]]; then
   export SDKMAN_DIR="${HOME}/.sdkman"
@@ -24,5 +25,5 @@ cd "${tool_dir}"
 set +u
 sdk env >/dev/null
 set -u
-gradle --no-daemon "$@" installDist
+gradle --no-daemon -g "${repo_root}/.cache/gradle-user-home" "$@" installDist
 cd "${previous_dir}"

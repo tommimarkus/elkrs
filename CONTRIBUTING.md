@@ -10,10 +10,12 @@ Allowed implementation inputs are documented in `CLEANROOM.md`.
 
 ## Local Verification
 
-Run the default gate before sending changes:
+Tool caches should stay under workspace `.cache/` whenever the tool supports a
+project config or cache path flag. Run the default gate before sending changes:
 
 ```bash
-cargo install cargo-audit --locked
+export PATH="$PWD/.cache/cargo-install/bin:$PATH"
+cargo install cargo-audit --locked --root .cache/cargo-install
 cargo audit
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings

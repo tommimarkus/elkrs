@@ -17,8 +17,10 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           persist-credentials: false
+      - name: Add Cargo tool cache to PATH
+        run: echo "$PWD/.cache/cargo-install/bin" >> "$GITHUB_PATH"
       - name: Install cargo-audit
-        run: cargo install cargo-audit --locked
+        run: cargo install cargo-audit --locked --root .cache/cargo-install
       - name: Audit dependencies
         run: cargo audit
       - name: Check formatting
