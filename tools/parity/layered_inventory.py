@@ -436,47 +436,57 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.layered.allowNonFlowPortsToSwitchSides": (
         "diagnostic",
         "`cargo test -p elkrs-core --locked port_scoped_options`; `cargo test -p elkrs-layered --test basic_layout --locked port_scoped_options`; `cargo test -p elkrs-json --test json_partitions --locked port_scoped_options`; `cargo test -p elkrs-json --test json_errors --locked port_scoped_options`",
-        "Non-flow port side switching is parsed and diagnosed; side-switching semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: non-flow port side switching semantics are out of scope; the option is parsed, serialized, and diagnosed only",
+    ),
+    "org.eclipse.elk.layered.portSortingStrategy": (
+        "unsupported",
+        "No public option model yet",
+        "1.0.0 compatibility exclusion: port sorting strategy semantics are out of scope until `elkrs-core` exposes a public sorting option and ordering contract",
     ),
     "org.eclipse.elk.portAlignment.default": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked port_alignment`; `cargo test -p elkrs-json --test json_partitions --locked port_alignment`; `cargo test -p elkrs-json --test json_errors --locked port_alignment`",
-        "Port alignment is parsed and diagnosed; port distribution semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: default port alignment distribution semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.portAlignment.east": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked port_alignment`; `cargo test -p elkrs-json --test json_partitions --locked port_alignment`; `cargo test -p elkrs-json --test json_errors --locked port_alignment`",
-        "East port alignment is parsed and diagnosed; side-specific port distribution semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: east-side port alignment distribution semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.portAlignment.north": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked port_alignment`; `cargo test -p elkrs-json --test json_partitions --locked port_alignment`; `cargo test -p elkrs-json --test json_errors --locked port_alignment`",
-        "North port alignment is parsed and diagnosed; side-specific port distribution semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: north-side port alignment distribution semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.portAlignment.south": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked port_alignment`; `cargo test -p elkrs-json --test json_partitions --locked port_alignment`; `cargo test -p elkrs-json --test json_errors --locked port_alignment`",
-        "South port alignment is parsed and diagnosed; side-specific port distribution semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: south-side port alignment distribution semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.portAlignment.west": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked port_alignment`; `cargo test -p elkrs-json --test json_partitions --locked port_alignment`; `cargo test -p elkrs-json --test json_errors --locked port_alignment`",
-        "West port alignment is parsed and diagnosed; side-specific port distribution semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: west-side port alignment distribution semantics are out of scope; the option is parsed, serialized, and diagnosed only",
+    ),
+    "org.eclipse.elk.port.anchor": (
+        "unsupported",
+        "No public object option model yet",
+        "1.0.0 compatibility exclusion: port anchor offset object semantics are out of scope; explicit port side anchors remain supported",
     ),
     "org.eclipse.elk.portConstraints": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked port_constraints`; `cargo test -p elkrs-json --test json_partitions --locked port_constraints`; `cargo test -p elkrs-json --test json_errors --locked port_constraints`",
-        "Port constraints are parsed and diagnosed; fixed port-order and position semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: fixed port-order and fixed-position constraint semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.port.borderOffset": (
         "diagnostic",
         "`cargo test -p elkrs-core --locked port_scoped_options`; `cargo test -p elkrs-layered --test basic_layout --locked port_scoped_options`; `cargo test -p elkrs-json --test json_partitions --locked port_scoped_options`; `cargo test -p elkrs-json --test json_errors --locked port_scoped_options`",
-        "Port border offset is parsed and diagnosed; offset-aware port placement is not implemented yet",
+        "1.0.0 compatibility exclusion: offset-aware port placement is out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.port.index": (
         "diagnostic",
         "`cargo test -p elkrs-core --locked port_scoped_options`; `cargo test -p elkrs-layered --test basic_layout --locked port_scoped_options`; `cargo test -p elkrs-json --test json_partitions --locked port_scoped_options`; `cargo test -p elkrs-json --test json_errors --locked port_scoped_options`",
-        "Port index is parsed and diagnosed; fixed port-order semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: fixed port-order semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.port.side": (
         "java-parity",
@@ -492,6 +502,11 @@ STATUS_OVERRIDES = {
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
         "Port-label group treatment is parsed and diagnosed; port-label placement semantics are not implemented yet",
+    ),
+    "org.eclipse.elk.spacing.portsSurrounding": (
+        "unsupported",
+        "No public object option model yet",
+        "1.0.0 compatibility exclusion: surrounding port-space object semantics are out of scope; Java-backed port-port spacing remains supported",
     ),
     "org.eclipse.elk.nodeSize.options": (
         "unsupported",

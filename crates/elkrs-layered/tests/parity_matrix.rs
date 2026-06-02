@@ -353,6 +353,51 @@ fn hierarchy_topdown_rows_document_compatibility_exclusions() {
     }
 }
 
+#[test]
+fn port_constraint_rows_document_compatibility_boundaries() {
+    for row_id in [
+        "LAYERED-GRAPH-007",
+        "LAYERED-P5-002",
+        "LAYERED-META-FEATURE-006",
+        "LAYERED-META-OPTION-119",
+        "LAYERED-META-OPTION-146",
+    ] {
+        assert_eq!(
+            row_status(PARITY_MATRIX, row_id),
+            Some("java-parity"),
+            "{row_id} should stay promoted for Java-backed explicit port anchors or spacing"
+        );
+    }
+
+    for (row_id, status) in [
+        ("LAYERED-OPT-008", "diagnostic"),
+        ("LAYERED-META-OPTION-017", "diagnostic"),
+        ("LAYERED-META-OPTION-084", "unsupported"),
+        ("LAYERED-META-OPTION-116", "unsupported"),
+        ("LAYERED-META-OPTION-117", "diagnostic"),
+        ("LAYERED-META-OPTION-118", "diagnostic"),
+        ("LAYERED-META-OPTION-120", "diagnostic"),
+        ("LAYERED-META-OPTION-121", "diagnostic"),
+        ("LAYERED-META-OPTION-122", "diagnostic"),
+        ("LAYERED-META-OPTION-123", "diagnostic"),
+        ("LAYERED-META-OPTION-124", "diagnostic"),
+        ("LAYERED-META-OPTION-125", "diagnostic"),
+        ("LAYERED-META-OPTION-147", "unsupported"),
+    ] {
+        assert_eq!(
+            row_status(PARITY_MATRIX, row_id),
+            Some(status),
+            "{row_id} should keep its documented port compatibility status"
+        );
+        let next_plan = row_next_plan(PARITY_MATRIX, row_id)
+            .unwrap_or_else(|| panic!("{row_id} should have a matrix row"));
+        assert!(
+            next_plan.contains("1.0.0 compatibility exclusion"),
+            "{row_id} should document its 1.0.0 port compatibility boundary"
+        );
+    }
+}
+
 fn row_status<'a>(matrix: &'a str, row_id: &str) -> Option<&'a str> {
     matrix.lines().find_map(|line| {
         let mut columns = line.split('|').map(str::trim);
