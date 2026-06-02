@@ -80,7 +80,9 @@ const CROSSING_MINIMIZATION_POSITION_ID_KEY: &str =
 const CROSSING_MINIMIZATION_STRATEGY_KEY: &str =
     "org.eclipse.elk.layered.crossingMinimization.strategy";
 const EDGE_THICKNESS_KEY: &str = "org.eclipse.elk.edge.thickness";
+const HIGH_DEGREE_NODE_THRESHOLD_KEY: &str = "org.eclipse.elk.layered.highDegreeNodes.threshold";
 const HIGH_DEGREE_NODE_TREATMENT_KEY: &str = "org.eclipse.elk.layered.highDegreeNodes.treatment";
+const HIGH_DEGREE_NODE_TREE_HEIGHT_KEY: &str = "org.eclipse.elk.layered.highDegreeNodes.treeHeight";
 const HIERARCHY_HANDLING_KEY: &str = "org.eclipse.elk.hierarchyHandling";
 const HYPERNODE_KEY: &str = "org.eclipse.elk.hypernode";
 const INSIDE_SELF_LOOP_KEY: &str = "org.eclipse.elk.insideSelfLoops.yo";
@@ -566,6 +568,12 @@ fn apply_layout_options(
             HIGH_DEGREE_NODE_TREATMENT_KEY => graph
                 .properties
                 .set_high_degree_node_treatment(boolean(value, key)?),
+            HIGH_DEGREE_NODE_THRESHOLD_KEY => graph
+                .properties
+                .set_high_degree_node_threshold(non_negative_integer(value, key)?),
+            HIGH_DEGREE_NODE_TREE_HEIGHT_KEY => graph
+                .properties
+                .set_high_degree_node_tree_height(non_negative_integer(value, key)?),
             HIERARCHY_HANDLING_KEY => {
                 if let Some(hierarchy_handling) = parse_hierarchy_handling(value, key)? {
                     graph.properties.set_hierarchy_handling(hierarchy_handling)
@@ -882,6 +890,22 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         CoreOption::HighDegreeNodeTreatment,
         HIGH_DEGREE_NODE_TREATMENT_KEY,
     );
+    if let Some(PropertyValue::Integer(threshold)) =
+        graph.properties.get(CoreOption::HighDegreeNodeThreshold)
+    {
+        options.insert(
+            HIGH_DEGREE_NODE_THRESHOLD_KEY.to_string(),
+            (*threshold).into(),
+        );
+    }
+    if let Some(PropertyValue::Integer(height)) =
+        graph.properties.get(CoreOption::HighDegreeNodeTreeHeight)
+    {
+        options.insert(
+            HIGH_DEGREE_NODE_TREE_HEIGHT_KEY.to_string(),
+            (*height).into(),
+        );
+    }
     if let Some(PropertyValue::HierarchyHandling(hierarchy_handling)) =
         graph.properties.get(CoreOption::HierarchyHandling)
     {
@@ -1224,6 +1248,14 @@ fn apply_node_layout_options(
             HIGH_DEGREE_NODE_TREATMENT_KEY => {
                 node.properties
                     .set_high_degree_node_treatment(boolean(value, key)?);
+            }
+            HIGH_DEGREE_NODE_THRESHOLD_KEY => {
+                node.properties
+                    .set_high_degree_node_threshold(non_negative_integer(value, key)?);
+            }
+            HIGH_DEGREE_NODE_TREE_HEIGHT_KEY => {
+                node.properties
+                    .set_high_degree_node_tree_height(non_negative_integer(value, key)?);
             }
             HIERARCHY_HANDLING_KEY => {
                 if let Some(hierarchy_handling) = parse_hierarchy_handling(value, key)? {
@@ -1617,6 +1649,22 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         CoreOption::HighDegreeNodeTreatment,
         HIGH_DEGREE_NODE_TREATMENT_KEY,
     );
+    if let Some(PropertyValue::Integer(threshold)) =
+        node.properties.get(CoreOption::HighDegreeNodeThreshold)
+    {
+        options.insert(
+            HIGH_DEGREE_NODE_THRESHOLD_KEY.to_string(),
+            (*threshold).into(),
+        );
+    }
+    if let Some(PropertyValue::Integer(height)) =
+        node.properties.get(CoreOption::HighDegreeNodeTreeHeight)
+    {
+        options.insert(
+            HIGH_DEGREE_NODE_TREE_HEIGHT_KEY.to_string(),
+            (*height).into(),
+        );
+    }
     if let Some(PropertyValue::HierarchyHandling(hierarchy_handling)) =
         node.properties.get(CoreOption::HierarchyHandling)
     {

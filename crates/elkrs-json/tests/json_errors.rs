@@ -1046,6 +1046,42 @@ fn alignment_aspect_non_number_aspect_ratio_returns_invalid_error() {
     );
 }
 
+#[test]
+fn high_degree_numeric_non_integer_options_return_invalid_errors() {
+    for key in [
+        "org.eclipse.elk.layered.highDegreeNodes.threshold",
+        "org.eclipse.elk.layered.highDegreeNodes.treeHeight",
+    ] {
+        assert_invalid_contains(
+            &format!(
+                r#"{{
+                  "id": "root",
+                  "layoutOptions": {{ "{key}": 1.5 }}
+                }}"#
+            ),
+            &format!("{key} must be an integer"),
+        );
+    }
+}
+
+#[test]
+fn high_degree_numeric_negative_options_return_invalid_errors() {
+    for key in [
+        "org.eclipse.elk.layered.highDegreeNodes.threshold",
+        "org.eclipse.elk.layered.highDegreeNodes.treeHeight",
+    ] {
+        assert_invalid_contains(
+            &format!(
+                r#"{{
+                  "id": "root",
+                  "layoutOptions": {{ "{key}": -1 }}
+                }}"#
+            ),
+            &format!("{key} must be non-negative"),
+        );
+    }
+}
+
 fn assert_invalid_contains(input: &str, expected: &str) {
     let error = from_str(input).unwrap_err();
 

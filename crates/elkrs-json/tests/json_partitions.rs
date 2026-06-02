@@ -2543,6 +2543,80 @@ fn serializes_alignment_and_aspect_ratio_options_with_java_keys() {
 }
 
 #[test]
+fn imports_high_degree_node_numeric_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.highDegreeNodes.threshold": 16,
+            "org.eclipse.elk.layered.highDegreeNodes.treeHeight": 5
+          },
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.highDegreeNodes.threshold": 9,
+                "org.eclipse.elk.layered.highDegreeNodes.treeHeight": 3
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.properties.get(CoreOption::HighDegreeNodeThreshold),
+        Some(&PropertyValue::Integer(16))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::HighDegreeNodeTreeHeight),
+        Some(&PropertyValue::Integer(5))
+    );
+    let node = &graph.nodes[&ElementId::from("node")];
+    assert_eq!(
+        node.properties.get(CoreOption::HighDegreeNodeThreshold),
+        Some(&PropertyValue::Integer(9))
+    );
+    assert_eq!(
+        node.properties.get(CoreOption::HighDegreeNodeTreeHeight),
+        Some(&PropertyValue::Integer(3))
+    );
+}
+
+#[test]
+fn serializes_high_degree_node_numeric_options_with_java_keys() {
+    let mut node = ElkNode::new("node");
+    node.properties.set_high_degree_node_threshold(9);
+    node.properties.set_high_degree_node_tree_height(3);
+
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_high_degree_node_threshold(16);
+    graph.properties.set_high_degree_node_tree_height(5);
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let graph_options = &json["layoutOptions"];
+    assert_eq!(
+        graph_options["org.eclipse.elk.layered.highDegreeNodes.threshold"],
+        Value::Number(16.into())
+    );
+    assert_eq!(
+        graph_options["org.eclipse.elk.layered.highDegreeNodes.treeHeight"],
+        Value::Number(5.into())
+    );
+
+    let node_options = &json["children"][0]["layoutOptions"];
+    assert_eq!(
+        node_options["org.eclipse.elk.layered.highDegreeNodes.threshold"],
+        Value::Number(9.into())
+    );
+    assert_eq!(
+        node_options["org.eclipse.elk.layered.highDegreeNodes.treeHeight"],
+        Value::Number(3.into())
+    );
+}
+
+#[test]
 fn imports_all_defined_port_side_layout_options() {
     let graph = from_str(
         r#"{

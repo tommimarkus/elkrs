@@ -258,6 +258,17 @@ fn alignment_aspect_ratio_metadata_rows_are_diagnostic() {
     }
 }
 
+#[test]
+fn high_degree_node_numeric_metadata_rows_are_diagnostic() {
+    for row_id in ["LAYERED-META-OPTION-058", "LAYERED-META-OPTION-060"] {
+        assert_eq!(
+            row_status(PARITY_MATRIX, row_id),
+            Some("diagnostic"),
+            "{row_id} should be marked as diagnostic in the parity matrix"
+        );
+    }
+}
+
 fn row_status<'a>(matrix: &'a str, row_id: &str) -> Option<&'a str> {
     matrix.lines().find_map(|line| {
         let mut columns = line.split('|').map(str::trim);

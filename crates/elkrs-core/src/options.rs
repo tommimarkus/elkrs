@@ -217,7 +217,9 @@ pub enum CoreOption {
     GreedySwitchActivationThreshold,
     GreedySwitchHierarchicalType,
     GreedySwitchType,
+    HighDegreeNodeThreshold,
     HighDegreeNodeTreatment,
+    HighDegreeNodeTreeHeight,
     HierarchyHandling,
     Hypernode,
     InsideSelfLoop,
@@ -533,6 +535,20 @@ impl Properties {
 
     pub fn set_high_degree_node_treatment(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::HighDegreeNodeTreatment, enabled)
+    }
+
+    pub fn set_high_degree_node_threshold(&mut self, threshold: i64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::HighDegreeNodeThreshold,
+            PropertyValue::Integer(threshold),
+        )
+    }
+
+    pub fn set_high_degree_node_tree_height(&mut self, height: i64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::HighDegreeNodeTreeHeight,
+            PropertyValue::Integer(height),
+        )
     }
 
     pub fn set_hierarchy_handling(
@@ -1120,6 +1136,20 @@ impl Properties {
         self.bool_option(
             CoreOption::HighDegreeNodeTreatment,
             "high degree node treatment",
+        )
+    }
+
+    pub fn high_degree_node_threshold(&self) -> Option<i64> {
+        self.integer_option(
+            CoreOption::HighDegreeNodeThreshold,
+            "high degree node threshold",
+        )
+    }
+
+    pub fn high_degree_node_tree_height(&self) -> Option<i64> {
+        self.integer_option(
+            CoreOption::HighDegreeNodeTreeHeight,
+            "high degree node maximum tree height",
         )
     }
 
@@ -1726,6 +1756,20 @@ mod tests {
         );
         assert_eq!(properties.layer_id(), Some(7));
         assert_eq!(properties.layout_partition(), Some(3));
+    }
+
+    #[test]
+    fn high_degree_node_numeric_options_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.high_degree_node_threshold(), None);
+        assert_eq!(properties.high_degree_node_tree_height(), None);
+
+        properties.set_high_degree_node_threshold(16);
+        properties.set_high_degree_node_tree_height(5);
+
+        assert_eq!(properties.high_degree_node_threshold(), Some(16));
+        assert_eq!(properties.high_degree_node_tree_height(), Some(5));
     }
 
     #[test]

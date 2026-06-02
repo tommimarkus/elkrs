@@ -313,6 +313,16 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "High degree node treatment is parsed and diagnosed; high-degree layer assignment behavior is not implemented yet",
     ),
+    "org.eclipse.elk.layered.highDegreeNodes.threshold": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked high_degree_node_numeric`; `cargo test -p elkrs-layered --test basic_layout --locked high_degree_node_numeric`; `cargo test -p elkrs-json --test json_partitions --locked high_degree_node_numeric`; `cargo test -p elkrs-json --test json_errors --locked high_degree_numeric`",
+        "High degree node threshold is parsed and diagnosed; high-degree layer assignment behavior is not implemented yet",
+    ),
+    "org.eclipse.elk.layered.highDegreeNodes.treeHeight": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked high_degree_node_numeric`; `cargo test -p elkrs-layered --test basic_layout --locked high_degree_node_numeric`; `cargo test -p elkrs-json --test json_partitions --locked high_degree_node_numeric`; `cargo test -p elkrs-json --test json_errors --locked high_degree_numeric`",
+        "High degree node maximum tree height is parsed and diagnosed; high-degree tree layer assignment behavior is not implemented yet",
+    ),
     "org.eclipse.elk.layered.layering.coffmanGraham.layerBound": (
         "diagnostic",
         "`cargo test -p elkrs-core --locked layer_assignment_options`; `cargo test -p elkrs-layered --test basic_layout --locked layer_assignment`; `cargo test -p elkrs-json --test json_partitions --locked layer_assignment`; `cargo test -p elkrs-json --test json_errors --locked layer_assignment`",

@@ -1908,6 +1908,40 @@ fn layered_layout_reports_unsupported_alignment_and_aspect_ratio_options() {
 }
 
 #[test]
+fn layered_layout_reports_unsupported_high_degree_node_numeric_options() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_high_degree_node_threshold(16);
+    graph.properties.set_high_degree_node_tree_height(5);
+    let mut child = node("child", 60.0, 30.0);
+    child.properties.set_high_degree_node_threshold(9);
+    child.properties.set_high_degree_node_tree_height(3);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    for (name, value, node_id) in [
+        ("high degree node threshold", "16", None),
+        ("high degree node maximum tree height", "5", None),
+        ("high degree node threshold", "9", Some("child")),
+        ("high degree node maximum tree height", "3", Some("child")),
+    ] {
+        assert!(
+            report.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+                    && diagnostic.severity == Severity::Warning
+                    && diagnostic.message.contains(name)
+                    && diagnostic.message.contains(value)
+                    && match node_id {
+                        Some(node_id) => diagnostic.message.contains(node_id),
+                        None => true,
+                    }
+            }),
+            "{name} {value} {node_id:?}"
+        );
+    }
+}
+
+#[test]
 fn layered_layout_reports_unsupported_parent_boolean_options() {
     for (name, setter) in parent_boolean_option_cases() {
         let mut graph = ElkGraph::new("root");

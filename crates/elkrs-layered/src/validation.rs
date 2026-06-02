@@ -667,6 +667,20 @@ fn collect_unsupported_layer_assignment_diagnostics(
             node_id,
         ));
     }
+    if let Some(threshold) = properties.high_degree_node_threshold() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "high degree node threshold",
+            threshold,
+            node_id,
+        ));
+    }
+    if let Some(height) = properties.high_degree_node_tree_height() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "high degree node maximum tree height",
+            height,
+            node_id,
+        ));
+    }
 }
 
 fn unsupported_node_layering_strategy_diagnostic(
