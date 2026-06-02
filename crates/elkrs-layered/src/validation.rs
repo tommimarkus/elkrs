@@ -50,6 +50,10 @@ const NODE_UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
         "layer unzipping minimize edge length",
     ),
     (
+        CoreOption::LayerUnzippingResetOnLongEdges,
+        "layer unzipping reset on long edges",
+    ),
+    (
         CoreOption::PortLabelsNextToPortIfPossible,
         "port labels next to port if possible",
     ),

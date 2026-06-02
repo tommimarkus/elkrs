@@ -181,6 +181,11 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
         "Layer unzipping minimize-edge-length is parsed and diagnosed; layer unzipping semantics are not implemented yet",
     ),
+    "org.eclipse.elk.layered.layerUnzipping.resetOnLongEdges": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
+        "Layer unzipping reset-on-long-edges is parsed and diagnosed; layer unzipping semantics are not implemented yet",
+    ),
     "org.eclipse.elk.layered.mergeEdges": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",

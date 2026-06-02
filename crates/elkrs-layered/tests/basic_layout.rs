@@ -1173,7 +1173,7 @@ fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 14] {
     ]
 }
 
-fn node_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 7] {
+fn node_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 8] {
     [
         ("comment box", Properties::set_comment_box),
         ("hypernode", Properties::set_hypernode),
@@ -1183,6 +1183,10 @@ fn node_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 7] {
         (
             "layer unzipping minimize edge length",
             Properties::set_layer_unzipping_minimize_edge_length,
+        ),
+        (
+            "layer unzipping reset on long edges",
+            Properties::set_layer_unzipping_reset_on_long_edges,
         ),
         (
             "port labels next to port if possible",

@@ -86,6 +86,7 @@ pub enum CoreOption {
     InsideSelfLoops,
     InteractiveLayout,
     LayerUnzippingMinimizeEdgeLength,
+    LayerUnzippingResetOnLongEdges,
     LayoutPartitioning,
     MergeEdges,
     NoLayout,
@@ -205,6 +206,13 @@ impl Properties {
         enabled: bool,
     ) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::LayerUnzippingMinimizeEdgeLength, enabled)
+    }
+
+    pub fn set_layer_unzipping_reset_on_long_edges(
+        &mut self,
+        enabled: bool,
+    ) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::LayerUnzippingResetOnLongEdges, enabled)
     }
 
     pub fn set_layout_partitioning(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -467,6 +475,13 @@ impl Properties {
         )
     }
 
+    pub fn layer_unzipping_reset_on_long_edges(&self) -> bool {
+        self.bool_option(
+            CoreOption::LayerUnzippingResetOnLongEdges,
+            "layer unzipping reset on long edges",
+        )
+    }
+
     pub fn layout_partitioning(&self) -> bool {
         self.bool_option(CoreOption::LayoutPartitioning, "layout partitioning")
     }
@@ -668,6 +683,7 @@ mod tests {
         assert!(!properties.no_model_order());
         assert!(!properties.no_layout());
         assert!(!properties.layer_unzipping_minimize_edge_length());
+        assert!(!properties.layer_unzipping_reset_on_long_edges());
         assert!(!properties.port_labels_next_to_port_if_possible());
 
         properties.set_comment_box(true);
@@ -676,6 +692,7 @@ mod tests {
         properties.set_no_model_order(true);
         properties.set_no_layout(true);
         properties.set_layer_unzipping_minimize_edge_length(true);
+        properties.set_layer_unzipping_reset_on_long_edges(true);
         properties.set_port_labels_next_to_port_if_possible(true);
 
         assert!(properties.comment_box());
@@ -684,6 +701,7 @@ mod tests {
         assert!(properties.no_model_order());
         assert!(properties.no_layout());
         assert!(properties.layer_unzipping_minimize_edge_length());
+        assert!(properties.layer_unzipping_reset_on_long_edges());
         assert!(properties.port_labels_next_to_port_if_possible());
     }
 

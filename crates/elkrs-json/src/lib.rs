@@ -36,6 +36,8 @@ const INSIDE_SELF_LOOPS_KEY: &str = "org.eclipse.elk.insideSelfLoops.activate";
 const INTERACTIVE_LAYOUT_KEY: &str = "org.eclipse.elk.interactiveLayout";
 const LAYER_UNZIPPING_MINIMIZE_EDGE_LENGTH_KEY: &str =
     "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength";
+const LAYER_UNZIPPING_RESET_ON_LONG_EDGES_KEY: &str =
+    "org.eclipse.elk.layered.layerUnzipping.resetOnLongEdges";
 const LAYOUT_PARTITIONING_KEY: &str = "org.eclipse.elk.partitioning.activate";
 const MERGE_EDGES_KEY: &str = "org.eclipse.elk.layered.mergeEdges";
 const NO_LAYOUT_KEY: &str = "org.eclipse.elk.noLayout";
@@ -796,6 +798,10 @@ fn apply_node_layout_options(
                 node.properties
                     .set_layer_unzipping_minimize_edge_length(boolean(value, key)?);
             }
+            LAYER_UNZIPPING_RESET_ON_LONG_EDGES_KEY => {
+                node.properties
+                    .set_layer_unzipping_reset_on_long_edges(boolean(value, key)?);
+            }
             LAYOUT_PARTITIONING_KEY => {
                 node.properties
                     .set_layout_partitioning(boolean(value, key)?);
@@ -938,6 +944,12 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         &node.properties,
         CoreOption::LayerUnzippingMinimizeEdgeLength,
         LAYER_UNZIPPING_MINIMIZE_EDGE_LENGTH_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::LayerUnzippingResetOnLongEdges,
+        LAYER_UNZIPPING_RESET_ON_LONG_EDGES_KEY,
     );
     insert_boolean_option(
         &mut options,
