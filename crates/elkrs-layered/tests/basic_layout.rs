@@ -7,8 +7,8 @@ use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CrossingMinimizationStrategy, Direction,
     EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
-    LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy, PortAlignment,
-    PortConstraints, PortSide, Properties, PropertyValue,
+    LayerUnzippingStrategy, LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy,
+    PortAlignment, PortConstraints, PortSide, Properties, PropertyValue,
 };
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
@@ -1957,6 +1957,37 @@ fn layered_layout_reports_unsupported_layer_unzipping_layer_split() {
             && diagnostic.message.contains("3")
             && diagnostic.message.contains("child")
     }));
+}
+
+#[test]
+fn layered_layout_reports_unsupported_layer_unzipping_strategy() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_layer_unzipping_strategy(LayerUnzippingStrategy::Alternating);
+    let mut child = node("child", 60.0, 30.0);
+    child
+        .properties
+        .set_layer_unzipping_strategy(LayerUnzippingStrategy::Alternating);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    for node_id in [None, Some("child")] {
+        assert!(
+            report.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+                    && diagnostic.severity == Severity::Warning
+                    && diagnostic.message.contains("layer unzipping strategy")
+                    && diagnostic.message.contains("Alternating")
+                    && match node_id {
+                        Some(node_id) => diagnostic.message.contains(node_id),
+                        None => true,
+                    }
+            }),
+            "{node_id:?}"
+        );
+    }
 }
 
 #[test]

@@ -4,8 +4,8 @@ use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
     EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
-    LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy, PortAlignment,
-    PortConstraints, Properties, PropertyValue,
+    LayerUnzippingStrategy, LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy,
+    PortAlignment, PortConstraints, Properties, PropertyValue,
 };
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
@@ -674,6 +674,14 @@ fn collect_unsupported_layer_assignment_diagnostics(
             node_id,
         ));
     }
+    match properties.layer_unzipping_strategy() {
+        None | Some(LayerUnzippingStrategy::None) => {}
+        Some(strategy) => {
+            diagnostics.push(unsupported_layer_unzipping_strategy_diagnostic(
+                strategy, node_id,
+            ));
+        }
+    }
     if let Some(threshold) = properties.high_degree_node_threshold() {
         diagnostics.push(unsupported_integer_option_diagnostic(
             "high degree node threshold",
@@ -717,6 +725,22 @@ fn unsupported_layer_constraint_diagnostic(
     } else {
         format!(
             "layer constraint {constraint:?} is recognized but not implemented by elkrs-layered yet"
+        )
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
+fn unsupported_layer_unzipping_strategy_diagnostic(
+    strategy: LayerUnzippingStrategy,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "layer unzipping strategy {strategy:?} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!(
+            "layer unzipping strategy {strategy:?} is recognized but not implemented by elkrs-layered yet"
         )
     };
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)

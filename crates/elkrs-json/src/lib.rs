@@ -9,8 +9,8 @@ use elkrs_core::graph::{
 use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
     Direction, EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
-    LayerConstraint, LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy,
-    PortAlignment, PortConstraints, PortSide, PropertyValue,
+    LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy, ModelOrderStrategy,
+    NodeLayeringStrategy, PortAlignment, PortConstraints, PortSide, PropertyValue,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -98,6 +98,7 @@ const LAYER_UNZIPPING_MINIMIZE_EDGE_LENGTH_KEY: &str =
     "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength";
 const LAYER_UNZIPPING_RESET_ON_LONG_EDGES_KEY: &str =
     "org.eclipse.elk.layered.layerUnzipping.resetOnLongEdges";
+const LAYER_UNZIPPING_STRATEGY_KEY: &str = "org.eclipse.elk.layered.layerUnzipping.strategy";
 const LAYOUT_PARTITION_KEY: &str = "org.eclipse.elk.partitioning.partition";
 const LAYOUT_PARTITIONING_KEY: &str = "org.eclipse.elk.partitioning.activate";
 const MERGE_EDGES_KEY: &str = "org.eclipse.elk.layered.mergeEdges";
@@ -588,6 +589,13 @@ fn apply_layout_options(
             LAYERING_STRATEGY_KEY => graph
                 .properties
                 .set_layering_strategy(parse_node_layering_strategy(value, key)?),
+            LAYER_UNZIPPING_STRATEGY_KEY => {
+                if let Some(strategy) = parse_layer_unzipping_strategy(value, key)? {
+                    graph.properties.set_layer_unzipping_strategy(strategy)
+                } else {
+                    None
+                }
+            }
             LAYER_BOUND_KEY => graph.properties.set_layer_bound(integer(value, key)?),
             LAYOUT_PARTITION_KEY => graph.properties.set_layout_partition(integer(value, key)?),
             LAYOUT_PARTITIONING_KEY => graph
@@ -928,6 +936,14 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     }
     if let Some(PropertyValue::Integer(bound)) = graph.properties.get(CoreOption::LayerBound) {
         options.insert(LAYER_BOUND_KEY.to_string(), (*bound).into());
+    }
+    if let Some(PropertyValue::LayerUnzippingStrategy(strategy)) =
+        graph.properties.get(CoreOption::LayerUnzippingStrategy)
+    {
+        options.insert(
+            LAYER_UNZIPPING_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_layer_unzipping_strategy(*strategy).to_string()),
+        );
     }
     if let Some(PropertyValue::Integer(partition)) =
         graph.properties.get(CoreOption::LayoutPartition)
@@ -1301,6 +1317,11 @@ fn apply_node_layout_options(
             LAYER_UNZIPPING_RESET_ON_LONG_EDGES_KEY => {
                 node.properties
                     .set_layer_unzipping_reset_on_long_edges(boolean(value, key)?);
+            }
+            LAYER_UNZIPPING_STRATEGY_KEY => {
+                if let Some(strategy) = parse_layer_unzipping_strategy(value, key)? {
+                    node.properties.set_layer_unzipping_strategy(strategy);
+                }
             }
             LAYOUT_PARTITION_KEY => {
                 node.properties.set_layout_partition(integer(value, key)?);
@@ -1740,6 +1761,14 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         CoreOption::LayerUnzippingResetOnLongEdges,
         LAYER_UNZIPPING_RESET_ON_LONG_EDGES_KEY,
     );
+    if let Some(PropertyValue::LayerUnzippingStrategy(strategy)) =
+        node.properties.get(CoreOption::LayerUnzippingStrategy)
+    {
+        options.insert(
+            LAYER_UNZIPPING_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_layer_unzipping_strategy(*strategy).to_string()),
+        );
+    }
     if let Some(PropertyValue::Integer(partition)) =
         node.properties.get(CoreOption::LayoutPartition)
     {
@@ -2224,6 +2253,19 @@ fn parse_layer_constraint(
     }
 }
 
+fn parse_layer_unzipping_strategy(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<Option<LayerUnzippingStrategy>, JsonError> {
+    match string(value, key)? {
+        "ALTERNATING" => Ok(Some(LayerUnzippingStrategy::Alternating)),
+        "NONE" => Ok(None),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
 fn parse_hierarchy_handling(
     value: &serde_json::Value,
     key: &str,
@@ -2361,6 +2403,13 @@ fn format_layer_constraint(constraint: LayerConstraint) -> &'static str {
         LayerConstraint::Last => "LAST",
         LayerConstraint::LastSeparate => "LAST_SEPARATE",
         LayerConstraint::None => "NONE",
+    }
+}
+
+fn format_layer_unzipping_strategy(strategy: LayerUnzippingStrategy) -> &'static str {
+    match strategy {
+        LayerUnzippingStrategy::Alternating => "ALTERNATING",
+        LayerUnzippingStrategy::None => "NONE",
     }
 }
 

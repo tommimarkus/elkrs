@@ -154,6 +154,12 @@ pub enum HierarchyHandling {
     IncludeChildren,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LayerUnzippingStrategy {
+    Alternating,
+    None,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum PropertyValue {
     Bool(bool),
@@ -171,6 +177,7 @@ pub enum PropertyValue {
     GreedySwitchType(GreedySwitchType),
     HierarchyHandling(HierarchyHandling),
     LayerConstraint(LayerConstraint),
+    LayerUnzippingStrategy(LayerUnzippingStrategy),
     LongEdgeOrderingStrategy(LongEdgeOrderingStrategy),
     ModelOrderStrategy(ModelOrderStrategy),
     NodeLayeringStrategy(NodeLayeringStrategy),
@@ -233,6 +240,7 @@ pub enum CoreOption {
     LayerUnzippingLayerSplit,
     LayerUnzippingMinimizeEdgeLength,
     LayerUnzippingResetOnLongEdges,
+    LayerUnzippingStrategy,
     LayoutPartition,
     LayoutPartitioning,
     LongEdgeOrderingStrategy,
@@ -623,6 +631,16 @@ impl Properties {
         self.values.insert(
             CoreOption::LayerUnzippingLayerSplit,
             PropertyValue::Integer(split),
+        )
+    }
+
+    pub fn set_layer_unzipping_strategy(
+        &mut self,
+        strategy: LayerUnzippingStrategy,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::LayerUnzippingStrategy,
+            PropertyValue::LayerUnzippingStrategy(strategy),
         )
     }
 
@@ -1229,6 +1247,16 @@ impl Properties {
         )
     }
 
+    pub fn layer_unzipping_strategy(&self) -> Option<LayerUnzippingStrategy> {
+        match self.get(CoreOption::LayerUnzippingStrategy) {
+            Some(PropertyValue::LayerUnzippingStrategy(strategy)) => Some(*strategy),
+            Some(value) => {
+                unreachable!("layer unzipping strategy stored incompatible value: {value:?}")
+            }
+            _ => None,
+        }
+    }
+
     pub fn layer_unzipping_reset_on_long_edges(&self) -> bool {
         self.bool_option(
             CoreOption::LayerUnzippingResetOnLongEdges,
@@ -1782,6 +1810,20 @@ mod tests {
         properties.set_layer_unzipping_layer_split(2);
 
         assert_eq!(properties.layer_unzipping_layer_split(), Some(2));
+    }
+
+    #[test]
+    fn layer_unzipping_strategy_option_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.layer_unzipping_strategy(), None);
+
+        properties.set_layer_unzipping_strategy(LayerUnzippingStrategy::Alternating);
+
+        assert_eq!(
+            properties.layer_unzipping_strategy(),
+            Some(LayerUnzippingStrategy::Alternating)
+        );
     }
 
     #[test]

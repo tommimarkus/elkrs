@@ -3,8 +3,8 @@ use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPo
 use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
     Direction, EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
-    LayerConstraint, LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy,
-    PortAlignment, PortConstraints, PortSide, PropertyValue,
+    LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy, ModelOrderStrategy,
+    NodeLayeringStrategy, PortAlignment, PortConstraints, PortSide, PropertyValue,
 };
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
@@ -2653,6 +2653,78 @@ fn serializes_layer_unzipping_layer_split_with_java_key() {
     assert_eq!(
         node_options["org.eclipse.elk.layered.layerUnzipping.layerSplit"],
         Value::Number(3.into())
+    );
+}
+
+#[test]
+fn imports_layer_unzipping_strategy_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.layerUnzipping.strategy": "ALTERNATING"
+          },
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.layerUnzipping.strategy": "ALTERNATING"
+              }
+            },
+            {
+              "id": "unset",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.layerUnzipping.strategy": "NONE"
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.properties.get(CoreOption::LayerUnzippingStrategy),
+        Some(&PropertyValue::LayerUnzippingStrategy(
+            LayerUnzippingStrategy::Alternating
+        ))
+    );
+    let node = &graph.nodes[&ElementId::from("node")];
+    assert_eq!(
+        node.properties.get(CoreOption::LayerUnzippingStrategy),
+        Some(&PropertyValue::LayerUnzippingStrategy(
+            LayerUnzippingStrategy::Alternating
+        ))
+    );
+    let unset = &graph.nodes[&ElementId::from("unset")];
+    assert_eq!(
+        unset.properties.get(CoreOption::LayerUnzippingStrategy),
+        None
+    );
+}
+
+#[test]
+fn serializes_layer_unzipping_strategy_with_java_key() {
+    let mut node = ElkNode::new("node");
+    node.properties
+        .set_layer_unzipping_strategy(LayerUnzippingStrategy::Alternating);
+
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_layer_unzipping_strategy(LayerUnzippingStrategy::Alternating);
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let graph_options = &json["layoutOptions"];
+    assert_eq!(
+        graph_options["org.eclipse.elk.layered.layerUnzipping.strategy"],
+        Value::String("ALTERNATING".to_owned())
+    );
+
+    let node_options = &json["children"][0]["layoutOptions"];
+    assert_eq!(
+        node_options["org.eclipse.elk.layered.layerUnzipping.strategy"],
+        Value::String("ALTERNATING".to_owned())
     );
 }
 

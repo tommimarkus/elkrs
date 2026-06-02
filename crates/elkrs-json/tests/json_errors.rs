@@ -1118,6 +1118,37 @@ fn layer_unzipping_layer_split_non_positive_option_returns_invalid_error() {
     );
 }
 
+#[test]
+fn layer_unzipping_strategy_non_string_option_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.layerUnzipping.strategy": false
+          }
+        }"#,
+        "org.eclipse.elk.layered.layerUnzipping.strategy must be a string",
+    );
+}
+
+#[test]
+fn layer_unzipping_strategy_unsupported_value_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.layerUnzipping.strategy": "ZIP"
+              }
+            }
+          ]
+        }"#,
+        "unsupported org.eclipse.elk.layered.layerUnzipping.strategy value: ZIP",
+    );
+}
+
 fn assert_invalid_contains(input: &str, expected: &str) {
     let error = from_str(input).unwrap_err();
 
