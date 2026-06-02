@@ -54,7 +54,7 @@ const NODE_UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
 pub(crate) fn validate_options(graph: &ElkGraph) -> Result<Vec<Diagnostic>, LayoutError> {
     let mut diagnostics = validate_graph_properties(&graph.properties)?;
     for node in graph.nodes.values() {
-        collect_node_hierarchy_diagnostics(node, &mut diagnostics);
+        collect_node_hierarchy_diagnostics(node, &mut diagnostics)?;
     }
     Ok(diagnostics)
 }
@@ -196,7 +196,10 @@ fn unsupported_boolean_option_diagnostic(name: &str, node_id: Option<&str>) -> D
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
 
-fn collect_node_hierarchy_diagnostics(node: &ElkNode, diagnostics: &mut Vec<Diagnostic>) {
+fn collect_node_hierarchy_diagnostics(
+    node: &ElkNode,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Result<(), LayoutError> {
     collect_unsupported_boolean_option_diagnostics(
         &node.properties,
         Some(node.id.as_str()),
@@ -226,9 +229,15 @@ fn collect_node_hierarchy_diagnostics(node: &ElkNode, diagnostics: &mut Vec<Diag
             node.id.as_str(),
         )));
     }
+    validate_non_negative_spacing(
+        &node.properties,
+        CoreOption::SpacingPortPort,
+        &format!("port-port spacing on node {}", node.id.as_str()),
+    )?;
     for child in node.children.values() {
-        collect_node_hierarchy_diagnostics(child, diagnostics);
+        collect_node_hierarchy_diagnostics(child, diagnostics)?;
     }
+    Ok(())
 }
 
 fn unsupported_hierarchy_handling_diagnostic(node_id: Option<&str>) -> Diagnostic {

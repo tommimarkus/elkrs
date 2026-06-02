@@ -805,6 +805,23 @@ fn layered_layout_rejects_negative_label_and_port_spacing() {
     });
 }
 
+#[test]
+fn layered_layout_rejects_negative_node_port_port_spacing() {
+    let mut graph = ElkGraph::new("root");
+    let mut source = node("source", 60.0, 30.0);
+    source.properties.set_spacing_port_port(-1.0);
+    graph.add_node(source);
+
+    let error = LayeredLayout.layout(&mut graph).unwrap_err();
+
+    assert!(matches!(
+        error,
+        LayoutError::InvalidOption(message)
+            if message.contains("port-port spacing")
+                && message.contains("source")
+    ));
+}
+
 fn assert_negative_additional_spacing_rejected(name: &str, set_spacing: fn(&mut Properties)) {
     let mut graph = ElkGraph::new("root");
     set_spacing(&mut graph.properties);
