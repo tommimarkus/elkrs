@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "elkrs-core"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "indexmap",
  "thiserror",
@@ -12,7 +12,7 @@ dependencies = [
 
 [[package]]
 name = "elkrs-json"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "elkrs-core",
  "serde",
@@ -22,7 +22,7 @@ dependencies = [
 
 [[package]]
 name = "elkrs-layered"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "elkrs-core",
  "elkrs-json",

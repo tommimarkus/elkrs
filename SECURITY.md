@@ -2,7 +2,9 @@
 
 ## Supported Versions
 
-Security fixes are provided for the latest published `0.1.x` release line and the `main` branch.
+Until `1.0.0` is published, security fixes are provided for the `main` branch.
+After the first `1.0.x` release is published, security fixes are provided for
+the latest published `1.0.x` release line and the `main` branch.
 
 ## Reporting a Vulnerability
 
@@ -18,9 +20,9 @@ Expected response:
 
 ## Security Targets
 
-The initial `0.1.x` target is:
+The `1.0.x` release target is:
 
 - SCVS Level 1 for dependency, provenance, and release-evidence practices that apply to a Rust library crate.
 - SLSA Build Level 1 evidence for GitHub-built release artifacts.
 
-These targets do not claim full ELK feature parity, runtime deployment controls, or production service monitoring.
+These targets do not claim external plugin behavior, runtime deployment controls, or production service monitoring.

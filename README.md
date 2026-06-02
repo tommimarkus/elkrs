@@ -2,18 +2,18 @@
 
 elkrs is a Rust port of Eclipse Layout Kernel concepts and behavior.
 
-The first target is library-first strict clean-room ELK Layered behavior aligned with ELK v0.11.0.
+The 1.0.0 target is library-first strict clean-room ELK Layered behavior aligned with ELK v0.11.0.
 
 Downstream users adapt their own graph contracts.
 
 Current scope:
 
 - Rust graph, geometry, options, diagnostics, and layout error/report types
-- Initial `elkrs-layered` layout API with `LayeredLayout` and `LayoutAlgorithm`
-- Initial `elkrs-json` import/export API for a narrow ELK-style JSON subset
+- `elkrs-layered` layout API with `LayeredLayout` and `LayoutAlgorithm`
+- `elkrs-json` import/export API for the supported 1.0.0 ELK-style JSON contract
 - Opt-in Java ELK black-box comparison harness via `ELKRS_JAVA_ELK_COMMAND`
 - Consumer-shaped compound/port acceptance fixtures without downstream adapters
-- Typed direction, spacing, algorithm, routing, and hierarchy options for the initial supported subset
+- Typed direction, spacing, algorithm, routing, hierarchy, sizing, placement, crossing, layer-assignment, and port options for the supported contract
 - Diagnostics for recognized but unsupported `elkrs-layered` options
 - Deterministic, structurally valid layout for simple directed graphs, port-aware edge endpoints, and basic compound child nodes
 - Stable layer normalization across equivalent node insertion orders
@@ -26,13 +26,14 @@ Current scope:
 Security:
 
 - Vulnerability reporting and supported versions are documented in `SECURITY.md`.
-- The current `0.2.x` supply-chain target is SCVS Level 1 and SLSA Build Level 1 evidence for GitHub-built release artifacts.
+- The current `1.0.x` supply-chain target is SCVS Level 1 and SLSA Build Level 1 evidence for GitHub-built release artifacts.
 
 Not current scope:
 
 - Dediren adapter
 - CLI-first runtime
-- Full ELK algorithm coverage
+- ELK algorithms outside Layered
+- Matrix rows documented as 1.0.0 compatibility exclusions
 - Pixel-perfect Java coordinate parity
 - Copying Eclipse ELK implementation source
 
@@ -45,16 +46,18 @@ cargo test --workspace --locked
 cargo doc --workspace --locked --no-deps
 ```
 
+Cargo build artifacts are written under `.cache/cargo-target` by repo config.
+
 Distribution:
 
-- Version tags (`v0.2.0`, etc.) run the release workflow.
+- Version tags (`v1.0.0`, etc.) run the release workflow.
 - Current distribution is GitHub Releases and pinned Git dependencies, not
   crates.io.
 - Downstream Cargo projects can depend on a release tag, for example:
 
   ```toml
-  elkrs-json = { git = "https://github.com/tommimarkus/elkrs", tag = "v0.2.0" }
-  elkrs-layered = { git = "https://github.com/tommimarkus/elkrs", tag = "v0.2.0" }
+  elkrs-json = { git = "https://github.com/tommimarkus/elkrs", tag = "v1.0.0" }
+  elkrs-layered = { git = "https://github.com/tommimarkus/elkrs", tag = "v1.0.0" }
   ```
 
 - The release workflow attaches a source archive, source file manifests, SBOMs,
@@ -63,7 +66,7 @@ Distribution:
 Parity tracking:
 
 - ELK Layered parity is tracked in [docs/parity/elk-layered-v0.11.0.md](docs/parity/elk-layered-v0.11.0.md).
-- Current releases are narrow clean-room subsets until that matrix reaches `java-parity` for the included feature surface.
+- Release claims are limited to matrix rows marked `semantic` or `java-parity` and rows with documented 1.0.0 compatibility exclusions.
 
 The Java ELK parity harness is opt-in and ignored by default. Run it only when a
 Java ELK JSON command is available. This repository includes a pinned SDKMAN

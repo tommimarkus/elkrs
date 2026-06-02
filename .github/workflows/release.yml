@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       github_release:
-        description: "Create or update the GitHub Release assets. The selected ref must be a v* tag."
+        description: "Create GitHub Release assets. The selected ref must be a v* tag and the release must not already exist."
         required: false
         type: boolean
         default: false
@@ -100,7 +100,13 @@ jobs:
 
           version="${{ steps.version.outputs.version }}"
           dist_dir="target/elkrs-dist"
+          notes_file="docs/releases/${version}.md"
           mkdir -p "$dist_dir"
+
+          if [[ ! -f "$notes_file" ]]; then
+            echo "release notes file $notes_file is missing" >&2
+            exit 1
+          fi
 
           git ls-files > "$dist_dir/elkrs-source-files.txt"
           git ls-files crates/elkrs-core Cargo.lock Cargo.toml README.md LICENSE \
@@ -138,7 +144,7 @@ jobs:
         with:
           subject-path: target/elkrs-dist/elkrs-${{ steps.version.outputs.version }}-source.tar.gz
 
-      - name: Publish GitHub Release assets
+      - name: Create GitHub Release assets
         if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || github.event.inputs.github_release == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -146,11 +152,12 @@ jobs:
           set -euo pipefail
 
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" target/elkrs-dist/* --clobber
-          else
-            gh release create "$GITHUB_REF_NAME" \
-              target/elkrs-dist/* \
-              --verify-tag \
-              --title "elkrs $GITHUB_REF_NAME" \
-              --notes "elkrs source distribution artifacts."
+            echo "GitHub Release $GITHUB_REF_NAME already exists; refusing to mutate release assets" >&2
+            exit 1
           fi
+
+          gh release create "$GITHUB_REF_NAME" \
+            target/elkrs-dist/* \
+            --verify-tag \
+            --title "elkrs $GITHUB_REF_NAME" \
+            --notes-file "docs/releases/${{ steps.version.outputs.version }}.md"

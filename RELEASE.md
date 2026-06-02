@@ -7,7 +7,7 @@ GitHub Releases, or push release state without explicit release authority.
 
 Before publishing a release:
 
-1. Confirm `README.md`, `CLEANROOM.md`, `CONTRIBUTING.md`, and `CHANGELOG.md` match the actual supported behavior.
+1. Confirm `README.md`, `CLEANROOM.md`, `SECURITY.md`, `CHANGELOG.md`, and `docs/releases/<version>.md` match the actual supported behavior.
 2. Review `docs/parity/elk-layered-v0.11.0.md`. Release notes may claim only
    the matrix rows that are currently `semantic` or `java-parity`. Do not claim
    full ELK Layered parity until every included row is `java-parity`, or the row
@@ -40,20 +40,22 @@ Before publishing a release:
 6. Create and push an annotated version tag matching the crate versions:
 
    ```bash
-   git tag -a v0.2.0 -m "elkrs v0.2.0"
-   git push origin v0.2.0
+   git tag -a v1.0.0 -m "elkrs v1.0.0"
+   git push origin v1.0.0
    ```
 
    The `Release` workflow verifies the workspace, runs the Java parity oracle,
    creates a source archive, generates source manifests and SBOMs, attests the
-   source artifact, and creates or updates the GitHub Release assets.
+   source artifact, and creates the GitHub Release assets. The workflow uses
+   `docs/releases/<version>.md` as the GitHub Release notes file and refuses to
+   mutate an existing GitHub Release.
 
 Downstream Cargo consumers should use pinned Git dependencies until this project
 has a crates.io account and token:
 
 ```toml
-elkrs-json = { git = "https://github.com/tommimarkus/elkrs", tag = "v0.2.0" }
-elkrs-layered = { git = "https://github.com/tommimarkus/elkrs", tag = "v0.2.0" }
+elkrs-json = { git = "https://github.com/tommimarkus/elkrs", tag = "v1.0.0" }
+elkrs-layered = { git = "https://github.com/tommimarkus/elkrs", tag = "v1.0.0" }
 ```
 
 Do not publish if any release notes imply full ELK coverage, Dediren adapter support, CLI support, or Java coordinate parity.

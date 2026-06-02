@@ -1,6 +1,7 @@
 [package]
 name = "elkrs-core"
-version = "0.2.0"
+version = "1.0.0"
+publish = false
 description = "Core graph, geometry, option, diagnostic, and layout types for elkrs"
 edition.workspace = true
 license.workspace = true

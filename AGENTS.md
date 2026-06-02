@@ -25,8 +25,9 @@ Local-only direct `main` work is allowed only when explicitly authorized for the
 ## Build, Test, and Development Commands
 
 Tool caches should stay under workspace `.cache/` whenever the tool supports a
-project config or cache path flag. `.cargo/audit.toml` keeps the RustSec
-advisory DB under `.cache/cargo-audit`; install Cargo tools with
+project config or cache path flag. `.cargo/config.toml` keeps Cargo build
+artifacts under `.cache/cargo-target`, and `.cargo/audit.toml` keeps the
+RustSec advisory DB under `.cache/cargo-audit`; install Cargo tools with
 `--root .cache/cargo-install` and add `.cache/cargo-install/bin` to `PATH`.
 Run the default verification gate before sending changes:
 
