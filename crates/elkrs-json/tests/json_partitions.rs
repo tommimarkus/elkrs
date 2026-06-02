@@ -3274,6 +3274,101 @@ fn serializes_interactive_reference_point_with_java_key() {
     );
 }
 
+#[test]
+fn unrepresented_known_option_ids_are_ignored_and_not_reemitted() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.priority": 3,
+            "org.eclipse.elk.position": { "x": 1, "y": 2 },
+            "org.eclipse.elk.spacing.individual": true,
+            "org.eclipse.elk.spacing.portsSurrounding": {
+              "top": 1,
+              "left": 2,
+              "bottom": 3,
+              "right": 4
+            }
+          },
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.portLabels.placement": "INSIDE",
+                "org.eclipse.elk.layered.priority.direction": 7
+              },
+              "ports": [
+                {
+                  "id": "port",
+                  "layoutOptions": {
+                    "org.eclipse.elk.port.anchor": { "x": 0, "y": 0 },
+                    "org.eclipse.elk.portLabels.placement": "OUTSIDE"
+                  }
+                }
+              ]
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge",
+              "sources": ["node"],
+              "targets": ["node"],
+              "layoutOptions": {
+                "org.eclipse.elk.junctionPoints": [{ "x": 1, "y": 1 }],
+                "org.eclipse.elk.spacing.individual": false
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let json = serialized_value(&graph);
+    let graph_options = &json["layoutOptions"];
+    let node_options = &json["children"][0]["layoutOptions"];
+    let port_options = &json["children"][0]["ports"][0]["layoutOptions"];
+    let edge_options = &json["edges"][0]["layoutOptions"];
+
+    for key in [
+        "org.eclipse.elk.priority",
+        "org.eclipse.elk.position",
+        "org.eclipse.elk.spacing.individual",
+        "org.eclipse.elk.spacing.portsSurrounding",
+    ] {
+        assert!(
+            graph_options.get(key).is_none(),
+            "{key} should not be reemitted from graph layoutOptions"
+        );
+    }
+    for key in [
+        "org.eclipse.elk.portLabels.placement",
+        "org.eclipse.elk.layered.priority.direction",
+    ] {
+        assert!(
+            node_options.get(key).is_none(),
+            "{key} should not be reemitted from node layoutOptions"
+        );
+    }
+    for key in [
+        "org.eclipse.elk.port.anchor",
+        "org.eclipse.elk.portLabels.placement",
+    ] {
+        assert!(
+            port_options.get(key).is_none(),
+            "{key} should not be reemitted from port layoutOptions"
+        );
+    }
+    for key in [
+        "org.eclipse.elk.junctionPoints",
+        "org.eclipse.elk.spacing.individual",
+    ] {
+        assert!(
+            edge_options.get(key).is_none(),
+            "{key} should not be reemitted from edge layoutOptions"
+        );
+    }
+}
+
 fn serialized_value(graph: &ElkGraph) -> Value {
     serde_json::from_str(&to_string_pretty(graph).unwrap()).unwrap()
 }

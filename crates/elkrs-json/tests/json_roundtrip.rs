@@ -293,3 +293,113 @@ fn round_trips_node_and_edge_label_text() {
 
     assert_eq!(reparsed, graph);
 }
+
+#[test]
+fn unknown_json_fields_are_ignored_and_not_reemitted() {
+    let input = r#"{
+      "id": "root",
+      "unknownGraphField": "drop",
+      "layoutOptions": {
+        "elk.direction": "DOWN",
+        "org.eclipse.elk.unknownGraphOption": true
+      },
+      "children": [
+        {
+          "id": "node",
+          "unknownNodeField": "drop",
+          "layoutOptions": {
+            "org.eclipse.elk.noLayout": true,
+            "org.eclipse.elk.unknownNodeOption": "drop"
+          },
+          "labels": [
+            { "text": "Node label", "unknownLabelField": true }
+          ],
+          "ports": [
+            {
+              "id": "out",
+              "unknownPortField": "drop",
+              "layoutOptions": {
+                "org.eclipse.elk.port.side": "EAST",
+                "org.eclipse.elk.unknownPortOption": "drop"
+              }
+            }
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge",
+          "sources": ["out"],
+          "targets": ["node"],
+          "unknownEdgeField": "drop",
+          "layoutOptions": {
+            "org.eclipse.elk.edge.thickness": 2.5,
+            "org.eclipse.elk.unknownEdgeOption": "drop"
+          },
+          "labels": [
+            { "text": "Edge label", "unknownLabelField": false }
+          ],
+          "sections": [
+            {
+              "startPoint": { "x": 1, "y": 2, "unknownPointField": true },
+              "bendPoints": [{ "x": 3, "y": 4, "unknownPointField": true }],
+              "endPoint": { "x": 5, "y": 6, "unknownPointField": true },
+              "unknownSectionField": "drop"
+            }
+          ]
+        }
+      ]
+    }"#;
+
+    let graph = from_str(input).unwrap();
+    let output = to_string_pretty(&graph).unwrap();
+    let serialized: Value = serde_json::from_str(&output).unwrap();
+    let node = &serialized["children"][0];
+    let port = &node["ports"][0];
+    let edge = &serialized["edges"][0];
+    let node_label = &node["labels"][0];
+    let edge_label = &edge["labels"][0];
+    let section = &edge["sections"][0];
+
+    assert_eq!(
+        serialized["layoutOptions"]["org.eclipse.elk.direction"],
+        Value::String("DOWN".to_owned())
+    );
+    assert_eq!(
+        node["layoutOptions"]["org.eclipse.elk.noLayout"],
+        Value::Bool(true)
+    );
+    assert_eq!(
+        port["layoutOptions"]["org.eclipse.elk.port.side"],
+        Value::String("EAST".to_owned())
+    );
+    assert_eq!(
+        edge["layoutOptions"]["org.eclipse.elk.edge.thickness"],
+        Value::from(2.5)
+    );
+    assert_eq!(node_label["text"], Value::String("Node label".to_owned()));
+    assert_eq!(edge_label["text"], Value::String("Edge label".to_owned()));
+
+    assert!(serialized.get("unknownGraphField").is_none());
+    assert!(serialized["layoutOptions"]
+        .get("org.eclipse.elk.unknownGraphOption")
+        .is_none());
+    assert!(node.get("unknownNodeField").is_none());
+    assert!(node["layoutOptions"]
+        .get("org.eclipse.elk.unknownNodeOption")
+        .is_none());
+    assert!(node_label.get("unknownLabelField").is_none());
+    assert!(port.get("unknownPortField").is_none());
+    assert!(port["layoutOptions"]
+        .get("org.eclipse.elk.unknownPortOption")
+        .is_none());
+    assert!(edge.get("unknownEdgeField").is_none());
+    assert!(edge["layoutOptions"]
+        .get("org.eclipse.elk.unknownEdgeOption")
+        .is_none());
+    assert!(edge_label.get("unknownLabelField").is_none());
+    assert!(section.get("unknownSectionField").is_none());
+    assert!(section["startPoint"].get("unknownPointField").is_none());
+    assert!(section["bendPoints"][0].get("unknownPointField").is_none());
+    assert!(section["endPoint"].get("unknownPointField").is_none());
+}

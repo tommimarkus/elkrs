@@ -41,12 +41,12 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.commentBox": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
-        "Comment box is parsed and diagnosed; label-like placement semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: comment-box placement semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.debugMode": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked debug_mode`; `cargo test -p elkrs-json --test json_partitions --locked debug_mode`; `cargo test -p elkrs-json --test json_errors --locked debug_mode`",
-        "Debug mode is parsed and diagnosed; debug artifacts are not generated yet",
+        "1.0.0 compatibility exclusion: debug artifact generation is out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.direction": (
         "java-parity",
@@ -81,22 +81,22 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.layered.spacing.baseValue": (
         "parsed",
         "`cargo test -p elkrs-json --test json_partitions --locked additional_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_additional_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_additional_spacing`",
-        "Parsed and validated; spacing base-value semantics remain open",
+        "1.0.0 compatibility exclusion: spacing base-value scaling semantics are out of scope; the option is parsed and validated only",
     ),
     "org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers": (
         "parsed",
         "`cargo test -p elkrs-json --test json_partitions --locked layered_edge_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_layered_edge_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_layered_edge`",
-        "Parsed and validated; between-layer edge-edge routing semantics remain open",
+        "1.0.0 compatibility exclusion: between-layer edge-edge routing semantics are out of scope; the option is parsed and validated only",
     ),
     "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers": (
         "parsed",
         "`cargo test -p elkrs-json --test json_partitions --locked layered_edge_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_layered_edge_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_layered_edge`",
-        "Parsed and validated; between-layer edge-node routing semantics remain open",
+        "1.0.0 compatibility exclusion: between-layer edge-node routing semantics are out of scope; the option is parsed and validated only",
     ),
     "org.eclipse.elk.layered.wrapping.additionalEdgeSpacing": (
         "parsed",
         "`cargo test -p elkrs-json --test json_partitions --locked additional_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_additional_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_additional_spacing`",
-        "Parsed and validated; wrapping edge spacing semantics remain open",
+        "1.0.0 compatibility exclusion: graph-wrapping edge spacing semantics are out of scope; the option is parsed and validated only",
     ),
     "org.eclipse.elk.layered.wrapping.correctionFactor": (
         "unsupported",
@@ -226,7 +226,7 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.interactiveLayout": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
-        "Interactive layout is parsed and diagnosed; interactive placement constraints are not implemented yet",
+        "1.0.0 compatibility exclusion: interactive placement constraints are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.layered.compaction.connectedComponents": (
         "diagnostic",
@@ -411,7 +411,12 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.layered.feedbackEdges": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked feedback_edges`; `cargo test -p elkrs-json --test json_partitions --locked feedback_edges`; `cargo test -p elkrs-json --test json_errors --locked feedback_edges`",
-        "Feedback-edge highlighting is parsed and diagnosed; cycle-breaking strategy semantics remain open",
+        "1.0.0 compatibility exclusion: feedback-edge highlighting and cycle-breaking strategy semantics are out of scope; the option is parsed, serialized, and diagnosed only",
+    ),
+    "org.eclipse.elk.layered.cycleBreaking.strategy": (
+        "unsupported",
+        "No public cycle-breaking strategy option model yet",
+        "1.0.0 compatibility exclusion: alternate cycle-breaking strategy semantics are out of scope; feedback-edge options are parsed and diagnosed separately",
     ),
     "org.eclipse.elk.layered.directionCongruency": (
         "unsupported",
@@ -441,7 +446,7 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.layered.interactiveReferencePoint": (
         "diagnostic",
         "`cargo test -p elkrs-core --locked interactive_reference_point`; `cargo test -p elkrs-layered --test basic_layout --locked interactive_reference_point`; `cargo test -p elkrs-json --test json_partitions --locked interactive_reference_point`; `cargo test -p elkrs-json --test json_errors --locked interactive_reference_point`",
-        "Interactive reference points are parsed and diagnosed; interactive placement reference semantics are not implemented yet",
+        "1.0.0 compatibility exclusion: interactive placement reference semantics are out of scope; the option is parsed, serialized, and diagnosed only",
     ),
     "org.eclipse.elk.layered.layering.coffmanGraham.layerBound": (
         "diagnostic",
@@ -651,7 +656,7 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.port.side": (
         "java-parity",
         '`cargo test -p elkrs-json --test json_partitions --locked port_side`, `cargo test -p elkrs-json --test json_errors --locked port_side`, `cargo test -p elkrs-layered --test quality --locked port_heavy_fixture_preserves_port_anchor_fidelity`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
-        "Complete for explicit port side anchors; broader port constraints remain open",
+        "Complete for explicit port side anchors; fixed-order, fixed-position, alignment, offset, sorting, and surrounding port-space semantics are documented 1.0.0 compatibility exclusions",
     ),
     "org.eclipse.elk.portLabels.nextToPortIfPossible": (
         "diagnostic",
@@ -721,7 +726,7 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.noLayout": (
         "semantic",
         "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_preserves_no_layout_node_position`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
-        "Node no-layout preserves input node coordinates; edge, label, and port target semantics remain deferred to the edge, label, port, and JSON delivery queues because the full metadata row targets EDGES, LABELS, NODES, and PORTS",
+        "1.0.0 compatibility exclusion: edge, label, and port no-layout targets are out of scope; node no-layout is parsed, serialized, and preserves input node coordinates",
     ),
     "org.eclipse.elk.separateConnectedComponents": (
         "diagnostic",

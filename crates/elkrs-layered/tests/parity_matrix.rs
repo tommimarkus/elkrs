@@ -532,6 +532,143 @@ fn routing_variant_rows_document_compatibility_boundaries() {
 }
 
 #[test]
+fn json_contract_rows_are_closed_for_supported_surface() {
+    for row_id in ["LAYERED-JSON-001", "LAYERED-JSON-002"] {
+        assert_eq!(
+            row_status(PARITY_MATRIX, row_id),
+            Some("semantic"),
+            "{row_id} should be semantic for the supported Rust JSON contract"
+        );
+        let proof =
+            row_current_proof(PARITY_MATRIX, row_id).unwrap_or_else(|| panic!("{row_id} row"));
+        assert!(
+            proof.contains("elkrs-json"),
+            "{row_id} should cite elkrs-json evidence"
+        );
+        let next_plan =
+            row_next_plan(PARITY_MATRIX, row_id).unwrap_or_else(|| panic!("{row_id} row"));
+        assert!(
+            next_plan.contains("Complete for supported 1.0.0 JSON contract"),
+            "{row_id} should close the supported JSON contract"
+        );
+        for stale in ["deferred", "open", "#45", "plan"] {
+            assert!(
+                !next_plan.contains(stale),
+                "{row_id} should not keep stale {stale:?} closeout wording"
+            );
+        }
+    }
+}
+
+#[test]
+fn json_contract_diagnostic_rows_cite_json_evidence() {
+    for row_id in [
+        "LAYERED-P1-002",
+        "LAYERED-META-OPTION-003",
+        "LAYERED-META-OPTION-005",
+        "LAYERED-META-OPTION-015",
+        "LAYERED-META-OPTION-061",
+        "LAYERED-META-OPTION-088",
+        "LAYERED-META-OPTION-089",
+        "LAYERED-META-OPTION-090",
+        "LAYERED-META-OPTION-094",
+        "LAYERED-META-OPTION-106",
+        "LAYERED-META-OPTION-119",
+    ] {
+        let proof =
+            row_current_proof(PARITY_MATRIX, row_id).unwrap_or_else(|| panic!("{row_id} row"));
+        assert!(
+            proof.contains("elkrs-json"),
+            "{row_id} should cite JSON import/export or validation evidence"
+        );
+        let next_plan =
+            row_next_plan(PARITY_MATRIX, row_id).unwrap_or_else(|| panic!("{row_id} row"));
+        assert!(
+            next_plan.contains("1.0.0 compatibility exclusion")
+                || next_plan.contains("Complete for supported 1.0.0 JSON contract"),
+            "{row_id} should be closed by a compatibility exclusion or supported JSON contract"
+        );
+        for stale in [
+            "not implemented yet",
+            "semantics remain open",
+            "broader",
+            "deferred",
+        ] {
+            assert!(
+                !next_plan.contains(stale),
+                "{row_id} should not keep stale {stale:?} wording"
+            );
+        }
+    }
+}
+
+#[test]
+fn json_contract_unsupported_rows_document_exclusions() {
+    for row_id in [
+        "LAYERED-GRAPH-004",
+        "LAYERED-GRAPH-010",
+        "LAYERED-P4-002",
+        "LAYERED-P5-006",
+        "LAYERED-META-FEATURE-001",
+        "LAYERED-META-FEATURE-004",
+        "LAYERED-META-OPTION-004",
+        "LAYERED-META-OPTION-008",
+        "LAYERED-META-OPTION-009",
+        "LAYERED-META-OPTION-016",
+        "LAYERED-META-OPTION-019",
+        "LAYERED-META-OPTION-020",
+        "LAYERED-META-OPTION-047",
+        "LAYERED-META-OPTION-048",
+        "LAYERED-META-OPTION-049",
+        "LAYERED-META-OPTION-050",
+        "LAYERED-META-OPTION-051",
+        "LAYERED-META-OPTION-052",
+        "LAYERED-META-OPTION-053",
+        "LAYERED-META-OPTION-054",
+        "LAYERED-META-OPTION-055",
+        "LAYERED-META-OPTION-077",
+        "LAYERED-META-OPTION-078",
+        "LAYERED-META-OPTION-080",
+        "LAYERED-META-OPTION-081",
+        "LAYERED-META-OPTION-082",
+        "LAYERED-META-OPTION-083",
+        "LAYERED-META-OPTION-084",
+        "LAYERED-META-OPTION-085",
+        "LAYERED-META-OPTION-086",
+        "LAYERED-META-OPTION-087",
+        "LAYERED-META-OPTION-095",
+        "LAYERED-META-OPTION-096",
+        "LAYERED-META-OPTION-097",
+        "LAYERED-META-OPTION-098",
+        "LAYERED-META-OPTION-099",
+        "LAYERED-META-OPTION-102",
+        "LAYERED-META-OPTION-103",
+        "LAYERED-META-OPTION-104",
+        "LAYERED-META-OPTION-105",
+        "LAYERED-META-OPTION-107",
+        "LAYERED-META-OPTION-112",
+        "LAYERED-META-OPTION-113",
+        "LAYERED-META-OPTION-116",
+        "LAYERED-META-OPTION-127",
+        "LAYERED-META-OPTION-129",
+        "LAYERED-META-OPTION-130",
+        "LAYERED-META-OPTION-139",
+        "LAYERED-META-OPTION-147",
+        "LAYERED-META-OPTION-148",
+        "LAYERED-META-OPTION-149",
+        "LAYERED-META-OPTION-150",
+        "LAYERED-META-OPTION-151",
+    ] {
+        let next_plan =
+            row_next_plan(PARITY_MATRIX, row_id).unwrap_or_else(|| panic!("{row_id} row"));
+        assert!(
+            next_plan.contains("1.0.0 compatibility exclusion"),
+            "{row_id} should document the JSON compatibility exclusion"
+        );
+    }
+}
+
+#[test]
 fn crossing_constraint_rows_document_compatibility_boundaries() {
     for row_id in [
         "LAYERED-P3-002",
@@ -642,6 +779,21 @@ fn row_status<'a>(matrix: &'a str, row_id: &str) -> Option<&'a str> {
         columns.next()?;
         columns.next()?;
         Some(columns.next()?.trim_matches('`'))
+    })
+}
+
+fn row_current_proof<'a>(matrix: &'a str, row_id: &str) -> Option<&'a str> {
+    matrix.lines().find_map(|line| {
+        let mut columns = line.split('|').map(str::trim);
+        columns.next()?;
+        let id = columns.next()?;
+        if id != row_id {
+            return None;
+        }
+        columns.next()?;
+        columns.next()?;
+        columns.next()?;
+        columns.next()
     })
 }
 
