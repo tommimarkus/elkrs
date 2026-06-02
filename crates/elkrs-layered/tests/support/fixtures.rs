@@ -469,6 +469,13 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             assertions: &[],
         },
         ParityFixture {
+            id: "LAYERED-META-FEATURE-005",
+            name: "multi-edges-feature",
+            status: ParityFixtureStatus::JavaComparable,
+            build: multi_edge_pair,
+            assertions: &[],
+        },
+        ParityFixture {
             id: "LAYERED-OPT-006",
             name: "edge-edge-spacing-parallel-edges",
             status: ParityFixtureStatus::JavaComparable,
@@ -554,6 +561,13 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
         ParityFixture {
             id: "LAYERED-GRAPH-003",
             name: "self-loop",
+            status: ParityFixtureStatus::JavaComparable,
+            build: self_loop,
+            assertions: &[],
+        },
+        ParityFixture {
+            id: "LAYERED-META-FEATURE-007",
+            name: "self-loops-feature",
             status: ParityFixtureStatus::JavaComparable,
             build: self_loop,
             assertions: &[],
@@ -707,6 +721,13 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             assertions: &[],
         },
         ParityFixture {
+            id: "LAYERED-META-FEATURE-002",
+            name: "compound-feature",
+            status: ParityFixtureStatus::JavaComparable,
+            build: nested_group,
+            assertions: &[],
+        },
+        ParityFixture {
             id: "LAYERED-P4-001",
             name: "basic-non-overlap",
             status: ParityFixtureStatus::JavaComparable,
@@ -723,6 +744,13 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
         ParityFixture {
             id: "LAYERED-P5-002",
             name: "port-heavy",
+            status: ParityFixtureStatus::JavaComparable,
+            build: port_heavy,
+            assertions: &[],
+        },
+        ParityFixture {
+            id: "LAYERED-META-FEATURE-006",
+            name: "ports-feature",
             status: ParityFixtureStatus::JavaComparable,
             build: port_heavy,
             assertions: &[],

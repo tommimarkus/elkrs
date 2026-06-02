@@ -307,8 +307,8 @@ FEATURE_OVERRIDES = {
     ),
     "COMPOUND": (
         "java-parity",
-        '`cargo test -p elkrs-layered --test quality --locked nested_group_fixture_has_contained_children` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
-        "Complete for nested containment semantics",
+        '`cargo test -p elkrs-layered --test quality --locked nested_group_fixture_has_contained_children`; `cargo test -p elkrs-layered --test parity_matrix --locked graph_feature_metadata_rows_have_java_fixture_evidence`; plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for Java-backed nested containment semantics",
     ),
     "EDGE_LABELS": (
         "parsed",
@@ -327,18 +327,18 @@ FEATURE_OVERRIDES = {
     ),
     "MULTI_EDGES": (
         "java-parity",
-        '`ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
-        "Complete",
+        '`cargo test -p elkrs-layered --test parity_matrix --locked graph_feature_metadata_rows_have_java_fixture_evidence`; plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for Java-backed multi-edge fixture",
     ),
     "PORTS": (
         "java-parity",
-        '`cargo test -p elkrs-layered --test quality --locked port_heavy_fixture_preserves_port_anchor_fidelity` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
-        "Complete for explicit port endpoint anchors",
+        '`cargo test -p elkrs-layered --test quality --locked port_heavy_fixture_preserves_port_anchor_fidelity`; `cargo test -p elkrs-layered --test parity_matrix --locked graph_feature_metadata_rows_have_java_fixture_evidence`; plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for Java-backed explicit port endpoint anchors",
     ),
     "SELF_LOOPS": (
         "java-parity",
-        '`ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
-        "Complete",
+        '`cargo test -p elkrs-layered --test parity_matrix --locked graph_feature_metadata_rows_have_java_fixture_evidence`; plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for Java-backed self-loop fixture",
     ),
 }
 
