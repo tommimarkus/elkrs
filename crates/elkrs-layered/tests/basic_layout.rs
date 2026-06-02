@@ -5,8 +5,8 @@ use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
-    Algorithm, Direction, EdgeRouting, HierarchyHandling, PortConstraints, PortSide, Properties,
-    PropertyValue,
+    Algorithm, Direction, EdgeRouting, HierarchyHandling, PortAlignment, PortConstraints, PortSide,
+    Properties, PropertyValue,
 };
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
@@ -1134,6 +1134,29 @@ fn layered_layout_accepts_free_and_undefined_port_constraints_without_diagnostic
 }
 
 #[test]
+fn layered_layout_reports_node_unsupported_port_alignment_options() {
+    for (name, setter) in port_alignment_option_cases() {
+        let mut graph = ElkGraph::new("root");
+        let mut child = node("child", 60.0, 30.0);
+        setter(&mut child.properties, PortAlignment::Justified);
+        graph.add_node(child);
+
+        let report = LayeredLayout.layout(&mut graph).unwrap();
+
+        assert!(
+            report.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+                    && diagnostic.severity == Severity::Warning
+                    && diagnostic.message.contains(name)
+                    && diagnostic.message.contains("Justified")
+                    && diagnostic.message.contains("child")
+            }),
+            "{name}"
+        );
+    }
+}
+
+#[test]
 fn layered_layout_reports_unsupported_debug_mode() {
     let mut graph = ElkGraph::new("root");
     graph.properties.set_debug_mode(true);
@@ -1343,6 +1366,7 @@ fn node(id: &str, width: f64, height: f64) -> ElkNode {
 }
 
 type BoolOptionSetter = fn(&mut Properties, bool) -> Option<PropertyValue>;
+type PortAlignmentSetter = fn(&mut Properties, PortAlignment) -> Option<PropertyValue>;
 
 fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 17] {
     [
@@ -1415,6 +1439,19 @@ fn node_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 8] {
             "port labels treat as group",
             Properties::set_port_labels_treat_as_group,
         ),
+    ]
+}
+
+fn port_alignment_option_cases() -> [(&'static str, PortAlignmentSetter); 5] {
+    [
+        (
+            "port alignment default",
+            Properties::set_port_alignment_default,
+        ),
+        ("port alignment east", Properties::set_port_alignment_east),
+        ("port alignment north", Properties::set_port_alignment_north),
+        ("port alignment south", Properties::set_port_alignment_south),
+        ("port alignment west", Properties::set_port_alignment_west),
     ]
 }
 

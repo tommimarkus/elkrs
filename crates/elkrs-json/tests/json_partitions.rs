@@ -1,8 +1,8 @@
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::options::{
-    Algorithm, CoreOption, Direction, EdgeRouting, HierarchyHandling, PortConstraints, PortSide,
-    PropertyValue,
+    Algorithm, CoreOption, Direction, EdgeRouting, HierarchyHandling, PortAlignment,
+    PortConstraints, PortSide, PropertyValue,
 };
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
@@ -1284,6 +1284,89 @@ fn serializes_node_port_constraints_with_java_key() {
     assert_eq!(
         json["children"][0]["layoutOptions"]["org.eclipse.elk.portConstraints"],
         Value::String("FIXED_SIDE".to_owned())
+    );
+}
+
+#[test]
+fn imports_node_port_alignment_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.portAlignment.default": "JUSTIFIED",
+                "org.eclipse.elk.portAlignment.east": "BEGIN",
+                "org.eclipse.elk.portAlignment.north": "CENTER",
+                "org.eclipse.elk.portAlignment.south": "DISTRIBUTED",
+                "org.eclipse.elk.portAlignment.west": "END"
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+    let properties = &graph.nodes[&ElementId::from("node")].properties;
+
+    assert_eq!(
+        properties.get(CoreOption::PortAlignmentDefault),
+        Some(&PropertyValue::PortAlignment(PortAlignment::Justified))
+    );
+    assert_eq!(
+        properties.get(CoreOption::PortAlignmentEast),
+        Some(&PropertyValue::PortAlignment(PortAlignment::Begin))
+    );
+    assert_eq!(
+        properties.get(CoreOption::PortAlignmentNorth),
+        Some(&PropertyValue::PortAlignment(PortAlignment::Center))
+    );
+    assert_eq!(
+        properties.get(CoreOption::PortAlignmentSouth),
+        Some(&PropertyValue::PortAlignment(PortAlignment::Distributed))
+    );
+    assert_eq!(
+        properties.get(CoreOption::PortAlignmentWest),
+        Some(&PropertyValue::PortAlignment(PortAlignment::End))
+    );
+}
+
+#[test]
+fn serializes_node_port_alignment_with_java_keys() {
+    let mut node = ElkNode::new("node");
+    node.properties
+        .set_port_alignment_default(PortAlignment::Justified);
+    node.properties
+        .set_port_alignment_east(PortAlignment::Begin);
+    node.properties
+        .set_port_alignment_north(PortAlignment::Center);
+    node.properties
+        .set_port_alignment_south(PortAlignment::Distributed);
+    node.properties.set_port_alignment_west(PortAlignment::End);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let options = &json["children"][0]["layoutOptions"];
+    assert_eq!(
+        options["org.eclipse.elk.portAlignment.default"],
+        Value::String("JUSTIFIED".to_owned())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.portAlignment.east"],
+        Value::String("BEGIN".to_owned())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.portAlignment.north"],
+        Value::String("CENTER".to_owned())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.portAlignment.south"],
+        Value::String("DISTRIBUTED".to_owned())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.portAlignment.west"],
+        Value::String("END".to_owned())
     );
 }
 

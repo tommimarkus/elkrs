@@ -336,6 +336,38 @@ fn non_string_node_port_constraints_returns_invalid_error() {
 }
 
 #[test]
+fn unsupported_node_port_alignment_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.portAlignment.default": "FLOATING" }
+            }
+          ]
+        }"#,
+        "unsupported org.eclipse.elk.portAlignment.default value: FLOATING",
+    );
+}
+
+#[test]
+fn non_string_node_port_alignment_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.portAlignment.east": 7 }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.portAlignment.east must be a string",
+    );
+}
+
+#[test]
 fn non_number_node_spacing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

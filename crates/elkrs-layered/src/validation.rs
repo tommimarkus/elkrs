@@ -2,8 +2,8 @@ use elkrs_core::diagnostic::Diagnostic;
 use elkrs_core::graph::{ElkGraph, ElkNode};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
-    Algorithm, CoreOption, EdgeRouting, HierarchyHandling, PortConstraints, Properties,
-    PropertyValue,
+    Algorithm, CoreOption, EdgeRouting, HierarchyHandling, PortAlignment, PortConstraints,
+    Properties, PropertyValue,
 };
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
@@ -70,6 +70,13 @@ const NODE_UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
         CoreOption::PortLabelsTreatAsGroup,
         "port labels treat as group",
     ),
+];
+const NODE_UNSUPPORTED_PORT_ALIGNMENT_OPTIONS: &[(CoreOption, &str)] = &[
+    (CoreOption::PortAlignmentDefault, "port alignment default"),
+    (CoreOption::PortAlignmentEast, "port alignment east"),
+    (CoreOption::PortAlignmentNorth, "port alignment north"),
+    (CoreOption::PortAlignmentSouth, "port alignment south"),
+    (CoreOption::PortAlignmentWest, "port alignment west"),
 ];
 
 pub(crate) fn validate_options(graph: &ElkGraph) -> Result<Vec<Diagnostic>, LayoutError> {
@@ -217,6 +224,37 @@ fn unsupported_boolean_option_diagnostic(name: &str, node_id: Option<&str>) -> D
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
 
+fn collect_unsupported_port_alignment_diagnostics(
+    properties: &Properties,
+    node_id: Option<&str>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    for (option, name) in NODE_UNSUPPORTED_PORT_ALIGNMENT_OPTIONS {
+        if let Some(PropertyValue::PortAlignment(port_alignment)) = properties.get(*option) {
+            diagnostics.push(unsupported_port_alignment_diagnostic(
+                name,
+                *port_alignment,
+                node_id,
+            ));
+        }
+    }
+}
+
+fn unsupported_port_alignment_diagnostic(
+    name: &str,
+    port_alignment: PortAlignment,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "{name} {port_alignment:?} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!("{name} {port_alignment:?} is recognized but not implemented by elkrs-layered yet")
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
 fn collect_node_hierarchy_diagnostics(
     node: &ElkNode,
     diagnostics: &mut Vec<Diagnostic>,
@@ -231,6 +269,11 @@ fn collect_node_hierarchy_diagnostics(
         &node.properties,
         Some(node.id.as_str()),
         NODE_UNSUPPORTED_BOOLEAN_OPTIONS,
+        diagnostics,
+    );
+    collect_unsupported_port_alignment_diagnostics(
+        &node.properties,
+        Some(node.id.as_str()),
         diagnostics,
     );
     match node.properties.edge_routing() {

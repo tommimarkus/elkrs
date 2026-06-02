@@ -63,6 +63,15 @@ pub enum PortConstraints {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PortAlignment {
+    Begin,
+    Center,
+    Distributed,
+    End,
+    Justified,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HierarchyHandling {
     SeparateChildren,
     IncludeChildren,
@@ -77,6 +86,7 @@ pub enum PropertyValue {
     Direction(Direction),
     EdgeRouting(EdgeRouting),
     HierarchyHandling(HierarchyHandling),
+    PortAlignment(PortAlignment),
     PortConstraints(PortConstraints),
 }
 
@@ -106,6 +116,11 @@ pub enum CoreOption {
     MergeHierarchyEdges,
     NoLayout,
     NoModelOrder,
+    PortAlignmentDefault,
+    PortAlignmentEast,
+    PortAlignmentNorth,
+    PortAlignmentSouth,
+    PortAlignmentWest,
     PortConstraints,
     PortLabelsNextToPortIfPossible,
     PortLabelsTreatAsGroup,
@@ -262,6 +277,41 @@ impl Properties {
             CoreOption::PortConstraints,
             PropertyValue::PortConstraints(port_constraints),
         )
+    }
+
+    pub fn set_port_alignment_default(
+        &mut self,
+        port_alignment: PortAlignment,
+    ) -> Option<PropertyValue> {
+        self.set_port_alignment_option(CoreOption::PortAlignmentDefault, port_alignment)
+    }
+
+    pub fn set_port_alignment_east(
+        &mut self,
+        port_alignment: PortAlignment,
+    ) -> Option<PropertyValue> {
+        self.set_port_alignment_option(CoreOption::PortAlignmentEast, port_alignment)
+    }
+
+    pub fn set_port_alignment_north(
+        &mut self,
+        port_alignment: PortAlignment,
+    ) -> Option<PropertyValue> {
+        self.set_port_alignment_option(CoreOption::PortAlignmentNorth, port_alignment)
+    }
+
+    pub fn set_port_alignment_south(
+        &mut self,
+        port_alignment: PortAlignment,
+    ) -> Option<PropertyValue> {
+        self.set_port_alignment_option(CoreOption::PortAlignmentSouth, port_alignment)
+    }
+
+    pub fn set_port_alignment_west(
+        &mut self,
+        port_alignment: PortAlignment,
+    ) -> Option<PropertyValue> {
+        self.set_port_alignment_option(CoreOption::PortAlignmentWest, port_alignment)
     }
 
     pub fn set_port_labels_next_to_port_if_possible(
@@ -558,6 +608,26 @@ impl Properties {
         }
     }
 
+    pub fn port_alignment_default(&self) -> Option<PortAlignment> {
+        self.port_alignment_option(CoreOption::PortAlignmentDefault, "port alignment default")
+    }
+
+    pub fn port_alignment_east(&self) -> Option<PortAlignment> {
+        self.port_alignment_option(CoreOption::PortAlignmentEast, "port alignment east")
+    }
+
+    pub fn port_alignment_north(&self) -> Option<PortAlignment> {
+        self.port_alignment_option(CoreOption::PortAlignmentNorth, "port alignment north")
+    }
+
+    pub fn port_alignment_south(&self) -> Option<PortAlignment> {
+        self.port_alignment_option(CoreOption::PortAlignmentSouth, "port alignment south")
+    }
+
+    pub fn port_alignment_west(&self) -> Option<PortAlignment> {
+        self.port_alignment_option(CoreOption::PortAlignmentWest, "port alignment west")
+    }
+
     pub fn port_labels_next_to_port_if_possible(&self) -> bool {
         self.bool_option(
             CoreOption::PortLabelsNextToPortIfPossible,
@@ -676,6 +746,23 @@ impl Properties {
             Some(PropertyValue::Bool(enabled)) => *enabled,
             Some(value) => unreachable!("{name} option stored incompatible value: {value:?}"),
             _ => false,
+        }
+    }
+
+    fn set_port_alignment_option(
+        &mut self,
+        option: CoreOption,
+        port_alignment: PortAlignment,
+    ) -> Option<PropertyValue> {
+        self.values
+            .insert(option, PropertyValue::PortAlignment(port_alignment))
+    }
+
+    fn port_alignment_option(&self, option: CoreOption, name: &str) -> Option<PortAlignment> {
+        match self.get(option) {
+            Some(PropertyValue::PortAlignment(port_alignment)) => Some(*port_alignment),
+            Some(value) => unreachable!("{name} stored incompatible value: {value:?}"),
+            _ => None,
         }
     }
 }
@@ -857,6 +944,38 @@ mod tests {
         properties.set_port_constraints(PortConstraints::FixedOrder);
 
         assert_eq!(properties.port_constraints(), PortConstraints::FixedOrder);
+    }
+
+    #[test]
+    fn port_alignment_options_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.port_alignment_default(), None);
+        assert_eq!(properties.port_alignment_east(), None);
+        assert_eq!(properties.port_alignment_north(), None);
+        assert_eq!(properties.port_alignment_south(), None);
+        assert_eq!(properties.port_alignment_west(), None);
+
+        properties.set_port_alignment_default(PortAlignment::Justified);
+        properties.set_port_alignment_east(PortAlignment::Begin);
+        properties.set_port_alignment_north(PortAlignment::Center);
+        properties.set_port_alignment_south(PortAlignment::Distributed);
+        properties.set_port_alignment_west(PortAlignment::End);
+
+        assert_eq!(
+            properties.port_alignment_default(),
+            Some(PortAlignment::Justified)
+        );
+        assert_eq!(properties.port_alignment_east(), Some(PortAlignment::Begin));
+        assert_eq!(
+            properties.port_alignment_north(),
+            Some(PortAlignment::Center)
+        );
+        assert_eq!(
+            properties.port_alignment_south(),
+            Some(PortAlignment::Distributed)
+        );
+        assert_eq!(properties.port_alignment_west(), Some(PortAlignment::End));
     }
 
     #[test]

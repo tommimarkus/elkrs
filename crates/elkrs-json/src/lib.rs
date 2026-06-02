@@ -7,8 +7,8 @@ use elkrs_core::graph::{
     ElementId, ElementRef, ElkEdge, ElkEdgeSection, ElkGraph, ElkLabel, ElkNode, ElkPort,
 };
 use elkrs_core::options::{
-    Algorithm, CoreOption, Direction, EdgeRouting, HierarchyHandling, PortConstraints, PortSide,
-    PropertyValue,
+    Algorithm, CoreOption, Direction, EdgeRouting, HierarchyHandling, PortAlignment,
+    PortConstraints, PortSide, PropertyValue,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -65,6 +65,11 @@ const LABEL_PORT_HORIZONTAL_SPACING_KEY: &str = "org.eclipse.elk.spacing.labelPo
 const LABEL_PORT_VERTICAL_SPACING_KEY: &str = "org.eclipse.elk.spacing.labelPortVertical";
 const NODE_SELF_LOOP_SPACING_KEY: &str = "org.eclipse.elk.spacing.nodeSelfLoop";
 const PORT_PORT_SPACING_KEY: &str = "org.eclipse.elk.spacing.portPort";
+const PORT_ALIGNMENT_DEFAULT_KEY: &str = "org.eclipse.elk.portAlignment.default";
+const PORT_ALIGNMENT_EAST_KEY: &str = "org.eclipse.elk.portAlignment.east";
+const PORT_ALIGNMENT_NORTH_KEY: &str = "org.eclipse.elk.portAlignment.north";
+const PORT_ALIGNMENT_SOUTH_KEY: &str = "org.eclipse.elk.portAlignment.south";
+const PORT_ALIGNMENT_WEST_KEY: &str = "org.eclipse.elk.portAlignment.west";
 const PORT_CONSTRAINTS_KEY: &str = "org.eclipse.elk.portConstraints";
 const PORT_SIDE_KEY: &str = "org.eclipse.elk.port.side";
 const LEGACY_PORT_SIDE_KEY: &str = "side";
@@ -853,6 +858,26 @@ fn apply_node_layout_options(
             NO_MODEL_ORDER_KEY => {
                 node.properties.set_no_model_order(boolean(value, key)?);
             }
+            PORT_ALIGNMENT_DEFAULT_KEY => {
+                node.properties
+                    .set_port_alignment_default(parse_port_alignment(value, key)?);
+            }
+            PORT_ALIGNMENT_EAST_KEY => {
+                node.properties
+                    .set_port_alignment_east(parse_port_alignment(value, key)?);
+            }
+            PORT_ALIGNMENT_NORTH_KEY => {
+                node.properties
+                    .set_port_alignment_north(parse_port_alignment(value, key)?);
+            }
+            PORT_ALIGNMENT_SOUTH_KEY => {
+                node.properties
+                    .set_port_alignment_south(parse_port_alignment(value, key)?);
+            }
+            PORT_ALIGNMENT_WEST_KEY => {
+                node.properties
+                    .set_port_alignment_west(parse_port_alignment(value, key)?);
+            }
             PORT_CONSTRAINTS_KEY => {
                 if let Some(port_constraints) = parse_port_constraints(value, key)? {
                     node.properties.set_port_constraints(port_constraints);
@@ -1036,6 +1061,36 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         CoreOption::NoModelOrder,
         NO_MODEL_ORDER_KEY,
     );
+    insert_port_alignment_option(
+        &mut options,
+        &node.properties,
+        CoreOption::PortAlignmentDefault,
+        PORT_ALIGNMENT_DEFAULT_KEY,
+    );
+    insert_port_alignment_option(
+        &mut options,
+        &node.properties,
+        CoreOption::PortAlignmentEast,
+        PORT_ALIGNMENT_EAST_KEY,
+    );
+    insert_port_alignment_option(
+        &mut options,
+        &node.properties,
+        CoreOption::PortAlignmentNorth,
+        PORT_ALIGNMENT_NORTH_KEY,
+    );
+    insert_port_alignment_option(
+        &mut options,
+        &node.properties,
+        CoreOption::PortAlignmentSouth,
+        PORT_ALIGNMENT_SOUTH_KEY,
+    );
+    insert_port_alignment_option(
+        &mut options,
+        &node.properties,
+        CoreOption::PortAlignmentWest,
+        PORT_ALIGNMENT_WEST_KEY,
+    );
     if let Some(PropertyValue::PortConstraints(port_constraints)) =
         node.properties.get(CoreOption::PortConstraints)
     {
@@ -1106,6 +1161,20 @@ fn insert_boolean_option(
 ) {
     if let Some(PropertyValue::Bool(enabled)) = properties.get(option) {
         options.insert(key.to_string(), serde_json::Value::Bool(*enabled));
+    }
+}
+
+fn insert_port_alignment_option(
+    options: &mut BTreeMap<String, serde_json::Value>,
+    properties: &elkrs_core::options::Properties,
+    option: CoreOption,
+    key: &str,
+) {
+    if let Some(PropertyValue::PortAlignment(port_alignment)) = properties.get(option) {
+        options.insert(
+            key.to_string(),
+            serde_json::Value::String(format_port_alignment(*port_alignment).to_string()),
+        );
     }
 }
 
@@ -1265,6 +1334,19 @@ fn parse_port_constraints(
     }
 }
 
+fn parse_port_alignment(value: &serde_json::Value, key: &str) -> Result<PortAlignment, JsonError> {
+    match string(value, key)? {
+        "BEGIN" => Ok(PortAlignment::Begin),
+        "CENTER" => Ok(PortAlignment::Center),
+        "DISTRIBUTED" => Ok(PortAlignment::Distributed),
+        "END" => Ok(PortAlignment::End),
+        "JUSTIFIED" => Ok(PortAlignment::Justified),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
 fn format_hierarchy_handling(hierarchy_handling: HierarchyHandling) -> &'static str {
     match hierarchy_handling {
         HierarchyHandling::IncludeChildren => "INCLUDE_CHILDREN",
@@ -1280,6 +1362,16 @@ fn format_port_constraints(port_constraints: PortConstraints) -> &'static str {
         PortConstraints::FixedSide => "FIXED_SIDE",
         PortConstraints::Free => "FREE",
         PortConstraints::Undefined => "UNDEFINED",
+    }
+}
+
+fn format_port_alignment(port_alignment: PortAlignment) -> &'static str {
+    match port_alignment {
+        PortAlignment::Begin => "BEGIN",
+        PortAlignment::Center => "CENTER",
+        PortAlignment::Distributed => "DISTRIBUTED",
+        PortAlignment::End => "END",
+        PortAlignment::Justified => "JUSTIFIED",
     }
 }
 

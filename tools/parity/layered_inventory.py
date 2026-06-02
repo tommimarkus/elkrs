@@ -236,6 +236,31 @@ STATUS_OVERRIDES = {
         "No typed edge option model yet for the inside self-loop edge flag",
         "Parity: edge routing variants, junctions, and merging",
     ),
+    "org.eclipse.elk.portAlignment.default": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked port_alignment`; `cargo test -p elkrs-json --test json_partitions --locked port_alignment`; `cargo test -p elkrs-json --test json_errors --locked port_alignment`",
+        "Port alignment is parsed and diagnosed; port distribution semantics are not implemented yet",
+    ),
+    "org.eclipse.elk.portAlignment.east": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked port_alignment`; `cargo test -p elkrs-json --test json_partitions --locked port_alignment`; `cargo test -p elkrs-json --test json_errors --locked port_alignment`",
+        "East port alignment is parsed and diagnosed; side-specific port distribution semantics are not implemented yet",
+    ),
+    "org.eclipse.elk.portAlignment.north": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked port_alignment`; `cargo test -p elkrs-json --test json_partitions --locked port_alignment`; `cargo test -p elkrs-json --test json_errors --locked port_alignment`",
+        "North port alignment is parsed and diagnosed; side-specific port distribution semantics are not implemented yet",
+    ),
+    "org.eclipse.elk.portAlignment.south": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked port_alignment`; `cargo test -p elkrs-json --test json_partitions --locked port_alignment`; `cargo test -p elkrs-json --test json_errors --locked port_alignment`",
+        "South port alignment is parsed and diagnosed; side-specific port distribution semantics are not implemented yet",
+    ),
+    "org.eclipse.elk.portAlignment.west": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked port_alignment`; `cargo test -p elkrs-json --test json_partitions --locked port_alignment`; `cargo test -p elkrs-json --test json_errors --locked port_alignment`",
+        "West port alignment is parsed and diagnosed; side-specific port distribution semantics are not implemented yet",
+    ),
     "org.eclipse.elk.portConstraints": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked port_constraints`; `cargo test -p elkrs-json --test json_partitions --locked port_constraints`; `cargo test -p elkrs-json --test json_errors --locked port_constraints`",
