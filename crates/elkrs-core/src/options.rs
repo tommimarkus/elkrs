@@ -89,6 +89,7 @@ pub enum CoreOption {
     LayerUnzippingResetOnLongEdges,
     LayoutPartitioning,
     MergeEdges,
+    MergeHierarchyEdges,
     NoLayout,
     NoModelOrder,
     PortLabelsNextToPortIfPossible,
@@ -114,6 +115,8 @@ pub enum CoreOption {
     TopdownLayout,
     UnnecessaryBendpoints,
     WrappingAdditionalEdgeSpacing,
+    WrappingImproveCuts,
+    WrappingImproveWrappedEdges,
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -221,6 +224,10 @@ impl Properties {
 
     pub fn set_merge_edges(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::MergeEdges, enabled)
+    }
+
+    pub fn set_merge_hierarchy_edges(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::MergeHierarchyEdges, enabled)
     }
 
     pub fn set_no_layout(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -369,6 +376,14 @@ impl Properties {
         )
     }
 
+    pub fn set_wrapping_improve_cuts(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::WrappingImproveCuts, enabled)
+    }
+
+    pub fn set_wrapping_improve_wrapped_edges(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::WrappingImproveWrappedEdges, enabled)
+    }
+
     pub fn get(&self, option: CoreOption) -> Option<&PropertyValue> {
         self.values.get(&option)
     }
@@ -490,6 +505,13 @@ impl Properties {
         self.bool_option(CoreOption::MergeEdges, "merge edges")
     }
 
+    pub fn merge_hierarchy_edges(&self) -> bool {
+        self.bool_option(
+            CoreOption::MergeHierarchyEdges,
+            "merge hierarchy-crossing edges",
+        )
+    }
+
     pub fn no_layout(&self) -> bool {
         self.bool_option(CoreOption::NoLayout, "no layout")
     }
@@ -559,6 +581,17 @@ impl Properties {
 
     pub fn unnecessary_bendpoints(&self) -> bool {
         self.bool_option(CoreOption::UnnecessaryBendpoints, "unnecessary bendpoints")
+    }
+
+    pub fn wrapping_improve_cuts(&self) -> bool {
+        self.bool_option(CoreOption::WrappingImproveCuts, "improve cuts")
+    }
+
+    pub fn wrapping_improve_wrapped_edges(&self) -> bool {
+        self.bool_option(
+            CoreOption::WrappingImproveWrappedEdges,
+            "improve wrapped edges",
+        )
     }
 
     fn set_bool_option(&mut self, option: CoreOption, enabled: bool) -> Option<PropertyValue> {
@@ -637,10 +670,13 @@ mod tests {
         assert!(!properties.interactive_layout());
         assert!(!properties.layout_partitioning());
         assert!(!properties.merge_edges());
+        assert!(!properties.merge_hierarchy_edges());
         assert!(!properties.separate_connected_components());
         assert!(!properties.semi_interactive_crossing_minimization());
         assert!(!properties.topdown_layout());
         assert!(!properties.unnecessary_bendpoints());
+        assert!(!properties.wrapping_improve_cuts());
+        assert!(!properties.wrapping_improve_wrapped_edges());
 
         properties.set_generate_position_and_layer_ids(true);
         properties.set_connected_components_compaction(true);
@@ -652,10 +688,13 @@ mod tests {
         properties.set_interactive_layout(true);
         properties.set_layout_partitioning(true);
         properties.set_merge_edges(true);
+        properties.set_merge_hierarchy_edges(true);
         properties.set_separate_connected_components(true);
         properties.set_semi_interactive_crossing_minimization(true);
         properties.set_topdown_layout(true);
         properties.set_unnecessary_bendpoints(true);
+        properties.set_wrapping_improve_cuts(true);
+        properties.set_wrapping_improve_wrapped_edges(true);
 
         assert!(properties.generate_position_and_layer_ids());
         assert!(properties.connected_components_compaction());
@@ -667,10 +706,13 @@ mod tests {
         assert!(properties.interactive_layout());
         assert!(properties.layout_partitioning());
         assert!(properties.merge_edges());
+        assert!(properties.merge_hierarchy_edges());
         assert!(properties.separate_connected_components());
         assert!(properties.semi_interactive_crossing_minimization());
         assert!(properties.topdown_layout());
         assert!(properties.unnecessary_bendpoints());
+        assert!(properties.wrapping_improve_cuts());
+        assert!(properties.wrapping_improve_wrapped_edges());
     }
 
     #[test]

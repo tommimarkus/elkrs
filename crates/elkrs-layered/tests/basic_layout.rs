@@ -1133,7 +1133,7 @@ fn node(id: &str, width: f64, height: f64) -> ElkNode {
 
 type BoolOptionSetter = fn(&mut Properties, bool) -> Option<PropertyValue>;
 
-fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 14] {
+fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 17] {
     [
         ("interactive layout", Properties::set_interactive_layout),
         (
@@ -1158,10 +1158,19 @@ fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 14] {
             Properties::set_high_degree_node_treatment,
         ),
         ("merge edges", Properties::set_merge_edges),
+        (
+            "merge hierarchy-crossing edges",
+            Properties::set_merge_hierarchy_edges,
+        ),
         ("favor straight edges", Properties::set_favor_straight_edges),
         (
             "unnecessary bendpoints",
             Properties::set_unnecessary_bendpoints,
+        ),
+        ("improve cuts", Properties::set_wrapping_improve_cuts),
+        (
+            "improve wrapped edges",
+            Properties::set_wrapping_improve_wrapped_edges,
         ),
         ("fixed graph size", Properties::set_fixed_graph_size),
         ("layout partitioning", Properties::set_layout_partitioning),

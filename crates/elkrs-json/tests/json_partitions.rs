@@ -223,8 +223,11 @@ fn imports_parent_boolean_layout_options() {
             "org.eclipse.elk.layered.generatePositionAndLayerIds": true,
             "org.eclipse.elk.layered.highDegreeNodes.treatment": true,
             "org.eclipse.elk.layered.mergeEdges": true,
+            "org.eclipse.elk.layered.mergeHierarchyEdges": true,
             "org.eclipse.elk.layered.nodePlacement.favorStraightEdges": true,
             "org.eclipse.elk.layered.unnecessaryBendpoints": true,
+            "org.eclipse.elk.layered.wrapping.multiEdge.improveCuts": true,
+            "org.eclipse.elk.layered.wrapping.multiEdge.improveWrappedEdges": true,
             "org.eclipse.elk.nodeSize.fixedGraphSize": true,
             "org.eclipse.elk.partitioning.activate": true,
             "org.eclipse.elk.separateConnectedComponents": true,
@@ -257,8 +260,11 @@ fn imports_disabled_parent_boolean_layout_options() {
             "org.eclipse.elk.layered.generatePositionAndLayerIds": false,
             "org.eclipse.elk.layered.highDegreeNodes.treatment": false,
             "org.eclipse.elk.layered.mergeEdges": false,
+            "org.eclipse.elk.layered.mergeHierarchyEdges": false,
             "org.eclipse.elk.layered.nodePlacement.favorStraightEdges": false,
             "org.eclipse.elk.layered.unnecessaryBendpoints": false,
+            "org.eclipse.elk.layered.wrapping.multiEdge.improveCuts": false,
+            "org.eclipse.elk.layered.wrapping.multiEdge.improveWrappedEdges": false,
             "org.eclipse.elk.nodeSize.fixedGraphSize": false,
             "org.eclipse.elk.partitioning.activate": false,
             "org.eclipse.elk.separateConnectedComponents": false,
@@ -316,8 +322,11 @@ fn imports_node_parent_boolean_layout_options() {
                 "org.eclipse.elk.layered.generatePositionAndLayerIds": true,
                 "org.eclipse.elk.layered.highDegreeNodes.treatment": true,
                 "org.eclipse.elk.layered.mergeEdges": true,
+                "org.eclipse.elk.layered.mergeHierarchyEdges": true,
                 "org.eclipse.elk.layered.nodePlacement.favorStraightEdges": true,
                 "org.eclipse.elk.layered.unnecessaryBendpoints": true,
+                "org.eclipse.elk.layered.wrapping.multiEdge.improveCuts": true,
+                "org.eclipse.elk.layered.wrapping.multiEdge.improveWrappedEdges": true,
                 "org.eclipse.elk.nodeSize.fixedGraphSize": true,
                 "org.eclipse.elk.partitioning.activate": true,
                 "org.eclipse.elk.separateConnectedComponents": true,
@@ -356,8 +365,11 @@ fn imports_disabled_node_parent_boolean_layout_options() {
                 "org.eclipse.elk.layered.generatePositionAndLayerIds": false,
                 "org.eclipse.elk.layered.highDegreeNodes.treatment": false,
                 "org.eclipse.elk.layered.mergeEdges": false,
+                "org.eclipse.elk.layered.mergeHierarchyEdges": false,
                 "org.eclipse.elk.layered.nodePlacement.favorStraightEdges": false,
                 "org.eclipse.elk.layered.unnecessaryBendpoints": false,
+                "org.eclipse.elk.layered.wrapping.multiEdge.improveCuts": false,
+                "org.eclipse.elk.layered.wrapping.multiEdge.improveWrappedEdges": false,
                 "org.eclipse.elk.nodeSize.fixedGraphSize": false,
                 "org.eclipse.elk.partitioning.activate": false,
                 "org.eclipse.elk.separateConnectedComponents": false,
@@ -1477,7 +1489,7 @@ fn serialized_value(graph: &ElkGraph) -> Value {
     serde_json::from_str(&to_string_pretty(graph).unwrap()).unwrap()
 }
 
-fn parent_boolean_options() -> [(&'static str, CoreOption); 14] {
+fn parent_boolean_options() -> [(&'static str, CoreOption); 17] {
     [
         (
             "org.eclipse.elk.interactiveLayout",
@@ -1509,12 +1521,24 @@ fn parent_boolean_options() -> [(&'static str, CoreOption); 14] {
         ),
         ("org.eclipse.elk.layered.mergeEdges", CoreOption::MergeEdges),
         (
+            "org.eclipse.elk.layered.mergeHierarchyEdges",
+            CoreOption::MergeHierarchyEdges,
+        ),
+        (
             "org.eclipse.elk.layered.nodePlacement.favorStraightEdges",
             CoreOption::FavorStraightEdges,
         ),
         (
             "org.eclipse.elk.layered.unnecessaryBendpoints",
             CoreOption::UnnecessaryBendpoints,
+        ),
+        (
+            "org.eclipse.elk.layered.wrapping.multiEdge.improveCuts",
+            CoreOption::WrappingImproveCuts,
+        ),
+        (
+            "org.eclipse.elk.layered.wrapping.multiEdge.improveWrappedEdges",
+            CoreOption::WrappingImproveWrappedEdges,
         ),
         (
             "org.eclipse.elk.nodeSize.fixedGraphSize",
@@ -1575,8 +1599,11 @@ fn set_parent_boolean_options(graph: &mut ElkGraph, enabled: bool) {
         .set_generate_position_and_layer_ids(enabled);
     graph.properties.set_high_degree_node_treatment(enabled);
     graph.properties.set_merge_edges(enabled);
+    graph.properties.set_merge_hierarchy_edges(enabled);
     graph.properties.set_favor_straight_edges(enabled);
     graph.properties.set_unnecessary_bendpoints(enabled);
+    graph.properties.set_wrapping_improve_cuts(enabled);
+    graph.properties.set_wrapping_improve_wrapped_edges(enabled);
     graph.properties.set_fixed_graph_size(enabled);
     graph.properties.set_layout_partitioning(enabled);
     graph.properties.set_separate_connected_components(enabled);
@@ -1593,8 +1620,11 @@ fn set_parent_boolean_node_options(node: &mut ElkNode, enabled: bool) {
     node.properties.set_generate_position_and_layer_ids(enabled);
     node.properties.set_high_degree_node_treatment(enabled);
     node.properties.set_merge_edges(enabled);
+    node.properties.set_merge_hierarchy_edges(enabled);
     node.properties.set_favor_straight_edges(enabled);
     node.properties.set_unnecessary_bendpoints(enabled);
+    node.properties.set_wrapping_improve_cuts(enabled);
+    node.properties.set_wrapping_improve_wrapped_edges(enabled);
     node.properties.set_fixed_graph_size(enabled);
     node.properties.set_layout_partitioning(enabled);
     node.properties.set_separate_connected_components(enabled);

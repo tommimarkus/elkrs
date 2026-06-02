@@ -40,6 +40,7 @@ const LAYER_UNZIPPING_RESET_ON_LONG_EDGES_KEY: &str =
     "org.eclipse.elk.layered.layerUnzipping.resetOnLongEdges";
 const LAYOUT_PARTITIONING_KEY: &str = "org.eclipse.elk.partitioning.activate";
 const MERGE_EDGES_KEY: &str = "org.eclipse.elk.layered.mergeEdges";
+const MERGE_HIERARCHY_EDGES_KEY: &str = "org.eclipse.elk.layered.mergeHierarchyEdges";
 const NO_LAYOUT_KEY: &str = "org.eclipse.elk.noLayout";
 const NO_MODEL_ORDER_KEY: &str = "org.eclipse.elk.layered.considerModelOrder.noModelOrder";
 const NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.nodeNode";
@@ -74,6 +75,9 @@ const TOPDOWN_LAYOUT_KEY: &str = "org.eclipse.elk.topdownLayout";
 const UNNECESSARY_BENDPOINTS_KEY: &str = "org.eclipse.elk.layered.unnecessaryBendpoints";
 const WRAPPING_ADDITIONAL_EDGE_SPACING_KEY: &str =
     "org.eclipse.elk.layered.wrapping.additionalEdgeSpacing";
+const WRAPPING_IMPROVE_CUTS_KEY: &str = "org.eclipse.elk.layered.wrapping.multiEdge.improveCuts";
+const WRAPPING_IMPROVE_WRAPPED_EDGES_KEY: &str =
+    "org.eclipse.elk.layered.wrapping.multiEdge.improveWrappedEdges";
 
 #[derive(Debug, Error)]
 pub enum JsonError {
@@ -434,6 +438,9 @@ fn apply_layout_options(
                 .properties
                 .set_layout_partitioning(boolean(value, key)?),
             MERGE_EDGES_KEY => graph.properties.set_merge_edges(boolean(value, key)?),
+            MERGE_HIERARCHY_EDGES_KEY => graph
+                .properties
+                .set_merge_hierarchy_edges(boolean(value, key)?),
             DIRECTION_KEY | LEGACY_DIRECTION_KEY => {
                 graph.properties.set_direction(parse_direction(value, key)?)
             }
@@ -501,6 +508,12 @@ fn apply_layout_options(
             WRAPPING_ADDITIONAL_EDGE_SPACING_KEY => graph
                 .properties
                 .set_wrapping_additional_edge_spacing(non_negative_number(value, key)?),
+            WRAPPING_IMPROVE_CUTS_KEY => graph
+                .properties
+                .set_wrapping_improve_cuts(boolean(value, key)?),
+            WRAPPING_IMPROVE_WRAPPED_EDGES_KEY => graph
+                .properties
+                .set_wrapping_improve_wrapped_edges(boolean(value, key)?),
             _ => continue,
         };
     }
@@ -607,6 +620,12 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         &graph.properties,
         CoreOption::MergeEdges,
         MERGE_EDGES_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
+        CoreOption::MergeHierarchyEdges,
+        MERGE_HIERARCHY_EDGES_KEY,
     );
     if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingNodeNode)
     {
@@ -730,6 +749,18 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
             (*spacing).into(),
         );
     }
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
+        CoreOption::WrappingImproveCuts,
+        WRAPPING_IMPROVE_CUTS_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &graph.properties,
+        CoreOption::WrappingImproveWrappedEdges,
+        WRAPPING_IMPROVE_WRAPPED_EDGES_KEY,
+    );
     options
 }
 
@@ -809,6 +840,10 @@ fn apply_node_layout_options(
             MERGE_EDGES_KEY => {
                 node.properties.set_merge_edges(boolean(value, key)?);
             }
+            MERGE_HIERARCHY_EDGES_KEY => {
+                node.properties
+                    .set_merge_hierarchy_edges(boolean(value, key)?);
+            }
             NO_LAYOUT_KEY => {
                 node.properties.set_no_layout(boolean(value, key)?);
             }
@@ -837,6 +872,14 @@ fn apply_node_layout_options(
             UNNECESSARY_BENDPOINTS_KEY => {
                 node.properties
                     .set_unnecessary_bendpoints(boolean(value, key)?);
+            }
+            WRAPPING_IMPROVE_CUTS_KEY => {
+                node.properties
+                    .set_wrapping_improve_cuts(boolean(value, key)?);
+            }
+            WRAPPING_IMPROVE_WRAPPED_EDGES_KEY => {
+                node.properties
+                    .set_wrapping_improve_wrapped_edges(boolean(value, key)?);
             }
             _ => continue,
         }
@@ -966,6 +1009,12 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
     insert_boolean_option(
         &mut options,
         &node.properties,
+        CoreOption::MergeHierarchyEdges,
+        MERGE_HIERARCHY_EDGES_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
         CoreOption::NoLayout,
         NO_LAYOUT_KEY,
     );
@@ -1007,6 +1056,18 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         &node.properties,
         CoreOption::UnnecessaryBendpoints,
         UNNECESSARY_BENDPOINTS_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::WrappingImproveCuts,
+        WRAPPING_IMPROVE_CUTS_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::WrappingImproveWrappedEdges,
+        WRAPPING_IMPROVE_WRAPPED_EDGES_KEY,
     );
     options
 }

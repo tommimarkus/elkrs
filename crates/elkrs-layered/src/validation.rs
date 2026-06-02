@@ -29,6 +29,10 @@ const PARENT_UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
     (CoreOption::LayoutPartitioning, "layout partitioning"),
     (CoreOption::MergeEdges, "merge edges"),
     (
+        CoreOption::MergeHierarchyEdges,
+        "merge hierarchy-crossing edges",
+    ),
+    (
         CoreOption::SeparateConnectedComponents,
         "separate connected components",
     ),
@@ -38,6 +42,11 @@ const PARENT_UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
     ),
     (CoreOption::TopdownLayout, "topdown layout"),
     (CoreOption::UnnecessaryBendpoints, "unnecessary bendpoints"),
+    (CoreOption::WrappingImproveCuts, "improve cuts"),
+    (
+        CoreOption::WrappingImproveWrappedEdges,
+        "improve wrapped edges",
+    ),
 ];
 const NODE_UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
     (CoreOption::CommentBox, "comment box"),

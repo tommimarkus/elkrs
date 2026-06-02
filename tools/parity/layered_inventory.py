@@ -66,6 +66,16 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-json --test json_partitions --locked additional_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_additional_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_additional_spacing`",
         "Parsed and validated; wrapping edge spacing semantics remain open",
     ),
+    "org.eclipse.elk.layered.wrapping.multiEdge.improveCuts": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Wrapped-edge cut improvement is parsed and diagnosed; graph wrapping semantics are not implemented yet",
+    ),
+    "org.eclipse.elk.layered.wrapping.multiEdge.improveWrappedEdges": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Wrapped-edge improvement is parsed and diagnosed; graph wrapping semantics are not implemented yet",
+    ),
     "org.eclipse.elk.spacing.commentComment": (
         "parsed",
         "`cargo test -p elkrs-json --test json_partitions --locked additional_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_additional_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_additional_spacing`",
@@ -190,6 +200,11 @@ STATUS_OVERRIDES = {
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "Edge merging is parsed and diagnosed; merged routing and implicit ports are not implemented yet",
+    ),
+    "org.eclipse.elk.layered.mergeHierarchyEdges": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
+        "Hierarchy-crossing edge merging is parsed and diagnosed; merged routing semantics are not implemented yet",
     ),
     "org.eclipse.elk.layered.nodePlacement.favorStraightEdges": (
         "diagnostic",
