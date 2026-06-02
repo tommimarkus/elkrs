@@ -992,6 +992,60 @@ fn layer_assignment_node_unsupported_constraint_returns_invalid_error() {
     );
 }
 
+#[test]
+fn alignment_aspect_unsupported_alignment_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.alignment": "BASELINE" }
+            }
+          ]
+        }"#,
+        "unsupported org.eclipse.elk.alignment value: BASELINE",
+    );
+}
+
+#[test]
+fn alignment_aspect_non_string_alignment_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.alignment": 7 }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.alignment must be a string",
+    );
+}
+
+#[test]
+fn alignment_aspect_non_positive_aspect_ratio_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.aspectRatio": 0 }
+        }"#,
+        "org.eclipse.elk.aspectRatio must be positive",
+    );
+}
+
+#[test]
+fn alignment_aspect_non_number_aspect_ratio_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.aspectRatio": false }
+        }"#,
+        "org.eclipse.elk.aspectRatio must be a number",
+    );
+}
+
 fn assert_invalid_contains(input: &str, expected: &str) {
     let error = from_str(input).unwrap_err();
 

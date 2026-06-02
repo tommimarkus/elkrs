@@ -2,8 +2,8 @@ use elkrs_core::diagnostic::Diagnostic;
 use elkrs_core::graph::{ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
-    Algorithm, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy, EdgeRouting,
-    GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
+    Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
+    EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
     LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy, PortAlignment,
     PortConstraints, Properties, PropertyValue,
 };
@@ -116,6 +116,7 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
         &mut diagnostics,
     );
     collect_unsupported_layer_assignment_diagnostics(properties, None, &mut diagnostics);
+    collect_unsupported_placement_option_diagnostics(properties, None, &mut diagnostics);
     match properties.edge_routing() {
         EdgeRouting::Orthogonal => {}
         edge_routing => diagnostics.push(unsupported_edge_routing_diagnostic(edge_routing, None)),
@@ -440,6 +441,34 @@ fn unsupported_long_edge_ordering_strategy_diagnostic(
         format!(
             "long edge ordering strategy {strategy:?} is recognized but not implemented by elkrs-layered yet"
         )
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
+fn collect_unsupported_placement_option_diagnostics(
+    properties: &Properties,
+    node_id: Option<&str>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    if let Some(alignment) = properties.alignment() {
+        diagnostics.push(unsupported_alignment_diagnostic(alignment, node_id));
+    }
+    if let Some(ratio) = properties.aspect_ratio() {
+        diagnostics.push(unsupported_number_option_diagnostic(
+            "aspect ratio",
+            ratio,
+            node_id,
+        ));
+    }
+}
+
+fn unsupported_alignment_diagnostic(alignment: Alignment, node_id: Option<&str>) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "alignment {alignment:?} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!("alignment {alignment:?} is recognized but not implemented by elkrs-layered yet")
     };
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
@@ -831,6 +860,11 @@ fn collect_node_hierarchy_diagnostics(
         diagnostics,
     );
     collect_unsupported_layer_assignment_diagnostics(
+        &node.properties,
+        Some(node.id.as_str()),
+        diagnostics,
+    );
+    collect_unsupported_placement_option_diagnostics(
         &node.properties,
         Some(node.id.as_str()),
         diagnostics,

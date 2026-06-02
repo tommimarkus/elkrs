@@ -45,6 +45,16 @@ pub enum EdgeRouting {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Alignment {
+    Automatic,
+    Bottom,
+    Center,
+    Left,
+    Right,
+    Top,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ComponentOrderingStrategy {
     GroupModelOrder,
     InsidePortSideGroups,
@@ -152,6 +162,7 @@ pub enum PropertyValue {
     Number(f64),
     Text(String),
     Algorithm(Algorithm),
+    Alignment(Alignment),
     ComponentOrderingStrategy(ComponentOrderingStrategy),
     CrossingMinimizationStrategy(CrossingMinimizationStrategy),
     Direction(Direction),
@@ -170,7 +181,9 @@ pub enum PropertyValue {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum CoreOption {
     Algorithm,
+    Alignment,
     AllowNonFlowPortsToSwitchSides,
+    AspectRatio,
     CommentBox,
     ComponentGroupId,
     ConsiderModelOrderComponents,
@@ -271,6 +284,16 @@ impl Properties {
     pub fn set_algorithm(&mut self, algorithm: Algorithm) -> Option<PropertyValue> {
         self.values
             .insert(CoreOption::Algorithm, PropertyValue::Algorithm(algorithm))
+    }
+
+    pub fn set_alignment(&mut self, alignment: Alignment) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::Alignment, PropertyValue::Alignment(alignment))
+    }
+
+    pub fn set_aspect_ratio(&mut self, ratio: f64) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::AspectRatio, PropertyValue::Number(ratio))
     }
 
     pub fn set_comment_box(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -857,6 +880,18 @@ impl Properties {
             Some(value) => unreachable!("algorithm option stored incompatible value: {value:?}"),
             _ => None,
         }
+    }
+
+    pub fn alignment(&self) -> Option<Alignment> {
+        match self.get(CoreOption::Alignment) {
+            Some(PropertyValue::Alignment(alignment)) => Some(*alignment),
+            Some(value) => unreachable!("alignment option stored incompatible value: {value:?}"),
+            _ => None,
+        }
+    }
+
+    pub fn aspect_ratio(&self) -> Option<f64> {
+        self.number_option(CoreOption::AspectRatio, "aspect ratio")
     }
 
     pub fn connected_components_compaction(&self) -> bool {
@@ -1628,6 +1663,20 @@ mod tests {
             Some(PortAlignment::Distributed)
         );
         assert_eq!(properties.port_alignment_west(), Some(PortAlignment::End));
+    }
+
+    #[test]
+    fn alignment_and_aspect_ratio_options_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.alignment(), None);
+        assert_eq!(properties.aspect_ratio(), None);
+
+        properties.set_alignment(Alignment::Top);
+        properties.set_aspect_ratio(1.6);
+
+        assert_eq!(properties.alignment(), Some(Alignment::Top));
+        assert_eq!(properties.aspect_ratio(), Some(1.6));
     }
 
     #[test]

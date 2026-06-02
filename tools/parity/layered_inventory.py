@@ -23,6 +23,16 @@ STATUS_OVERRIDES = {
         '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_non_layered_algorithm_option`, `cargo test -p elkrs-json --test json_partitions --locked imports_java_algorithm_layout_option`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete for layered selection and unsupported-algorithm diagnostics",
     ),
+    "org.eclipse.elk.alignment": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked alignment_and_aspect`; `cargo test -p elkrs-layered --test basic_layout --locked alignment_and_aspect`; `cargo test -p elkrs-json --test json_partitions --locked alignment_and_aspect`; `cargo test -p elkrs-json --test json_errors --locked alignment_and_aspect`",
+        "Alignment is parsed and diagnosed; node placement alignment semantics are not implemented yet",
+    ),
+    "org.eclipse.elk.aspectRatio": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked alignment_and_aspect`; `cargo test -p elkrs-layered --test basic_layout --locked alignment_and_aspect`; `cargo test -p elkrs-json --test json_partitions --locked alignment_and_aspect`; `cargo test -p elkrs-json --test json_errors --locked alignment_and_aspect`",
+        "Aspect ratio is parsed and diagnosed; component compaction and aspect-aware placement semantics are not implemented yet",
+    ),
     "org.eclipse.elk.commentBox": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",

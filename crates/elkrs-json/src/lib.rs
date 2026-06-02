@@ -7,16 +7,18 @@ use elkrs_core::graph::{
     ElementId, ElementRef, ElkEdge, ElkEdgeSection, ElkGraph, ElkLabel, ElkNode, ElkPort,
 };
 use elkrs_core::options::{
-    Algorithm, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy, Direction,
-    EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
-    LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy, PortAlignment,
-    PortConstraints, PortSide, PropertyValue,
+    Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
+    Direction, EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
+    LayerConstraint, LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy,
+    PortAlignment, PortConstraints, PortSide, PropertyValue,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 const ALGORITHM_KEY: &str = "org.eclipse.elk.algorithm";
 const LEGACY_ALGORITHM_KEY: &str = "elk.algorithm";
+const ALIGNMENT_KEY: &str = "org.eclipse.elk.alignment";
+const ASPECT_RATIO_KEY: &str = "org.eclipse.elk.aspectRatio";
 const COMMENT_BOX_KEY: &str = "org.eclipse.elk.commentBox";
 const CONSIDER_MODEL_ORDER_COMPONENTS_KEY: &str =
     "org.eclipse.elk.layered.considerModelOrder.components";
@@ -472,6 +474,9 @@ fn apply_layout_options(
             ALGORITHM_KEY | LEGACY_ALGORITHM_KEY => {
                 graph.properties.set_algorithm(parse_algorithm(value, key)?)
             }
+            ASPECT_RATIO_KEY => graph
+                .properties
+                .set_aspect_ratio(positive_number(value, key)?),
             CONSIDER_MODEL_ORDER_COMPONENTS_KEY => {
                 if let Some(strategy) = parse_component_ordering_strategy(value, key)? {
                     graph
@@ -671,6 +676,9 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
             ALGORITHM_KEY.to_string(),
             serde_json::Value::String(format_algorithm(algorithm)),
         );
+    }
+    if let Some(PropertyValue::Number(ratio)) = graph.properties.get(CoreOption::AspectRatio) {
+        options.insert(ASPECT_RATIO_KEY.to_string(), (*ratio).into());
     }
     insert_boolean_option(
         &mut options,
@@ -1070,6 +1078,13 @@ fn apply_node_layout_options(
 ) -> Result<(), JsonError> {
     for (key, value) in options {
         match key.as_str() {
+            ALIGNMENT_KEY => {
+                node.properties.set_alignment(parse_alignment(value, key)?);
+            }
+            ASPECT_RATIO_KEY => {
+                node.properties
+                    .set_aspect_ratio(positive_number(value, key)?);
+            }
             COMMENT_BOX_KEY => {
                 node.properties.set_comment_box(boolean(value, key)?);
             }
@@ -1344,6 +1359,15 @@ fn apply_node_layout_options(
 
 fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Value> {
     let mut options = BTreeMap::new();
+    if let Some(PropertyValue::Alignment(alignment)) = node.properties.get(CoreOption::Alignment) {
+        options.insert(
+            ALIGNMENT_KEY.to_string(),
+            serde_json::Value::String(format_alignment(*alignment).to_string()),
+        );
+    }
+    if let Some(PropertyValue::Number(ratio)) = node.properties.get(CoreOption::AspectRatio) {
+        options.insert(ASPECT_RATIO_KEY.to_string(), (*ratio).into());
+    }
     insert_boolean_option(
         &mut options,
         &node.properties,
@@ -2186,6 +2210,20 @@ fn parse_port_alignment(value: &serde_json::Value, key: &str) -> Result<PortAlig
     }
 }
 
+fn parse_alignment(value: &serde_json::Value, key: &str) -> Result<Alignment, JsonError> {
+    match string(value, key)? {
+        "AUTOMATIC" => Ok(Alignment::Automatic),
+        "BOTTOM" => Ok(Alignment::Bottom),
+        "CENTER" => Ok(Alignment::Center),
+        "LEFT" => Ok(Alignment::Left),
+        "RIGHT" => Ok(Alignment::Right),
+        "TOP" => Ok(Alignment::Top),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
 fn format_hierarchy_handling(hierarchy_handling: HierarchyHandling) -> &'static str {
     match hierarchy_handling {
         HierarchyHandling::IncludeChildren => "INCLUDE_CHILDREN",
@@ -2286,6 +2324,17 @@ fn format_port_alignment(port_alignment: PortAlignment) -> &'static str {
         PortAlignment::Distributed => "DISTRIBUTED",
         PortAlignment::End => "END",
         PortAlignment::Justified => "JUSTIFIED",
+    }
+}
+
+fn format_alignment(alignment: Alignment) -> &'static str {
+    match alignment {
+        Alignment::Automatic => "AUTOMATIC",
+        Alignment::Bottom => "BOTTOM",
+        Alignment::Center => "CENTER",
+        Alignment::Left => "LEFT",
+        Alignment::Right => "RIGHT",
+        Alignment::Top => "TOP",
     }
 }
 
@@ -2402,6 +2451,15 @@ fn non_negative_number(value: &serde_json::Value, key: &str) -> Result<f64, Json
         Ok(number)
     } else {
         Err(JsonError::Invalid(format!("{key} must be non-negative")))
+    }
+}
+
+fn positive_number(value: &serde_json::Value, key: &str) -> Result<f64, JsonError> {
+    let number = number(value, key)?;
+    if number > 0.0 {
+        Ok(number)
+    } else {
+        Err(JsonError::Invalid(format!("{key} must be positive")))
     }
 }
 

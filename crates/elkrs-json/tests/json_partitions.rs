@@ -1,10 +1,10 @@
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::options::{
-    Algorithm, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy, Direction,
-    EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
-    LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy, PortAlignment,
-    PortConstraints, PortSide, PropertyValue,
+    Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
+    Direction, EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
+    LayerConstraint, LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy,
+    PortAlignment, PortConstraints, PortSide, PropertyValue,
 };
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
@@ -2477,6 +2477,68 @@ fn serializes_layer_assignment_options_with_java_keys() {
     assert_eq!(
         node_options["org.eclipse.elk.partitioning.partition"],
         Value::Number(4.into())
+    );
+}
+
+#[test]
+fn imports_alignment_and_aspect_ratio_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.aspectRatio": 1.6 },
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.alignment": "TOP",
+                "org.eclipse.elk.aspectRatio": 1.2
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.properties.get(CoreOption::AspectRatio),
+        Some(&PropertyValue::Number(1.6))
+    );
+    let node = &graph.nodes[&ElementId::from("node")];
+    assert_eq!(
+        node.properties.get(CoreOption::Alignment),
+        Some(&PropertyValue::Alignment(Alignment::Top))
+    );
+    assert_eq!(
+        node.properties.get(CoreOption::AspectRatio),
+        Some(&PropertyValue::Number(1.2))
+    );
+}
+
+#[test]
+fn serializes_alignment_and_aspect_ratio_options_with_java_keys() {
+    let mut node = ElkNode::new("node");
+    node.properties.set_alignment(Alignment::Top);
+    node.properties.set_aspect_ratio(1.2);
+
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_aspect_ratio(1.6);
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let graph_options = &json["layoutOptions"];
+    assert_eq!(
+        graph_options["org.eclipse.elk.aspectRatio"],
+        Value::from(1.6)
+    );
+
+    let node_options = &json["children"][0]["layoutOptions"];
+    assert_eq!(
+        node_options["org.eclipse.elk.alignment"],
+        Value::String("TOP".to_owned())
+    );
+    assert_eq!(
+        node_options["org.eclipse.elk.aspectRatio"],
+        Value::from(1.2)
     );
 }
 

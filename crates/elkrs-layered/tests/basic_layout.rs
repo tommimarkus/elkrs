@@ -5,8 +5,8 @@ use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
-    Algorithm, ComponentOrderingStrategy, CrossingMinimizationStrategy, Direction, EdgeRouting,
-    GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
+    Algorithm, Alignment, ComponentOrderingStrategy, CrossingMinimizationStrategy, Direction,
+    EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
     LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy, PortAlignment,
     PortConstraints, PortSide, Properties, PropertyValue,
 };
@@ -1870,6 +1870,39 @@ fn layered_layout_reports_node_unsupported_feedback_edges() {
         diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
             && diagnostic.severity == Severity::Warning
             && diagnostic.message.contains("feedback edges")
+            && diagnostic.message.contains("child")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_unsupported_alignment_and_aspect_ratio_options() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_aspect_ratio(1.6);
+    let mut child = node("child", 60.0, 30.0);
+    child.properties.set_alignment(Alignment::Top);
+    child.properties.set_aspect_ratio(1.2);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("aspect ratio")
+            && diagnostic.message.contains("1.6")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("alignment")
+            && diagnostic.message.contains("Top")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("aspect ratio")
+            && diagnostic.message.contains("1.2")
             && diagnostic.message.contains("child")
     }));
 }
