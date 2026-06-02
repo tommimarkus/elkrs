@@ -86,15 +86,45 @@ STATUS_OVERRIDES = {
         '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_node_spacing_to_obstacle_detours`, `cargo test -p elkrs-json --test json_partitions --locked spacing`, `cargo test -p elkrs-json --test json_errors --locked spacing`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete",
     ),
+    "org.eclipse.elk.spacing.edgeLabel": (
+        "parsed",
+        "`cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_label_and_port_spacing`",
+        "Parsed and validated; edge label placement semantics remain open",
+    ),
     "org.eclipse.elk.spacing.edgeEdge": (
         "semantic",
         "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_edge_spacing_to_parallel_routes`; `cargo test -p elkrs-json --test json_partitions --locked spacing`; `cargo test -p elkrs-json --test json_errors --locked spacing`",
         "Parity: Java oracle fixture suite expansion",
     ),
+    "org.eclipse.elk.spacing.labelLabel": (
+        "parsed",
+        "`cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_label_and_port_spacing`",
+        "Parsed and validated; label placement semantics remain open",
+    ),
+    "org.eclipse.elk.spacing.labelNode": (
+        "parsed",
+        "`cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_label_and_port_spacing`",
+        "Parsed and validated; label placement semantics remain open",
+    ),
+    "org.eclipse.elk.spacing.labelPortHorizontal": (
+        "parsed",
+        "`cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_label_and_port_spacing`",
+        "Parsed and validated; label-port placement semantics remain open",
+    ),
+    "org.eclipse.elk.spacing.labelPortVertical": (
+        "parsed",
+        "`cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_label_and_port_spacing`",
+        "Parsed and validated; label-port placement semantics remain open",
+    ),
     "org.eclipse.elk.spacing.nodeSelfLoop": (
         "parsed",
         "`cargo test -p elkrs-json --test json_partitions --locked additional_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_additional_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_additional_spacing`",
         "Parsed and validated; node self-loop spacing semantics remain open",
+    ),
+    "org.eclipse.elk.spacing.portPort": (
+        "parsed",
+        "`cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_node_port_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_label_and_port_spacing`",
+        "Parsed and validated on graph and node layout options; port spacing semantics remain open",
     ),
     "org.eclipse.elk.edgeRouting": (
         "diagnostic",

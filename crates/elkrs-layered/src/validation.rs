@@ -123,9 +123,35 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
     )?;
     validate_non_negative_spacing(
         properties,
+        CoreOption::SpacingEdgeLabel,
+        "edge-label spacing",
+    )?;
+    validate_non_negative_spacing(
+        properties,
+        CoreOption::SpacingLabelLabel,
+        "label-label spacing",
+    )?;
+    validate_non_negative_spacing(
+        properties,
+        CoreOption::SpacingLabelNode,
+        "label-node spacing",
+    )?;
+    validate_non_negative_spacing(
+        properties,
+        CoreOption::SpacingLabelPortHorizontal,
+        "horizontal label-port spacing",
+    )?;
+    validate_non_negative_spacing(
+        properties,
+        CoreOption::SpacingLabelPortVertical,
+        "vertical label-port spacing",
+    )?;
+    validate_non_negative_spacing(
+        properties,
         CoreOption::SpacingNodeSelfLoop,
         "node self-loop spacing",
     )?;
+    validate_non_negative_spacing(properties, CoreOption::SpacingPortPort, "port-port spacing")?;
 
     Ok(diagnostics)
 }
@@ -262,9 +288,19 @@ fn spacing_value(properties: &Properties, option: CoreOption) -> Option<f64> {
             ),
             _ => None,
         },
+        CoreOption::SpacingEdgeLabel => stored_number(properties, option, "edge-label spacing"),
+        CoreOption::SpacingLabelLabel => stored_number(properties, option, "label-label spacing"),
+        CoreOption::SpacingLabelNode => stored_number(properties, option, "label-node spacing"),
+        CoreOption::SpacingLabelPortHorizontal => {
+            stored_number(properties, option, "horizontal label-port spacing")
+        }
+        CoreOption::SpacingLabelPortVertical => {
+            stored_number(properties, option, "vertical label-port spacing")
+        }
         CoreOption::SpacingNodeSelfLoop => {
             stored_number(properties, option, "node self-loop spacing")
         }
+        CoreOption::SpacingPortPort => stored_number(properties, option, "port-port spacing"),
         _ => None,
     }
 }

@@ -392,6 +392,44 @@ fn negative_additional_spacing_returns_invalid_error() {
 }
 
 #[test]
+fn negative_label_and_port_spacing_returns_invalid_error() {
+    for key in [
+        "org.eclipse.elk.spacing.edgeLabel",
+        "org.eclipse.elk.spacing.labelLabel",
+        "org.eclipse.elk.spacing.labelNode",
+        "org.eclipse.elk.spacing.labelPortHorizontal",
+        "org.eclipse.elk.spacing.labelPortVertical",
+        "org.eclipse.elk.spacing.portPort",
+    ] {
+        assert_invalid_contains(
+            &format!(
+                r#"{{
+                  "id": "root",
+                  "layoutOptions": {{ "{key}": -1 }}
+                }}"#
+            ),
+            &format!("{key} must be non-negative"),
+        );
+    }
+}
+
+#[test]
+fn negative_node_port_spacing_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.spacing.portPort": -1 }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.spacing.portPort must be non-negative",
+    );
+}
+
+#[test]
 fn unsupported_port_side_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

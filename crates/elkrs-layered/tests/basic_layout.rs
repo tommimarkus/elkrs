@@ -783,6 +783,28 @@ fn layered_layout_rejects_negative_additional_spacing() {
     });
 }
 
+#[test]
+fn layered_layout_rejects_negative_label_and_port_spacing() {
+    assert_negative_additional_spacing_rejected("edge-label spacing", |properties| {
+        properties.set_spacing_edge_label(-1.0);
+    });
+    assert_negative_additional_spacing_rejected("label-label spacing", |properties| {
+        properties.set_spacing_label_label(-1.0);
+    });
+    assert_negative_additional_spacing_rejected("label-node spacing", |properties| {
+        properties.set_spacing_label_node(-1.0);
+    });
+    assert_negative_additional_spacing_rejected("horizontal label-port spacing", |properties| {
+        properties.set_spacing_label_port_horizontal(-1.0);
+    });
+    assert_negative_additional_spacing_rejected("vertical label-port spacing", |properties| {
+        properties.set_spacing_label_port_vertical(-1.0);
+    });
+    assert_negative_additional_spacing_rejected("port-port spacing", |properties| {
+        properties.set_spacing_port_port(-1.0);
+    });
+}
+
 fn assert_negative_additional_spacing_rejected(name: &str, set_spacing: fn(&mut Properties)) {
     let mut graph = ElkGraph::new("root");
     set_spacing(&mut graph.properties);

@@ -52,9 +52,15 @@ const EDGE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.edgeNode";
 const LEGACY_EDGE_NODE_SPACING_KEY: &str = "elk.spacing.edgeNode";
 const EDGE_EDGE_SPACING_KEY: &str = "org.eclipse.elk.spacing.edgeEdge";
 const LEGACY_EDGE_EDGE_SPACING_KEY: &str = "elk.spacing.edgeEdge";
+const EDGE_LABEL_SPACING_KEY: &str = "org.eclipse.elk.spacing.edgeLabel";
 const LAYER_EDGE_NODE_SPACING_KEY: &str = "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers";
 const LAYER_EDGE_EDGE_SPACING_KEY: &str = "org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers";
+const LABEL_LABEL_SPACING_KEY: &str = "org.eclipse.elk.spacing.labelLabel";
+const LABEL_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.labelNode";
+const LABEL_PORT_HORIZONTAL_SPACING_KEY: &str = "org.eclipse.elk.spacing.labelPortHorizontal";
+const LABEL_PORT_VERTICAL_SPACING_KEY: &str = "org.eclipse.elk.spacing.labelPortVertical";
 const NODE_SELF_LOOP_SPACING_KEY: &str = "org.eclipse.elk.spacing.nodeSelfLoop";
+const PORT_PORT_SPACING_KEY: &str = "org.eclipse.elk.spacing.portPort";
 const PORT_SIDE_KEY: &str = "org.eclipse.elk.port.side";
 const LEGACY_PORT_SIDE_KEY: &str = "side";
 const PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY: &str =
@@ -452,15 +458,33 @@ fn apply_layout_options(
             EDGE_EDGE_SPACING_KEY | LEGACY_EDGE_EDGE_SPACING_KEY => graph
                 .properties
                 .set_spacing_edge_edge(non_negative_number(value, key)?),
+            EDGE_LABEL_SPACING_KEY => graph
+                .properties
+                .set_spacing_edge_label(non_negative_number(value, key)?),
             LAYER_EDGE_NODE_SPACING_KEY => graph
                 .properties
                 .set_spacing_edge_node_between_layers(non_negative_number(value, key)?),
             LAYER_EDGE_EDGE_SPACING_KEY => graph
                 .properties
                 .set_spacing_edge_edge_between_layers(non_negative_number(value, key)?),
+            LABEL_LABEL_SPACING_KEY => graph
+                .properties
+                .set_spacing_label_label(non_negative_number(value, key)?),
+            LABEL_NODE_SPACING_KEY => graph
+                .properties
+                .set_spacing_label_node(non_negative_number(value, key)?),
+            LABEL_PORT_HORIZONTAL_SPACING_KEY => graph
+                .properties
+                .set_spacing_label_port_horizontal(non_negative_number(value, key)?),
+            LABEL_PORT_VERTICAL_SPACING_KEY => graph
+                .properties
+                .set_spacing_label_port_vertical(non_negative_number(value, key)?),
             NODE_SELF_LOOP_SPACING_KEY => graph
                 .properties
                 .set_spacing_node_self_loop(non_negative_number(value, key)?),
+            PORT_PORT_SPACING_KEY => graph
+                .properties
+                .set_spacing_port_port(non_negative_number(value, key)?),
             SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY => graph
                 .properties
                 .set_semi_interactive_crossing_minimization(boolean(value, key)?),
@@ -617,6 +641,10 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     {
         options.insert(EDGE_EDGE_SPACING_KEY.to_string(), (*spacing).into());
     }
+    if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingEdgeLabel)
+    {
+        options.insert(EDGE_LABEL_SPACING_KEY.to_string(), (*spacing).into());
+    }
     if let Some(PropertyValue::Number(spacing)) = graph
         .properties
         .get(CoreOption::SpacingEdgeNodeBetweenLayers)
@@ -630,9 +658,38 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         options.insert(LAYER_EDGE_EDGE_SPACING_KEY.to_string(), (*spacing).into());
     }
     if let Some(PropertyValue::Number(spacing)) =
+        graph.properties.get(CoreOption::SpacingLabelLabel)
+    {
+        options.insert(LABEL_LABEL_SPACING_KEY.to_string(), (*spacing).into());
+    }
+    if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingLabelNode)
+    {
+        options.insert(LABEL_NODE_SPACING_KEY.to_string(), (*spacing).into());
+    }
+    if let Some(PropertyValue::Number(spacing)) =
+        graph.properties.get(CoreOption::SpacingLabelPortHorizontal)
+    {
+        options.insert(
+            LABEL_PORT_HORIZONTAL_SPACING_KEY.to_string(),
+            (*spacing).into(),
+        );
+    }
+    if let Some(PropertyValue::Number(spacing)) =
+        graph.properties.get(CoreOption::SpacingLabelPortVertical)
+    {
+        options.insert(
+            LABEL_PORT_VERTICAL_SPACING_KEY.to_string(),
+            (*spacing).into(),
+        );
+    }
+    if let Some(PropertyValue::Number(spacing)) =
         graph.properties.get(CoreOption::SpacingNodeSelfLoop)
     {
         options.insert(NODE_SELF_LOOP_SPACING_KEY.to_string(), (*spacing).into());
+    }
+    if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingPortPort)
+    {
+        options.insert(PORT_PORT_SPACING_KEY.to_string(), (*spacing).into());
     }
     insert_boolean_option(
         &mut options,
@@ -745,6 +802,10 @@ fn apply_node_layout_options(
             PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY => {
                 node.properties
                     .set_port_labels_next_to_port_if_possible(boolean(value, key)?);
+            }
+            PORT_PORT_SPACING_KEY => {
+                node.properties
+                    .set_spacing_port_port(non_negative_number(value, key)?);
             }
             SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY => {
                 node.properties
@@ -894,6 +955,9 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         CoreOption::PortLabelsNextToPortIfPossible,
         PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY,
     );
+    if let Some(PropertyValue::Number(spacing)) = node.properties.get(CoreOption::SpacingPortPort) {
+        options.insert(PORT_PORT_SPACING_KEY.to_string(), (*spacing).into());
+    }
     insert_boolean_option(
         &mut options,
         &node.properties,

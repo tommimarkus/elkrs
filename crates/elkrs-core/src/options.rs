@@ -100,9 +100,15 @@ pub enum CoreOption {
     SpacingComponentComponent,
     SpacingEdgeNode,
     SpacingEdgeEdge,
+    SpacingEdgeLabel,
     SpacingEdgeNodeBetweenLayers,
     SpacingEdgeEdgeBetweenLayers,
+    SpacingLabelLabel,
+    SpacingLabelNode,
+    SpacingLabelPortHorizontal,
+    SpacingLabelPortVertical,
     SpacingNodeSelfLoop,
+    SpacingPortPort,
     TopdownLayout,
     UnnecessaryBendpoints,
     WrappingAdditionalEdgeSpacing,
@@ -278,6 +284,11 @@ impl Properties {
             .insert(CoreOption::SpacingEdgeEdge, PropertyValue::Number(spacing))
     }
 
+    pub fn set_spacing_edge_label(&mut self, spacing: f64) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::SpacingEdgeLabel, PropertyValue::Number(spacing))
+    }
+
     pub fn set_spacing_edge_node_between_layers(&mut self, spacing: f64) -> Option<PropertyValue> {
         self.values.insert(
             CoreOption::SpacingEdgeNodeBetweenLayers,
@@ -292,11 +303,42 @@ impl Properties {
         )
     }
 
+    pub fn set_spacing_label_label(&mut self, spacing: f64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::SpacingLabelLabel,
+            PropertyValue::Number(spacing),
+        )
+    }
+
+    pub fn set_spacing_label_node(&mut self, spacing: f64) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::SpacingLabelNode, PropertyValue::Number(spacing))
+    }
+
+    pub fn set_spacing_label_port_horizontal(&mut self, spacing: f64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::SpacingLabelPortHorizontal,
+            PropertyValue::Number(spacing),
+        )
+    }
+
+    pub fn set_spacing_label_port_vertical(&mut self, spacing: f64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::SpacingLabelPortVertical,
+            PropertyValue::Number(spacing),
+        )
+    }
+
     pub fn set_spacing_node_self_loop(&mut self, spacing: f64) -> Option<PropertyValue> {
         self.values.insert(
             CoreOption::SpacingNodeSelfLoop,
             PropertyValue::Number(spacing),
         )
+    }
+
+    pub fn set_spacing_port_port(&mut self, spacing: f64) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::SpacingPortPort, PropertyValue::Number(spacing))
     }
 
     pub fn set_topdown_layout(&mut self, enabled: bool) -> Option<PropertyValue> {

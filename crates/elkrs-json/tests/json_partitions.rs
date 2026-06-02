@@ -649,6 +649,61 @@ fn imports_java_additional_spacing_layout_options() {
 }
 
 #[test]
+fn imports_java_label_and_port_spacing_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.spacing.edgeLabel": 21,
+            "org.eclipse.elk.spacing.labelLabel": 22,
+            "org.eclipse.elk.spacing.labelNode": 23,
+            "org.eclipse.elk.spacing.labelPortHorizontal": 24,
+            "org.eclipse.elk.spacing.labelPortVertical": 25,
+            "org.eclipse.elk.spacing.portPort": 26
+          },
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.spacing.portPort": 27 }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.properties.get(CoreOption::SpacingEdgeLabel),
+        Some(&PropertyValue::Number(21.0))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::SpacingLabelLabel),
+        Some(&PropertyValue::Number(22.0))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::SpacingLabelNode),
+        Some(&PropertyValue::Number(23.0))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::SpacingLabelPortHorizontal),
+        Some(&PropertyValue::Number(24.0))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::SpacingLabelPortVertical),
+        Some(&PropertyValue::Number(25.0))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::SpacingPortPort),
+        Some(&PropertyValue::Number(26.0))
+    );
+    assert_eq!(
+        graph.nodes[&ElementId::from("node")]
+            .properties
+            .get(CoreOption::SpacingPortPort),
+        Some(&PropertyValue::Number(27.0))
+    );
+}
+
+#[test]
 fn imports_short_spacing_layout_options() {
     let graph = from_str(
         r#"{
@@ -784,6 +839,51 @@ fn serializes_additional_spacing_with_java_keys() {
     assert_eq!(
         json["layoutOptions"]["org.eclipse.elk.spacing.nodeSelfLoop"],
         Value::from(16.0)
+    );
+}
+
+#[test]
+fn serializes_label_and_port_spacing_with_java_keys() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_edge_label(21.0);
+    graph.properties.set_spacing_label_label(22.0);
+    graph.properties.set_spacing_label_node(23.0);
+    graph.properties.set_spacing_label_port_horizontal(24.0);
+    graph.properties.set_spacing_label_port_vertical(25.0);
+    graph.properties.set_spacing_port_port(26.0);
+
+    let mut node = ElkNode::new("node");
+    node.properties.set_spacing_port_port(27.0);
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.spacing.edgeLabel"],
+        Value::from(21.0)
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.spacing.labelLabel"],
+        Value::from(22.0)
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.spacing.labelNode"],
+        Value::from(23.0)
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.spacing.labelPortHorizontal"],
+        Value::from(24.0)
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.spacing.labelPortVertical"],
+        Value::from(25.0)
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.spacing.portPort"],
+        Value::from(26.0)
+    );
+    assert_eq!(
+        json["children"][0]["layoutOptions"]["org.eclipse.elk.spacing.portPort"],
+        Value::from(27.0)
     );
 }
 
