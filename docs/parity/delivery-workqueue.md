@@ -31,10 +31,8 @@ order below remains the integration order.
 
 Current safe parallel batches:
 
-- Batch A: #37 and #40 can run in parallel.
-  - #37 is evidence promotion for existing semantic behavior.
-  - #40 is compatibility decision work for hierarchy, clusters, and topdown
-    behavior.
+- Batch A: #37 is complete; #40 remains the active compatibility decision work
+  for hierarchy, clusters, and topdown behavior.
 - Batch B: after #40 decisions are recorded, #39 and #38 can run in parallel in
   separate worktrees. Expect both to touch JSON/core surfaces; integrate in
   queue order and rerun the full gate after each merge.
@@ -51,15 +49,20 @@ Current safe parallel batches:
 
 | Order | Issue | Delivery target | Why this order |
 | --- | --- | --- | --- |
-| 1 | #37 `Delivery: promote existing semantic rows to Java parity` | Promote existing `semantic` rows to `java-parity`. | Fastest closable evidence, and it turns existing work into product-visible progress. |
-| 2 | #40 `Delivery: hierarchy and topdown compatibility decisions v1` | Decide or implement hierarchy, cluster, and topdown compatibility. | Removes ambiguous scope before deeper compound, placement, and release claims. |
-| 3 | #39 `Delivery: port constraints and ordering v1` | Deliver port constraints, ordering, alignment, and offsets. | Ports are already partially Java-backed and affect routing, labels, and JSON. |
-| 4 | #38 `Delivery: labels and node sizing v1` | Deliver label and node-size behavior or exclusions. | Unlocks several parsed/unsupported graph, label, spacing, and size rows. |
-| 5 | #41 `Delivery: layer assignment semantics v1` | Deliver layer strategies, constraints, IDs, and partitions. | Core layered behavior; higher risk, but now isolated from pure option parsing. |
-| 6 | #43 `Delivery: routing variants, self-loops, junctions, and merging v1` | Deliver or exclude route variants, inside self-loops, junctions, and merging. | Builds on existing routing and port evidence; high product visibility. |
-| 7 | #42 `Delivery: crossing minimization constraints v1` | Deliver model-order, group-order, greedy-switch, and crossing controls. | Important quality behavior, but easiest after layering and routing boundaries settle. |
-| 8 | #44 `Delivery: node placement, compaction, and wrapping v1` | Deliver or exclude placement, compaction, margins, padding, and wrapping. | Broadest and riskiest slice; defer until upstream boundaries are clearer. |
-| 9 | #45 `Delivery: all in-scope JSON option round trip v1` | Close the full JSON contract for all in-scope 1.0.0 behavior. | Cross-cutting closeout; should follow capability decisions rather than lead them. |
+| 1 | #40 `Delivery: hierarchy and topdown compatibility decisions v1` | Decide or implement hierarchy, cluster, and topdown compatibility. | Removes ambiguous scope before deeper compound, placement, and release claims. |
+| 2 | #39 `Delivery: port constraints and ordering v1` | Deliver port constraints, ordering, alignment, and offsets. | Ports are already partially Java-backed and affect routing, labels, and JSON. |
+| 3 | #38 `Delivery: labels and node sizing v1` | Deliver label and node-size behavior or exclusions. | Unlocks several parsed/unsupported graph, label, spacing, and size rows. |
+| 4 | #41 `Delivery: layer assignment semantics v1` | Deliver layer strategies, constraints, IDs, and partitions. | Core layered behavior; higher risk, but now isolated from pure option parsing. |
+| 5 | #43 `Delivery: routing variants, self-loops, junctions, and merging v1` | Deliver or exclude route variants, inside self-loops, junctions, and merging. | Builds on existing routing and port evidence; high product visibility. |
+| 6 | #42 `Delivery: crossing minimization constraints v1` | Deliver model-order, group-order, greedy-switch, and crossing controls. | Important quality behavior, but easiest after layering and routing boundaries settle. |
+| 7 | #44 `Delivery: node placement, compaction, and wrapping v1` | Deliver or exclude placement, compaction, margins, padding, and wrapping. | Broadest and riskiest slice; defer until upstream boundaries are clearer. |
+| 8 | #45 `Delivery: all in-scope JSON option round trip v1` | Close the full JSON contract for all in-scope 1.0.0 behavior. | Cross-cutting closeout; should follow capability decisions rather than lead them. |
+
+## Completed Deliveries
+
+| Issue | Local commit | Result |
+| --- | --- | --- |
+| #37 `Delivery: promote existing semantic rows to Java parity` | `85daf24` | Promoted `LAYERED-GRAPH-009` and component-spacing `LAYERED-P4-003` to `java-parity`; split connected-component compaction to `LAYERED-P4-004`; documented `LAYERED-JSON-001` Java JSON-oracle follow-up under #45 and `LAYERED-META-OPTION-106` non-node target follow-ups under later delivery queues. |
 
 ## Closeout Standard
 
