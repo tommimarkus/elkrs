@@ -798,6 +798,36 @@ fn layered_layout_applies_edge_node_spacing_to_obstacle_detours() {
 }
 
 #[test]
+fn layered_layout_applies_component_component_spacing_between_disconnected_components() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_node_node(10.0);
+    graph.properties.set_spacing_component_component(120.0);
+    graph.add_node(node("a-source", 40.0, 30.0));
+    graph.add_node(node("a-target", 40.0, 30.0));
+    graph.add_node(node("b-source", 40.0, 30.0));
+    graph.add_node(node("b-target", 40.0, 30.0));
+    graph.add_edge(ElkEdge::new(
+        "a-edge",
+        ElementRef::Node(ElementId::from("a-source")),
+        ElementRef::Node(ElementId::from("a-target")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "b-edge",
+        ElementRef::Node(ElementId::from("b-source")),
+        ElementRef::Node(ElementId::from("b-target")),
+    ));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report
+        .diagnostics
+        .iter()
+        .all(|diagnostic| !diagnostic.message.contains("component-component spacing")));
+    assert_node_gap_at_least(&graph, "a-source", "b-source", 120.0);
+    assert_node_gap_at_least(&graph, "a-target", "b-target", 120.0);
+}
+
+#[test]
 fn layered_layout_preserves_edge_node_spacing_for_parallel_obstacle_detours() {
     let mut graph = ElkGraph::new("root");
     graph.properties.set_spacing_edge_node(48.0);
@@ -1365,6 +1395,22 @@ fn assert_point_on_node(point: Point, node: &ElkNode) {
     assert!(point.x <= node.position.x + node.size.width);
     assert!(point.y >= node.position.y);
     assert!(point.y <= node.position.y + node.size.height);
+}
+
+fn assert_node_gap_at_least(graph: &ElkGraph, first: &str, second: &str, minimum: f64) {
+    let first = &graph.nodes[&ElementId::from(first)];
+    let second = &graph.nodes[&ElementId::from(second)];
+    let gap = if first.position.y <= second.position.y {
+        second.position.y - (first.position.y + first.size.height)
+    } else {
+        first.position.y - (second.position.y + second.size.height)
+    };
+    assert!(
+        gap + f64::EPSILON >= minimum,
+        "expected at least {minimum} gap between {} and {}, got {gap}",
+        first.id.as_str(),
+        second.id.as_str()
+    );
 }
 
 fn assert_no_axis_aligned_segment_through_node_interior(points: &[Point], node: &ElkNode) {

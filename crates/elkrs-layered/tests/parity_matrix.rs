@@ -147,6 +147,24 @@ fn port_spacing_row_has_java_fixture_evidence() {
 }
 
 #[test]
+fn component_spacing_row_has_java_fixture_evidence() {
+    let fixtures = parity_fixtures();
+    let row_id = "LAYERED-META-OPTION-135";
+
+    assert!(
+        fixtures.iter().any(|fixture| {
+            fixture.id == row_id && fixture.status == ParityFixtureStatus::JavaComparable
+        }),
+        "{row_id} should have a Java-comparable parity fixture"
+    );
+    assert_eq!(
+        row_status(PARITY_MATRIX, row_id),
+        Some("java-parity"),
+        "{row_id} should be marked as java-parity in the parity matrix"
+    );
+}
+
+#[test]
 fn spacing_metadata_rows_have_java_fixture_evidence() {
     let fixtures = parity_fixtures();
 

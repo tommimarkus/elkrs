@@ -12,6 +12,7 @@ use crate::pipeline::{LayeredContext, LayeredProcessor};
 struct LayoutSpacing {
     node_node: f64,
     layer_node_node: f64,
+    component_component: f64,
     port_port: f64,
 }
 
@@ -20,6 +21,7 @@ impl LayoutSpacing {
         Self {
             node_node: properties.spacing_node_node(),
             layer_node_node: properties.spacing_layer_node_node(),
+            component_component: properties.spacing_component_component(),
             port_port: properties.spacing_port_port(),
         }
     }
@@ -62,11 +64,21 @@ impl LayeredProcessor for NodePlacement {
             next_major += *extent + self.spacing.layer_node_node;
         }
 
+        let component_by_node = connected_components(graph);
         let mut positions = vec![Point::new(0.0, 0.0); graph.nodes.len()];
         for (layer, indices) in nodes_by_layer {
             let major = layer_major_position[&layer];
             let mut minor = 0.0;
+            let mut previous_component = None;
             for index in indices {
+                if let Some(previous) = previous_component {
+                    let component_spacing = if previous != component_by_node[index] {
+                        self.spacing.node_node.max(self.spacing.component_component)
+                    } else {
+                        self.spacing.node_node
+                    };
+                    minor += component_spacing;
+                }
                 let node = &graph.nodes[index];
                 let hierarchy_offset = if node.parent.is_some() {
                     self.spacing.node_node / 4.0
@@ -75,7 +87,8 @@ impl LayeredProcessor for NodePlacement {
                 };
                 positions[index] =
                     position_from_axes(self.direction, major, minor + hierarchy_offset, node.size);
-                minor += minor_extent(self.direction, node.size) + self.spacing.node_node;
+                minor += minor_extent(self.direction, node.size);
+                previous_component = Some(component_by_node[index]);
             }
         }
 
@@ -88,6 +101,48 @@ impl LayeredProcessor for NodePlacement {
         place_default_ports(graph, self.spacing);
         Ok(())
     }
+}
+
+fn connected_components(graph: &LGraph) -> Vec<usize> {
+    let mut parents = (0..graph.nodes.len()).collect::<Vec<_>>();
+    let node_index = graph
+        .nodes
+        .iter()
+        .enumerate()
+        .map(|(index, node)| (node.id.clone(), index))
+        .collect::<BTreeMap<_, _>>();
+
+    for edge in &graph.edges {
+        if edge.kind.is_self_loop() {
+            continue;
+        }
+        let Some(source) = node_index.get(&edge.source.node).copied() else {
+            continue;
+        };
+        let Some(target) = node_index.get(&edge.target.node).copied() else {
+            continue;
+        };
+        union(&mut parents, source, target);
+    }
+
+    (0..graph.nodes.len())
+        .map(|index| find(&mut parents, index))
+        .collect()
+}
+
+fn union(parents: &mut [usize], first: usize, second: usize) {
+    let first_root = find(parents, first);
+    let second_root = find(parents, second);
+    if first_root != second_root {
+        parents[second_root] = first_root;
+    }
+}
+
+fn find(parents: &mut [usize], index: usize) -> usize {
+    if parents[index] != index {
+        parents[index] = find(parents, parents[index]);
+    }
+    parents[index]
 }
 
 fn place_children_inside_parents(graph: &mut LGraph, spacing: LayoutSpacing) {

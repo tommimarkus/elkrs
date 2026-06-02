@@ -253,6 +253,19 @@ pub fn edge_node_spacing_obstacle() -> ElkGraph {
     graph
 }
 
+pub fn component_component_spacing() -> ElkGraph {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_node_node(10.0);
+    graph.properties.set_spacing_component_component(120.0);
+    graph.add_node(node("a-source", 40.0, 30.0));
+    graph.add_node(node("a-target", 40.0, 30.0));
+    graph.add_node(node("b-source", 40.0, 30.0));
+    graph.add_node(node("b-target", 40.0, 30.0));
+    graph.add_edge(edge("a-edge", "a-source", "a-target"));
+    graph.add_edge(edge("b-edge", "b-source", "b-target"));
+    graph
+}
+
 pub fn node_node_spacing() -> ElkGraph {
     let mut graph = ElkGraph::new("root");
     graph.properties.set_spacing_node_node(200.0);
@@ -665,6 +678,26 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
                 node_id: "b-obstacle",
                 minimum: 48.0,
             }],
+        },
+        ParityFixture {
+            id: "LAYERED-META-OPTION-135",
+            name: "component-component-spacing-metadata",
+            status: ParityFixtureStatus::JavaComparable,
+            build: component_component_spacing,
+            assertions: &[
+                ParityAssertion::NodeSeparation {
+                    first: "a-source",
+                    second: "b-source",
+                    axis: Axis::Y,
+                    minimum: 120.0,
+                },
+                ParityAssertion::NodeSeparation {
+                    first: "a-target",
+                    second: "b-target",
+                    axis: Axis::Y,
+                    minimum: 120.0,
+                },
+            ],
         },
         ParityFixture {
             id: "LAYERED-P5-003",

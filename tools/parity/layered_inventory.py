@@ -87,9 +87,9 @@ STATUS_OVERRIDES = {
         "Parsed and validated; comment layout semantics remain open",
     ),
     "org.eclipse.elk.spacing.componentComponent": (
-        "parsed",
-        "`cargo test -p elkrs-json --test json_partitions --locked additional_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_additional_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_additional_spacing`",
-        "Parsed and validated; component spacing semantics remain open",
+        "java-parity",
+        '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_component_component_spacing_between_disconnected_components`; `cargo test -p elkrs-json --test json_partitions --locked additional_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_additional_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test parity_matrix --locked component_spacing_row_has_java_fixture_evidence`; plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for Java-backed disconnected component spacing fixture",
     ),
     "org.eclipse.elk.spacing.edgeNode": (
         "java-parity",
