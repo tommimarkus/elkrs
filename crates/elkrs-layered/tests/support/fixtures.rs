@@ -2,7 +2,7 @@
 
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
-use elkrs_core::options::{Algorithm, Direction, EdgeRouting, PortSide};
+use elkrs_core::options::{Algorithm, Direction, EdgeRouting, HierarchyHandling, PortSide};
 
 pub fn chain() -> ElkGraph {
     let mut graph = ElkGraph::new("root");
@@ -121,6 +121,9 @@ pub fn cross_group_edge() -> ElkGraph {
     let mut group = node("group", 240.0, 160.0);
     group.add_child(node("child", 50.0, 30.0));
     let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_hierarchy_handling(HierarchyHandling::IncludeChildren);
     graph.add_node(group);
     graph.add_node(node("external", 50.0, 30.0));
     graph.add_edge(edge("child-external", "child", "external"));
@@ -780,11 +783,33 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             assertions: &[],
         },
         ParityFixture {
+            id: "LAYERED-P4-003",
+            name: "component-component-spacing",
+            status: ParityFixtureStatus::JavaComparable,
+            build: component_component_spacing,
+            assertions: &[
+                ParityAssertion::NodeSeparation {
+                    first: "a-source",
+                    second: "b-source",
+                    axis: Axis::Y,
+                    minimum: 120.0,
+                },
+                ParityAssertion::NodeSeparation {
+                    first: "a-target",
+                    second: "b-target",
+                    axis: Axis::Y,
+                    minimum: 120.0,
+                },
+            ],
+        },
+        ParityFixture {
             id: "LAYERED-GRAPH-009",
-            name: "consumer-compound-ports",
-            status: ParityFixtureStatus::RustOnly,
-            build: consumer_compound_ports,
-            assertions: &[],
+            name: "cross-group-edge",
+            status: ParityFixtureStatus::JavaComparable,
+            build: cross_group_edge,
+            assertions: &[ParityAssertion::EdgeRouteAxisAligned {
+                edge_id: "child-external",
+            }],
         },
         ParityFixture {
             id: "LAYERED-P5-002",

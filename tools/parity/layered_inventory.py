@@ -516,7 +516,7 @@ STATUS_OVERRIDES = {
     "org.eclipse.elk.noLayout": (
         "semantic",
         "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_preserves_no_layout_node_position`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
-        "Node no-layout preserves input node coordinates; edge, label, and port target support awaits element property storage",
+        "Node no-layout preserves input node coordinates; edge, label, and port target semantics remain deferred to the edge, label, port, and JSON delivery queues because the full metadata row targets EDGES, LABELS, NODES, and PORTS",
     ),
     "org.eclipse.elk.separateConnectedComponents": (
         "diagnostic",

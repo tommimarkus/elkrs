@@ -15,12 +15,6 @@ fn all_declared_parity_fixtures_produce_structurally_valid_layouts() {
         !fixtures.is_empty(),
         "expected at least one declared parity fixture"
     );
-    assert!(
-        fixtures
-            .iter()
-            .any(|fixture| fixture.status == ParityFixtureStatus::RustOnly),
-        "expected at least one Rust-only parity fixture"
-    );
 
     for fixture in fixtures {
         let mut graph = (fixture.build)();
@@ -149,19 +143,20 @@ fn port_spacing_row_has_java_fixture_evidence() {
 #[test]
 fn component_spacing_row_has_java_fixture_evidence() {
     let fixtures = parity_fixtures();
-    let row_id = "LAYERED-META-OPTION-135";
 
-    assert!(
-        fixtures.iter().any(|fixture| {
-            fixture.id == row_id && fixture.status == ParityFixtureStatus::JavaComparable
-        }),
-        "{row_id} should have a Java-comparable parity fixture"
-    );
-    assert_eq!(
-        row_status(PARITY_MATRIX, row_id),
-        Some("java-parity"),
-        "{row_id} should be marked as java-parity in the parity matrix"
-    );
+    for row_id in ["LAYERED-P4-003", "LAYERED-META-OPTION-135"] {
+        assert!(
+            fixtures.iter().any(|fixture| {
+                fixture.id == row_id && fixture.status == ParityFixtureStatus::JavaComparable
+            }),
+            "{row_id} should have a Java-comparable parity fixture"
+        );
+        assert_eq!(
+            row_status(PARITY_MATRIX, row_id),
+            Some("java-parity"),
+            "{row_id} should be marked as java-parity in the parity matrix"
+        );
+    }
 }
 
 #[test]
@@ -233,6 +228,24 @@ fn direction_metadata_row_has_java_fixture_evidence() {
 fn port_endpoint_graph_row_has_java_fixture_evidence() {
     let fixtures = parity_fixtures();
     let row_id = "LAYERED-GRAPH-007";
+
+    assert!(
+        fixtures.iter().any(|fixture| {
+            fixture.id == row_id && fixture.status == ParityFixtureStatus::JavaComparable
+        }),
+        "{row_id} should have a Java-comparable parity fixture"
+    );
+    assert_eq!(
+        row_status(PARITY_MATRIX, row_id),
+        Some("java-parity"),
+        "{row_id} should be marked as java-parity in the parity matrix"
+    );
+}
+
+#[test]
+fn hierarchy_crossing_graph_row_has_java_fixture_evidence() {
+    let fixtures = parity_fixtures();
+    let row_id = "LAYERED-GRAPH-009";
 
     assert!(
         fixtures.iter().any(|fixture| {
