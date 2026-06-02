@@ -6,8 +6,9 @@ use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPo
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
     Algorithm, ComponentOrderingStrategy, CrossingMinimizationStrategy, Direction, EdgeRouting,
-    GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LongEdgeOrderingStrategy,
-    ModelOrderStrategy, PortAlignment, PortConstraints, PortSide, Properties, PropertyValue,
+    GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
+    LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy, PortAlignment,
+    PortConstraints, PortSide, Properties, PropertyValue,
 };
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
@@ -1628,6 +1629,74 @@ fn layered_layout_reports_unsupported_port_scoped_options() {
                 .message
                 .contains("allow non-flow ports to switch sides")
             && diagnostic.message.contains("out")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_unsupported_layer_assignment_options() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_layering_strategy(NodeLayeringStrategy::NetworkSimplex);
+    graph.properties.set_layer_bound(5);
+    graph.properties.set_layout_partition(3);
+
+    let mut child = node("child", 60.0, 30.0);
+    child.properties.set_layer_choice_constraint(2);
+    child
+        .properties
+        .set_layer_constraint(LayerConstraint::FirstSeparate);
+    child.properties.set_layer_id(7);
+    child.properties.set_layout_partition(4);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("layering strategy")
+            && diagnostic.message.contains("NetworkSimplex")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("layer bound")
+            && diagnostic.message.contains("5")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("layout partition")
+            && diagnostic.message.contains("3")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("layer choice constraint")
+            && diagnostic.message.contains("2")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("layer constraint")
+            && diagnostic.message.contains("FirstSeparate")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("layer ID")
+            && diagnostic.message.contains("7")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("layout partition")
+            && diagnostic.message.contains("4")
+            && diagnostic.message.contains("child")
     }));
 }
 

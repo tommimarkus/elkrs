@@ -3,8 +3,9 @@ use elkrs_core::graph::{ElkGraph, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
     Algorithm, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy, EdgeRouting,
-    GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LongEdgeOrderingStrategy,
-    ModelOrderStrategy, PortAlignment, PortConstraints, Properties, PropertyValue,
+    GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
+    LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy, PortAlignment,
+    PortConstraints, Properties, PropertyValue,
 };
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
@@ -111,6 +112,7 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
         None,
         &mut diagnostics,
     );
+    collect_unsupported_layer_assignment_diagnostics(properties, None, &mut diagnostics);
     match properties.edge_routing() {
         EdgeRouting::Orthogonal => {}
         edge_routing => diagnostics.push(unsupported_edge_routing_diagnostic(edge_routing, None)),
@@ -594,6 +596,79 @@ fn unsupported_text_option_diagnostic(
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
 
+fn collect_unsupported_layer_assignment_diagnostics(
+    properties: &Properties,
+    node_id: Option<&str>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    if let Some(strategy) = properties.layering_strategy() {
+        diagnostics.push(unsupported_node_layering_strategy_diagnostic(
+            strategy, node_id,
+        ));
+    }
+    if let Some(bound) = properties.layer_bound() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "layer bound",
+            bound,
+            node_id,
+        ));
+    }
+    if let Some(constraint) = properties.layer_choice_constraint() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "layer choice constraint",
+            constraint,
+            node_id,
+        ));
+    }
+    if let Some(constraint) = properties.layer_constraint() {
+        diagnostics.push(unsupported_layer_constraint_diagnostic(constraint, node_id));
+    }
+    if let Some(id) = properties.layer_id() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "layer ID", id, node_id,
+        ));
+    }
+    if let Some(partition) = properties.layout_partition() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "layout partition",
+            partition,
+            node_id,
+        ));
+    }
+}
+
+fn unsupported_node_layering_strategy_diagnostic(
+    strategy: NodeLayeringStrategy,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "layering strategy {strategy:?} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!(
+            "layering strategy {strategy:?} is recognized but not implemented by elkrs-layered yet"
+        )
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
+fn unsupported_layer_constraint_diagnostic(
+    constraint: LayerConstraint,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "layer constraint {constraint:?} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!(
+            "layer constraint {constraint:?} is recognized but not implemented by elkrs-layered yet"
+        )
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
 fn collect_unsupported_port_alignment_diagnostics(
     properties: &Properties,
     node_id: Option<&str>,
@@ -713,6 +788,11 @@ fn collect_node_hierarchy_diagnostics(
         diagnostics,
     );
     collect_unsupported_crossing_minimization_control_diagnostics(
+        &node.properties,
+        Some(node.id.as_str()),
+        diagnostics,
+    );
+    collect_unsupported_layer_assignment_diagnostics(
         &node.properties,
         Some(node.id.as_str()),
         diagnostics,

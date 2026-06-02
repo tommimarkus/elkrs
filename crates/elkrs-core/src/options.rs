@@ -90,6 +90,28 @@ pub enum LongEdgeOrderingStrategy {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NodeLayeringStrategy {
+    BfModelOrder,
+    CoffmanGraham,
+    DfModelOrder,
+    Interactive,
+    LongestPath,
+    LongestPathSource,
+    MinWidth,
+    NetworkSimplex,
+    StretchWidth,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LayerConstraint {
+    First,
+    FirstSeparate,
+    Last,
+    LastSeparate,
+    None,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PortSide {
     North,
     East,
@@ -137,8 +159,10 @@ pub enum PropertyValue {
     GroupOrderingStrategy(GroupOrderingStrategy),
     GreedySwitchType(GreedySwitchType),
     HierarchyHandling(HierarchyHandling),
+    LayerConstraint(LayerConstraint),
     LongEdgeOrderingStrategy(LongEdgeOrderingStrategy),
     ModelOrderStrategy(ModelOrderStrategy),
+    NodeLayeringStrategy(NodeLayeringStrategy),
     PortAlignment(PortAlignment),
     PortConstraints(PortConstraints),
 }
@@ -184,8 +208,14 @@ pub enum CoreOption {
     Hypernode,
     InsideSelfLoops,
     InteractiveLayout,
+    LayerBound,
+    LayerChoiceConstraint,
+    LayerConstraint,
+    LayerId,
+    LayeringStrategy,
     LayerUnzippingMinimizeEdgeLength,
     LayerUnzippingResetOnLongEdges,
+    LayoutPartition,
     LayoutPartitioning,
     LongEdgeOrderingStrategy,
     MergeEdges,
@@ -497,6 +527,40 @@ impl Properties {
         self.set_bool_option(CoreOption::InteractiveLayout, enabled)
     }
 
+    pub fn set_layer_bound(&mut self, bound: i64) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::LayerBound, PropertyValue::Integer(bound))
+    }
+
+    pub fn set_layer_choice_constraint(&mut self, constraint: i64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::LayerChoiceConstraint,
+            PropertyValue::Integer(constraint),
+        )
+    }
+
+    pub fn set_layer_constraint(&mut self, constraint: LayerConstraint) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::LayerConstraint,
+            PropertyValue::LayerConstraint(constraint),
+        )
+    }
+
+    pub fn set_layer_id(&mut self, id: i64) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::LayerId, PropertyValue::Integer(id))
+    }
+
+    pub fn set_layering_strategy(
+        &mut self,
+        strategy: NodeLayeringStrategy,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::LayeringStrategy,
+            PropertyValue::NodeLayeringStrategy(strategy),
+        )
+    }
+
     pub fn set_layer_unzipping_minimize_edge_length(
         &mut self,
         enabled: bool,
@@ -509,6 +573,13 @@ impl Properties {
         enabled: bool,
     ) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::LayerUnzippingResetOnLongEdges, enabled)
+    }
+
+    pub fn set_layout_partition(&mut self, partition: i64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::LayoutPartition,
+            PropertyValue::Integer(partition),
+        )
     }
 
     pub fn set_layout_partitioning(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -1024,6 +1095,34 @@ impl Properties {
         self.bool_option(CoreOption::InteractiveLayout, "interactive layout")
     }
 
+    pub fn layer_bound(&self) -> Option<i64> {
+        self.integer_option(CoreOption::LayerBound, "layer bound")
+    }
+
+    pub fn layer_choice_constraint(&self) -> Option<i64> {
+        self.integer_option(CoreOption::LayerChoiceConstraint, "layer choice constraint")
+    }
+
+    pub fn layer_constraint(&self) -> Option<LayerConstraint> {
+        match self.get(CoreOption::LayerConstraint) {
+            Some(PropertyValue::LayerConstraint(constraint)) => Some(*constraint),
+            Some(value) => unreachable!("layer constraint stored incompatible value: {value:?}"),
+            _ => None,
+        }
+    }
+
+    pub fn layer_id(&self) -> Option<i64> {
+        self.integer_option(CoreOption::LayerId, "layer ID")
+    }
+
+    pub fn layering_strategy(&self) -> Option<NodeLayeringStrategy> {
+        match self.get(CoreOption::LayeringStrategy) {
+            Some(PropertyValue::NodeLayeringStrategy(strategy)) => Some(*strategy),
+            Some(value) => unreachable!("layering strategy stored incompatible value: {value:?}"),
+            _ => None,
+        }
+    }
+
     pub fn layer_unzipping_minimize_edge_length(&self) -> bool {
         self.bool_option(
             CoreOption::LayerUnzippingMinimizeEdgeLength,
@@ -1036,6 +1135,10 @@ impl Properties {
             CoreOption::LayerUnzippingResetOnLongEdges,
             "layer unzipping reset on long edges",
         )
+    }
+
+    pub fn layout_partition(&self) -> Option<i64> {
+        self.integer_option(CoreOption::LayoutPartition, "layout partition")
     }
 
     pub fn layout_partitioning(&self) -> bool {
@@ -1523,6 +1626,38 @@ mod tests {
         assert_eq!(properties.port_index(), Some(3));
         assert_eq!(properties.port_border_offset(), Some(4.5));
         assert!(properties.allow_non_flow_ports_to_switch_sides());
+    }
+
+    #[test]
+    fn layer_assignment_options_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.layering_strategy(), None);
+        assert_eq!(properties.layer_bound(), None);
+        assert_eq!(properties.layer_choice_constraint(), None);
+        assert_eq!(properties.layer_constraint(), None);
+        assert_eq!(properties.layer_id(), None);
+        assert_eq!(properties.layout_partition(), None);
+
+        properties.set_layering_strategy(NodeLayeringStrategy::NetworkSimplex);
+        properties.set_layer_bound(5);
+        properties.set_layer_choice_constraint(2);
+        properties.set_layer_constraint(LayerConstraint::FirstSeparate);
+        properties.set_layer_id(7);
+        properties.set_layout_partition(3);
+
+        assert_eq!(
+            properties.layering_strategy(),
+            Some(NodeLayeringStrategy::NetworkSimplex)
+        );
+        assert_eq!(properties.layer_bound(), Some(5));
+        assert_eq!(properties.layer_choice_constraint(), Some(2));
+        assert_eq!(
+            properties.layer_constraint(),
+            Some(LayerConstraint::FirstSeparate)
+        );
+        assert_eq!(properties.layer_id(), Some(7));
+        assert_eq!(properties.layout_partition(), Some(3));
     }
 
     #[test]

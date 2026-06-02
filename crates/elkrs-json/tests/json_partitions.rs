@@ -2,9 +2,9 @@ use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::options::{
     Algorithm, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy, Direction,
-    EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
-    LongEdgeOrderingStrategy, ModelOrderStrategy, PortAlignment, PortConstraints, PortSide,
-    PropertyValue,
+    EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
+    LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy, PortAlignment,
+    PortConstraints, PortSide, PropertyValue,
 };
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
@@ -2300,6 +2300,128 @@ fn serializes_port_scoped_options_with_java_keys() {
     assert_eq!(
         options["org.eclipse.elk.layered.allowNonFlowPortsToSwitchSides"],
         Value::Bool(true)
+    );
+}
+
+#[test]
+fn imports_java_layer_assignment_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.layering.strategy": "NETWORK_SIMPLEX",
+            "org.eclipse.elk.layered.layering.coffmanGraham.layerBound": 5,
+            "org.eclipse.elk.partitioning.partition": 3
+          }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.properties.get(CoreOption::LayeringStrategy),
+        Some(&PropertyValue::NodeLayeringStrategy(
+            NodeLayeringStrategy::NetworkSimplex
+        ))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::LayerBound),
+        Some(&PropertyValue::Integer(5))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::LayoutPartition),
+        Some(&PropertyValue::Integer(3))
+    );
+}
+
+#[test]
+fn imports_node_layer_assignment_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.layering.layerChoiceConstraint": 2,
+                "org.eclipse.elk.layered.layering.layerConstraint": "FIRST_SEPARATE",
+                "org.eclipse.elk.layered.layering.layerId": 7,
+                "org.eclipse.elk.partitioning.partition": 4
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let node = &graph.nodes[&ElementId::from("node")];
+    assert_eq!(
+        node.properties.get(CoreOption::LayerChoiceConstraint),
+        Some(&PropertyValue::Integer(2))
+    );
+    assert_eq!(
+        node.properties.get(CoreOption::LayerConstraint),
+        Some(&PropertyValue::LayerConstraint(
+            LayerConstraint::FirstSeparate
+        ))
+    );
+    assert_eq!(
+        node.properties.get(CoreOption::LayerId),
+        Some(&PropertyValue::Integer(7))
+    );
+    assert_eq!(
+        node.properties.get(CoreOption::LayoutPartition),
+        Some(&PropertyValue::Integer(4))
+    );
+}
+
+#[test]
+fn serializes_layer_assignment_options_with_java_keys() {
+    let mut node = ElkNode::new("node");
+    node.properties.set_layer_choice_constraint(2);
+    node.properties
+        .set_layer_constraint(LayerConstraint::FirstSeparate);
+    node.properties.set_layer_id(7);
+    node.properties.set_layout_partition(4);
+
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_layering_strategy(NodeLayeringStrategy::NetworkSimplex);
+    graph.properties.set_layer_bound(5);
+    graph.properties.set_layout_partition(3);
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let graph_options = &json["layoutOptions"];
+    assert_eq!(
+        graph_options["org.eclipse.elk.layered.layering.strategy"],
+        Value::String("NETWORK_SIMPLEX".to_owned())
+    );
+    assert_eq!(
+        graph_options["org.eclipse.elk.layered.layering.coffmanGraham.layerBound"],
+        Value::Number(5.into())
+    );
+    assert_eq!(
+        graph_options["org.eclipse.elk.partitioning.partition"],
+        Value::Number(3.into())
+    );
+
+    let node_options = &json["children"][0]["layoutOptions"];
+    assert_eq!(
+        node_options["org.eclipse.elk.layered.layering.layerChoiceConstraint"],
+        Value::Number(2.into())
+    );
+    assert_eq!(
+        node_options["org.eclipse.elk.layered.layering.layerConstraint"],
+        Value::String("FIRST_SEPARATE".to_owned())
+    );
+    assert_eq!(
+        node_options["org.eclipse.elk.layered.layering.layerId"],
+        Value::Number(7.into())
+    );
+    assert_eq!(
+        node_options["org.eclipse.elk.partitioning.partition"],
+        Value::Number(4.into())
     );
 }
 

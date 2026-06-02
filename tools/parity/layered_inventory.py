@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
+sys.pycache_prefix = str(Path(__file__).resolve().parents[2] / ".cache" / "python")
 
 START = "<!-- elkrs-generated-layered-metadata:start -->"
 END = "<!-- elkrs-generated-layered-metadata:end -->"
@@ -296,6 +298,31 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "High degree node treatment is parsed and diagnosed; high-degree layer assignment behavior is not implemented yet",
     ),
+    "org.eclipse.elk.layered.layering.coffmanGraham.layerBound": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked layer_assignment_options`; `cargo test -p elkrs-layered --test basic_layout --locked layer_assignment`; `cargo test -p elkrs-json --test json_partitions --locked layer_assignment`; `cargo test -p elkrs-json --test json_errors --locked layer_assignment`",
+        "Coffman-Graham layer bound is parsed and diagnosed; Coffman-Graham layer assignment is not implemented yet",
+    ),
+    "org.eclipse.elk.layered.layering.layerChoiceConstraint": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked layer_assignment_options`; `cargo test -p elkrs-layered --test basic_layout --locked layer_assignment`; `cargo test -p elkrs-json --test json_partitions --locked layer_assignment`; `cargo test -p elkrs-json --test json_errors --locked layer_assignment`",
+        "Layer choice constraints are parsed and diagnosed; constraint-aware layer assignment is not implemented yet",
+    ),
+    "org.eclipse.elk.layered.layering.layerConstraint": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked layer_assignment_options`; `cargo test -p elkrs-layered --test basic_layout --locked layer_assignment`; `cargo test -p elkrs-json --test json_partitions --locked layer_assignment`; `cargo test -p elkrs-json --test json_errors --locked layer_assignment`",
+        "Layer constraints are parsed and diagnosed; constraint-aware layer assignment is not implemented yet",
+    ),
+    "org.eclipse.elk.layered.layering.layerId": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked layer_assignment_options`; `cargo test -p elkrs-layered --test basic_layout --locked layer_assignment`; `cargo test -p elkrs-json --test json_partitions --locked layer_assignment`; `cargo test -p elkrs-json --test json_errors --locked layer_assignment`",
+        "Layer IDs are parsed and diagnosed; ID-driven layer assignment is not implemented yet",
+    ),
+    "org.eclipse.elk.layered.layering.strategy": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked layer_assignment_options`; `cargo test -p elkrs-layered --test basic_layout --locked layer_assignment`; `cargo test -p elkrs-json --test json_partitions --locked layer_assignment`; `cargo test -p elkrs-json --test json_errors --locked layer_assignment`",
+        "Node layering strategy is parsed and diagnosed; alternate layer assignment strategies are not implemented yet",
+    ),
     "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
@@ -440,6 +467,11 @@ STATUS_OVERRIDES = {
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "Layout partitioning is parsed and diagnosed; partition-aware layer assignment is not implemented yet",
+    ),
+    "org.eclipse.elk.partitioning.partition": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked layer_assignment_options`; `cargo test -p elkrs-layered --test basic_layout --locked layer_assignment`; `cargo test -p elkrs-json --test json_partitions --locked layer_assignment`; `cargo test -p elkrs-json --test json_errors --locked layer_assignment`",
+        "Layout partition IDs are parsed and diagnosed; partition-aware layer assignment is not implemented yet",
     ),
     "org.eclipse.elk.topdownLayout": (
         "diagnostic",

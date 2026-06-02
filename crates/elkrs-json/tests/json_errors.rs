@@ -916,6 +916,44 @@ fn port_scoped_options_non_boolean_allow_switch_returns_invalid_error() {
     );
 }
 
+#[test]
+fn layer_assignment_non_integer_layer_bound_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.layered.layering.coffmanGraham.layerBound": 1.5 }
+        }"#,
+        "org.eclipse.elk.layered.layering.coffmanGraham.layerBound must be an integer",
+    );
+}
+
+#[test]
+fn layer_assignment_unsupported_strategy_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": { "org.eclipse.elk.layered.layering.strategy": "SIDEWAYS" }
+        }"#,
+        "unsupported org.eclipse.elk.layered.layering.strategy value: SIDEWAYS",
+    );
+}
+
+#[test]
+fn layer_assignment_node_unsupported_constraint_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": { "org.eclipse.elk.layered.layering.layerConstraint": "MIDDLE" }
+            }
+          ]
+        }"#,
+        "unsupported org.eclipse.elk.layered.layering.layerConstraint value: MIDDLE",
+    );
+}
+
 fn assert_invalid_contains(input: &str, expected: &str) {
     let error = from_str(input).unwrap_err();
 

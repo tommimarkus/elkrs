@@ -8,9 +8,9 @@ use elkrs_core::graph::{
 };
 use elkrs_core::options::{
     Algorithm, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy, Direction,
-    EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
-    LongEdgeOrderingStrategy, ModelOrderStrategy, PortAlignment, PortConstraints, PortSide,
-    PropertyValue,
+    EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
+    LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy, PortAlignment,
+    PortConstraints, PortSide, PropertyValue,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -82,10 +82,16 @@ const HIERARCHY_HANDLING_KEY: &str = "org.eclipse.elk.hierarchyHandling";
 const HYPERNODE_KEY: &str = "org.eclipse.elk.hypernode";
 const INSIDE_SELF_LOOPS_KEY: &str = "org.eclipse.elk.insideSelfLoops.activate";
 const INTERACTIVE_LAYOUT_KEY: &str = "org.eclipse.elk.interactiveLayout";
+const LAYER_BOUND_KEY: &str = "org.eclipse.elk.layered.layering.coffmanGraham.layerBound";
+const LAYER_CHOICE_CONSTRAINT_KEY: &str = "org.eclipse.elk.layered.layering.layerChoiceConstraint";
+const LAYER_CONSTRAINT_KEY: &str = "org.eclipse.elk.layered.layering.layerConstraint";
+const LAYER_ID_KEY: &str = "org.eclipse.elk.layered.layering.layerId";
+const LAYERING_STRATEGY_KEY: &str = "org.eclipse.elk.layered.layering.strategy";
 const LAYER_UNZIPPING_MINIMIZE_EDGE_LENGTH_KEY: &str =
     "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength";
 const LAYER_UNZIPPING_RESET_ON_LONG_EDGES_KEY: &str =
     "org.eclipse.elk.layered.layerUnzipping.resetOnLongEdges";
+const LAYOUT_PARTITION_KEY: &str = "org.eclipse.elk.partitioning.partition";
 const LAYOUT_PARTITIONING_KEY: &str = "org.eclipse.elk.partitioning.activate";
 const MERGE_EDGES_KEY: &str = "org.eclipse.elk.layered.mergeEdges";
 const MERGE_HIERARCHY_EDGES_KEY: &str = "org.eclipse.elk.layered.mergeHierarchyEdges";
@@ -555,6 +561,11 @@ fn apply_layout_options(
             INTERACTIVE_LAYOUT_KEY => graph
                 .properties
                 .set_interactive_layout(boolean(value, key)?),
+            LAYERING_STRATEGY_KEY => graph
+                .properties
+                .set_layering_strategy(parse_node_layering_strategy(value, key)?),
+            LAYER_BOUND_KEY => graph.properties.set_layer_bound(integer(value, key)?),
+            LAYOUT_PARTITION_KEY => graph.properties.set_layout_partition(integer(value, key)?),
             LAYOUT_PARTITIONING_KEY => graph
                 .properties
                 .set_layout_partitioning(boolean(value, key)?),
@@ -864,6 +875,22 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         CoreOption::InteractiveLayout,
         INTERACTIVE_LAYOUT_KEY,
     );
+    if let Some(PropertyValue::NodeLayeringStrategy(strategy)) =
+        graph.properties.get(CoreOption::LayeringStrategy)
+    {
+        options.insert(
+            LAYERING_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_node_layering_strategy(*strategy).to_string()),
+        );
+    }
+    if let Some(PropertyValue::Integer(bound)) = graph.properties.get(CoreOption::LayerBound) {
+        options.insert(LAYER_BOUND_KEY.to_string(), (*bound).into());
+    }
+    if let Some(PropertyValue::Integer(partition)) =
+        graph.properties.get(CoreOption::LayoutPartition)
+    {
+        options.insert(LAYOUT_PARTITION_KEY.to_string(), (*partition).into());
+    }
     insert_boolean_option(
         &mut options,
         &graph.properties,
@@ -1187,6 +1214,24 @@ fn apply_node_layout_options(
             INTERACTIVE_LAYOUT_KEY => {
                 node.properties.set_interactive_layout(boolean(value, key)?);
             }
+            LAYERING_STRATEGY_KEY => {
+                node.properties
+                    .set_layering_strategy(parse_node_layering_strategy(value, key)?);
+            }
+            LAYER_BOUND_KEY => {
+                node.properties.set_layer_bound(integer(value, key)?);
+            }
+            LAYER_CHOICE_CONSTRAINT_KEY => {
+                node.properties
+                    .set_layer_choice_constraint(integer(value, key)?);
+            }
+            LAYER_CONSTRAINT_KEY => {
+                node.properties
+                    .set_layer_constraint(parse_layer_constraint(value, key)?);
+            }
+            LAYER_ID_KEY => {
+                node.properties.set_layer_id(integer(value, key)?);
+            }
             LAYER_UNZIPPING_MINIMIZE_EDGE_LENGTH_KEY => {
                 node.properties
                     .set_layer_unzipping_minimize_edge_length(boolean(value, key)?);
@@ -1194,6 +1239,9 @@ fn apply_node_layout_options(
             LAYER_UNZIPPING_RESET_ON_LONG_EDGES_KEY => {
                 node.properties
                     .set_layer_unzipping_reset_on_long_edges(boolean(value, key)?);
+            }
+            LAYOUT_PARTITION_KEY => {
+                node.properties.set_layout_partition(integer(value, key)?);
             }
             LAYOUT_PARTITIONING_KEY => {
                 node.properties
@@ -1558,6 +1606,36 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         CoreOption::InteractiveLayout,
         INTERACTIVE_LAYOUT_KEY,
     );
+    if let Some(PropertyValue::NodeLayeringStrategy(strategy)) =
+        node.properties.get(CoreOption::LayeringStrategy)
+    {
+        options.insert(
+            LAYERING_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_node_layering_strategy(*strategy).to_string()),
+        );
+    }
+    if let Some(PropertyValue::Integer(bound)) = node.properties.get(CoreOption::LayerBound) {
+        options.insert(LAYER_BOUND_KEY.to_string(), (*bound).into());
+    }
+    if let Some(PropertyValue::Integer(constraint)) =
+        node.properties.get(CoreOption::LayerChoiceConstraint)
+    {
+        options.insert(
+            LAYER_CHOICE_CONSTRAINT_KEY.to_string(),
+            (*constraint).into(),
+        );
+    }
+    if let Some(PropertyValue::LayerConstraint(constraint)) =
+        node.properties.get(CoreOption::LayerConstraint)
+    {
+        options.insert(
+            LAYER_CONSTRAINT_KEY.to_string(),
+            serde_json::Value::String(format_layer_constraint(*constraint).to_string()),
+        );
+    }
+    if let Some(PropertyValue::Integer(id)) = node.properties.get(CoreOption::LayerId) {
+        options.insert(LAYER_ID_KEY.to_string(), (*id).into());
+    }
     insert_boolean_option(
         &mut options,
         &node.properties,
@@ -1570,6 +1648,11 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         CoreOption::LayerUnzippingResetOnLongEdges,
         LAYER_UNZIPPING_RESET_ON_LONG_EDGES_KEY,
     );
+    if let Some(PropertyValue::Integer(partition)) =
+        node.properties.get(CoreOption::LayoutPartition)
+    {
+        options.insert(LAYOUT_PARTITION_KEY.to_string(), (*partition).into());
+    }
     insert_boolean_option(
         &mut options,
         &node.properties,
@@ -1981,6 +2064,42 @@ fn parse_long_edge_ordering_strategy(
     }
 }
 
+fn parse_node_layering_strategy(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<NodeLayeringStrategy, JsonError> {
+    match string(value, key)? {
+        "BF_MODEL_ORDER" => Ok(NodeLayeringStrategy::BfModelOrder),
+        "COFFMAN_GRAHAM" => Ok(NodeLayeringStrategy::CoffmanGraham),
+        "DF_MODEL_ORDER" => Ok(NodeLayeringStrategy::DfModelOrder),
+        "INTERACTIVE" => Ok(NodeLayeringStrategy::Interactive),
+        "LONGEST_PATH" => Ok(NodeLayeringStrategy::LongestPath),
+        "LONGEST_PATH_SOURCE" => Ok(NodeLayeringStrategy::LongestPathSource),
+        "MIN_WIDTH" => Ok(NodeLayeringStrategy::MinWidth),
+        "NETWORK_SIMPLEX" => Ok(NodeLayeringStrategy::NetworkSimplex),
+        "STRETCH_WIDTH" => Ok(NodeLayeringStrategy::StretchWidth),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
+fn parse_layer_constraint(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<LayerConstraint, JsonError> {
+    match string(value, key)? {
+        "FIRST" => Ok(LayerConstraint::First),
+        "FIRST_SEPARATE" => Ok(LayerConstraint::FirstSeparate),
+        "LAST" => Ok(LayerConstraint::Last),
+        "LAST_SEPARATE" => Ok(LayerConstraint::LastSeparate),
+        "NONE" => Ok(LayerConstraint::None),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
 fn parse_hierarchy_handling(
     value: &serde_json::Value,
     key: &str,
@@ -2080,6 +2199,30 @@ fn format_long_edge_ordering_strategy(strategy: LongEdgeOrderingStrategy) -> &'s
         LongEdgeOrderingStrategy::DummyNodeOver => "DUMMY_NODE_OVER",
         LongEdgeOrderingStrategy::DummyNodeUnder => "DUMMY_NODE_UNDER",
         LongEdgeOrderingStrategy::Equal => "EQUAL",
+    }
+}
+
+fn format_node_layering_strategy(strategy: NodeLayeringStrategy) -> &'static str {
+    match strategy {
+        NodeLayeringStrategy::BfModelOrder => "BF_MODEL_ORDER",
+        NodeLayeringStrategy::CoffmanGraham => "COFFMAN_GRAHAM",
+        NodeLayeringStrategy::DfModelOrder => "DF_MODEL_ORDER",
+        NodeLayeringStrategy::Interactive => "INTERACTIVE",
+        NodeLayeringStrategy::LongestPath => "LONGEST_PATH",
+        NodeLayeringStrategy::LongestPathSource => "LONGEST_PATH_SOURCE",
+        NodeLayeringStrategy::MinWidth => "MIN_WIDTH",
+        NodeLayeringStrategy::NetworkSimplex => "NETWORK_SIMPLEX",
+        NodeLayeringStrategy::StretchWidth => "STRETCH_WIDTH",
+    }
+}
+
+fn format_layer_constraint(constraint: LayerConstraint) -> &'static str {
+    match constraint {
+        LayerConstraint::First => "FIRST",
+        LayerConstraint::FirstSeparate => "FIRST_SEPARATE",
+        LayerConstraint::Last => "LAST",
+        LayerConstraint::LastSeparate => "LAST_SEPARATE",
+        LayerConstraint::None => "NONE",
     }
 }
 
