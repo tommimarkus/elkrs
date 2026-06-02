@@ -32,9 +32,8 @@ order below remains the integration order.
 Current safe parallel batches:
 
 - Batch A: #37 and #40 are complete.
-- Batch B: #39 and #38 can run in parallel in separate worktrees. Expect both
-  to touch JSON/core surfaces; integrate in queue order and rerun the full gate
-  after each merge.
+- Batch B: #39 is complete. #38 remains active in its separate worktree; rerun
+  the full gate after integrating it.
 - Batch C: #41 and #43 can be explored in parallel after #39 settles port
   semantics, but integrate #41 before #43 when route behavior depends on layer
   assignment.
@@ -48,13 +47,12 @@ Current safe parallel batches:
 
 | Order | Issue | Delivery target | Why this order |
 | --- | --- | --- | --- |
-| 1 | #39 `Delivery: port constraints and ordering v1` | Deliver port constraints, ordering, alignment, and offsets. | Ports are already partially Java-backed and affect routing, labels, and JSON. |
-| 2 | #38 `Delivery: labels and node sizing v1` | Deliver label and node-size behavior or exclusions. | Unlocks several parsed/unsupported graph, label, spacing, and size rows. |
-| 3 | #41 `Delivery: layer assignment semantics v1` | Deliver layer strategies, constraints, IDs, and partitions. | Core layered behavior; higher risk, but now isolated from pure option parsing. |
-| 4 | #43 `Delivery: routing variants, self-loops, junctions, and merging v1` | Deliver or exclude route variants, inside self-loops, junctions, and merging. | Builds on existing routing and port evidence; high product visibility. |
-| 5 | #42 `Delivery: crossing minimization constraints v1` | Deliver model-order, group-order, greedy-switch, and crossing controls. | Important quality behavior, but easiest after layering and routing boundaries settle. |
-| 6 | #44 `Delivery: node placement, compaction, and wrapping v1` | Deliver or exclude placement, compaction, margins, padding, and wrapping. | Broadest and riskiest slice; defer until upstream boundaries are clearer. |
-| 7 | #45 `Delivery: all in-scope JSON option round trip v1` | Close the full JSON contract for all in-scope 1.0.0 behavior. | Cross-cutting closeout; should follow capability decisions rather than lead them. |
+| 1 | #38 `Delivery: labels and node sizing v1` | Deliver label and node-size behavior or exclusions. | Unlocks several parsed/unsupported graph, label, spacing, and size rows. |
+| 2 | #41 `Delivery: layer assignment semantics v1` | Deliver layer strategies, constraints, IDs, and partitions. | Core layered behavior; higher risk, but now isolated from pure option parsing. |
+| 3 | #43 `Delivery: routing variants, self-loops, junctions, and merging v1` | Deliver or exclude route variants, inside self-loops, junctions, and merging. | Builds on existing routing and port evidence; high product visibility. |
+| 4 | #42 `Delivery: crossing minimization constraints v1` | Deliver model-order, group-order, greedy-switch, and crossing controls. | Important quality behavior, but easiest after layering and routing boundaries settle. |
+| 5 | #44 `Delivery: node placement, compaction, and wrapping v1` | Deliver or exclude placement, compaction, margins, padding, and wrapping. | Broadest and riskiest slice; defer until upstream boundaries are clearer. |
+| 6 | #45 `Delivery: all in-scope JSON option round trip v1` | Close the full JSON contract for all in-scope 1.0.0 behavior. | Cross-cutting closeout; should follow capability decisions rather than lead them. |
 
 ## Completed Deliveries
 
@@ -62,6 +60,7 @@ Current safe parallel batches:
 | --- | --- | --- |
 | #37 `Delivery: promote existing semantic rows to Java parity` | `85daf24` | Promoted `LAYERED-GRAPH-009` and component-spacing `LAYERED-P4-003` to `java-parity`; split connected-component compaction to `LAYERED-P4-004`; documented `LAYERED-JSON-001` Java JSON-oracle follow-up under #45 and `LAYERED-META-OPTION-106` non-node target follow-ups under later delivery queues. |
 | #40 `Delivery: hierarchy and topdown compatibility decisions v1` | `0f0d819` | Recorded 1.0.0 compatibility exclusions for clusters, true `SEPARATE_CHILDREN` multi-run hierarchy semantics, hypernode layout semantics, and recursive topdown sizing/layout semantics; kept current parse, serialization, and diagnostics explicit. |
+| #39 `Delivery: port constraints and ordering v1` | `30cbba7` | Preserved Java-backed explicit port anchors and port-port spacing; recorded 1.0.0 compatibility exclusions for fixed port-order, fixed-position, alignment distribution, offset-aware placement, non-flow side switching, port sorting strategy, port anchor offsets, and surrounding port-space object semantics. |
 
 ## Closeout Standard
 
