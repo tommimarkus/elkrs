@@ -34,7 +34,7 @@ Current safe parallel batches:
 - Batch A: #37 and #40 are complete.
 - Batch B: #39 and #38 are complete.
 - Batch C: #41 and #43 are complete.
-- Batch D: #42 is complete. #44 is now the next integration item.
+- Batch D: #42 and #44 are complete.
 - #45 is a rolling cross-cutting contract check. It may be updated by every
   delivery issue, but it closes last.
 
@@ -42,8 +42,7 @@ Current safe parallel batches:
 
 | Order | Issue | Delivery target | Why this order |
 | --- | --- | --- | --- |
-| 1 | #44 `Delivery: node placement, compaction, and wrapping v1` | Deliver or exclude placement, compaction, margins, padding, and wrapping. | Broadest remaining layout slice; follows routing, layering, and crossing boundary decisions. |
-| 2 | #45 `Delivery: all in-scope JSON option round trip v1` | Close the full JSON contract for all in-scope 1.0.0 behavior. | Cross-cutting closeout; should follow capability decisions rather than lead them. |
+| 1 | #45 `Delivery: all in-scope JSON option round trip v1` | Close the full JSON contract for all in-scope 1.0.0 behavior. | Final cross-cutting closeout after all capability decisions. |
 
 ## Completed Deliveries
 
@@ -56,6 +55,7 @@ Current safe parallel batches:
 | #41 `Delivery: layer assignment semantics v1` | `48509db` | Promoted `NETWORK_SIMPLEX` default layering, generated layer IDs, and generated crossing position IDs to `java-parity`; added Java string-boolean import compatibility for oracle output; recorded 1.0.0 compatibility exclusions for alternate layerers, layer constraints, layer-choice constraints, ID-driven input assignment, high-degree layer behavior, layer unzipping, partition-aware assignment, direction congruency, and priority-driven assignment. |
 | #43 `Delivery: routing variants, self-loops, junctions, and merging v1` | `bfad10b` | Preserved Java-backed orthogonal routing and ordinary external self-loop support; added JSON multi-section route round-trip coverage; recorded 1.0.0 compatibility exclusions for inside self-loops, POLYLINE/straight route geometry, SPLINES route geometry, junction output, merged routing, implicit merge-port semantics, route priorities, configurable self-loop distribution/order, unnecessary bendpoints, edge thickness, and per-element individual spacing. |
 | #42 `Delivery: crossing minimization constraints v1` | `ef33def` | Preserved Java-backed adjacent-layer barycenter crossing reduction; recorded 1.0.0 compatibility exclusions for option-driven model-order, group-order, enforced-order, greedy-switch, random, thoroughness, semi-interactive, and position-constrained crossing-minimization semantics. |
+| #44 `Delivery: node placement, compaction, and wrapping v1` | `8925fd3` | Preserved Java-backed basic node non-overlap and disconnected component spacing; recorded 1.0.0 compatibility exclusions for Brandes-Koepf placement strategies, connected-component compaction, post-compaction, aspect and alignment placement, margins, padding, input-position-aware placement, and graph wrapping. |
 
 ## Closeout Standard
 
