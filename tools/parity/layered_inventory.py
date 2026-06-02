@@ -102,9 +102,9 @@ STATUS_OVERRIDES = {
         "Parsed and validated; edge label placement semantics remain open",
     ),
     "org.eclipse.elk.spacing.edgeEdge": (
-        "semantic",
-        "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_edge_spacing_to_parallel_routes`; `cargo test -p elkrs-json --test json_partitions --locked spacing`; `cargo test -p elkrs-json --test json_errors --locked spacing`",
-        "Parity: Java oracle fixture suite expansion",
+        "java-parity",
+        '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_edge_spacing_to_parallel_routes`; `cargo test -p elkrs-json --test json_partitions --locked spacing`; `cargo test -p elkrs-json --test json_errors --locked spacing`; `cargo test -p elkrs-layered --test parity_matrix --locked edge_edge_spacing_rows_have_java_fixture_evidence`; plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        "Complete for Java-backed parallel edge fixture",
     ),
     "org.eclipse.elk.spacing.labelLabel": (
         "parsed",

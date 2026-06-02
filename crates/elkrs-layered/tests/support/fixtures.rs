@@ -193,6 +193,12 @@ pub fn multi_edge_pair() -> ElkGraph {
     graph
 }
 
+pub fn edge_edge_spacing_parallel_edges() -> ElkGraph {
+    let mut graph = multi_edge_pair();
+    graph.properties.set_spacing_edge_edge(36.0);
+    graph
+}
+
 pub fn self_loop() -> ElkGraph {
     let mut graph = ElkGraph::new("root");
     graph.add_node(node("a", 80.0, 40.0));
@@ -419,6 +425,20 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             name: "multi-edge-pair",
             status: ParityFixtureStatus::JavaComparable,
             build: multi_edge_pair,
+            assertions: &[],
+        },
+        ParityFixture {
+            id: "LAYERED-OPT-006",
+            name: "edge-edge-spacing-parallel-edges",
+            status: ParityFixtureStatus::JavaComparable,
+            build: edge_edge_spacing_parallel_edges,
+            assertions: &[],
+        },
+        ParityFixture {
+            id: "LAYERED-META-OPTION-136",
+            name: "edge-edge-spacing-metadata",
+            status: ParityFixtureStatus::JavaComparable,
+            build: edge_edge_spacing_parallel_edges,
             assertions: &[],
         },
         ParityFixture {
