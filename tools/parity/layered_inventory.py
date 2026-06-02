@@ -186,6 +186,21 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-core --locked model_order_group`; `cargo test -p elkrs-layered --test basic_layout --locked model_order_group`; `cargo test -p elkrs-json --test json_partitions --locked model_order_group`; `cargo test -p elkrs-json --test json_errors --locked model_order_group`",
         "Crossing-minimization group order strategy is parsed and diagnosed; group model-order semantics are not implemented yet",
     ),
+    "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.componentGroupId": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked model_order_group_id`; `cargo test -p elkrs-layered --test basic_layout --locked model_order_group_ids`; `cargo test -p elkrs-json --test json_partitions --locked model_order_group_ids`; `cargo test -p elkrs-json --test json_errors --locked model_order_group_id`",
+        "Node-scope component group ID is parsed and diagnosed; edge and port target storage remains open",
+    ),
+    "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked model_order_group_id`; `cargo test -p elkrs-layered --test basic_layout --locked model_order_group_ids`; `cargo test -p elkrs-json --test json_partitions --locked model_order_group_ids`; `cargo test -p elkrs-json --test json_errors --locked model_order_group_id`",
+        "Node-scope crossing minimization ID is parsed and diagnosed; edge and port target storage remains open",
+    ),
+    "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cycleBreakingId": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked model_order_group_id`; `cargo test -p elkrs-layered --test basic_layout --locked model_order_group_ids`; `cargo test -p elkrs-json --test json_partitions --locked model_order_group_ids`; `cargo test -p elkrs-json --test json_errors --locked model_order_group_id`",
+        "Cycle-breaking group ID is parsed and diagnosed at node scope; group model-order semantics are not implemented yet",
+    ),
     "org.eclipse.elk.layered.considerModelOrder.longEdgeStrategy": (
         "diagnostic",
         "`cargo test -p elkrs-core --locked model_order_group`; `cargo test -p elkrs-layered --test basic_layout --locked model_order_group`; `cargo test -p elkrs-json --test json_partitions --locked model_order_group`; `cargo test -p elkrs-json --test json_errors --locked model_order_group`",

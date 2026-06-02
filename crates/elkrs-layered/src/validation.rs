@@ -308,6 +308,13 @@ fn collect_unsupported_model_order_group_diagnostics(
             node_id,
         ));
     }
+    if let Some(id) = properties.component_group_id() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "component group ID",
+            id,
+            node_id,
+        ));
+    }
     if let Some(id) = properties.cycle_breaking_preferred_source_id() {
         diagnostics.push(unsupported_integer_option_diagnostic(
             "cycle breaking preferred source ID",
@@ -322,10 +329,24 @@ fn collect_unsupported_model_order_group_diagnostics(
             node_id,
         ));
     }
+    if let Some(id) = properties.crossing_minimization_id() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "crossing minimization ID",
+            id,
+            node_id,
+        ));
+    }
     if let Some(strategy) = properties.crossing_minimization_group_order_strategy() {
         diagnostics.push(unsupported_group_ordering_strategy_diagnostic(
             "crossing minimization group order strategy",
             strategy,
+            node_id,
+        ));
+    }
+    if let Some(id) = properties.cycle_breaking_id() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "cycle breaking ID",
+            id,
             node_id,
         ));
     }

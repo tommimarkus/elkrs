@@ -1692,6 +1692,66 @@ fn serializes_node_model_order_group_with_java_keys() {
 }
 
 #[test]
+fn imports_node_model_order_group_ids() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.componentGroupId": 2,
+                "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId": "4",
+                "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cycleBreakingId": 6
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+    let properties = &graph.nodes[&ElementId::from("node")].properties;
+
+    assert_eq!(
+        properties.get(CoreOption::ComponentGroupId),
+        Some(&PropertyValue::Integer(2))
+    );
+    assert_eq!(
+        properties.get(CoreOption::CrossingMinimizationId),
+        Some(&PropertyValue::Integer(4))
+    );
+    assert_eq!(
+        properties.get(CoreOption::CycleBreakingId),
+        Some(&PropertyValue::Integer(6))
+    );
+}
+
+#[test]
+fn serializes_node_model_order_group_ids_with_java_keys() {
+    let mut node = ElkNode::new("node");
+    node.properties.set_component_group_id(2);
+    node.properties.set_crossing_minimization_id(4);
+    node.properties.set_cycle_breaking_id(6);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let options = &json["children"][0]["layoutOptions"];
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.groupModelOrder.componentGroupId"],
+        Value::Number(2.into())
+    );
+    assert_eq!(
+        options
+            ["org.eclipse.elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId"],
+        Value::Number(4.into())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cycleBreakingId"],
+        Value::Number(6.into())
+    );
+}
+
+#[test]
 fn imports_node_port_constraints_layout_option() {
     let graph = from_str(
         r#"{

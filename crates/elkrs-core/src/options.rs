@@ -137,14 +137,17 @@ pub enum PropertyValue {
 pub enum CoreOption {
     Algorithm,
     CommentBox,
+    ComponentGroupId,
     ConsiderModelOrderComponents,
     ConsiderModelOrderStrategy,
     ConnectedComponentsCompaction,
     ConsiderPortOrder,
     CrossingCounterNodeInfluence,
     CrossingCounterPortInfluence,
+    CrossingMinimizationId,
     CrossingMinimizationGroupOrderStrategy,
     CycleBreakingGroupOrderStrategy,
+    CycleBreakingId,
     CycleBreakingPreferredSourceId,
     CycleBreakingPreferredTargetId,
     DebugMode,
@@ -224,6 +227,11 @@ impl Properties {
         self.set_bool_option(CoreOption::ConnectedComponentsCompaction, enabled)
     }
 
+    pub fn set_component_group_id(&mut self, id: i64) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::ComponentGroupId, PropertyValue::Integer(id))
+    }
+
     pub fn set_consider_model_order_components(
         &mut self,
         strategy: ComponentOrderingStrategy,
@@ -286,6 +294,13 @@ impl Properties {
         )
     }
 
+    pub fn set_crossing_minimization_id(&mut self, id: i64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::CrossingMinimizationId,
+            PropertyValue::Integer(id),
+        )
+    }
+
     pub fn set_crossing_minimization_group_order_strategy(
         &mut self,
         strategy: GroupOrderingStrategy,
@@ -294,6 +309,11 @@ impl Properties {
             CoreOption::CrossingMinimizationGroupOrderStrategy,
             PropertyValue::GroupOrderingStrategy(strategy),
         )
+    }
+
+    pub fn set_cycle_breaking_id(&mut self, id: i64) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::CycleBreakingId, PropertyValue::Integer(id))
     }
 
     pub fn set_debug_mode(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -650,6 +670,10 @@ impl Properties {
         self.bool_option(CoreOption::CommentBox, "comment box")
     }
 
+    pub fn component_group_id(&self) -> Option<i64> {
+        self.integer_option(CoreOption::ComponentGroupId, "component group ID")
+    }
+
     pub fn consider_model_order_components(&self) -> Option<ComponentOrderingStrategy> {
         match self.get(CoreOption::ConsiderModelOrderComponents) {
             Some(PropertyValue::ComponentOrderingStrategy(strategy)) => Some(*strategy),
@@ -709,11 +733,22 @@ impl Properties {
         )
     }
 
+    pub fn crossing_minimization_id(&self) -> Option<i64> {
+        self.integer_option(
+            CoreOption::CrossingMinimizationId,
+            "crossing minimization ID",
+        )
+    }
+
     pub fn crossing_minimization_group_order_strategy(&self) -> Option<GroupOrderingStrategy> {
         self.group_ordering_strategy_option(
             CoreOption::CrossingMinimizationGroupOrderStrategy,
             "crossing minimization group order strategy",
         )
+    }
+
+    pub fn cycle_breaking_id(&self) -> Option<i64> {
+        self.integer_option(CoreOption::CycleBreakingId, "cycle breaking ID")
     }
 
     pub fn debug_mode(&self) -> bool {
@@ -1351,6 +1386,23 @@ mod tests {
             properties.long_edge_ordering_strategy(),
             Some(LongEdgeOrderingStrategy::Equal)
         );
+    }
+
+    #[test]
+    fn model_order_group_id_options_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.component_group_id(), None);
+        assert_eq!(properties.crossing_minimization_id(), None);
+        assert_eq!(properties.cycle_breaking_id(), None);
+
+        properties.set_component_group_id(2);
+        properties.set_crossing_minimization_id(4);
+        properties.set_cycle_breaking_id(6);
+
+        assert_eq!(properties.component_group_id(), Some(2));
+        assert_eq!(properties.crossing_minimization_id(), Some(4));
+        assert_eq!(properties.cycle_breaking_id(), Some(6));
     }
 
     #[test]

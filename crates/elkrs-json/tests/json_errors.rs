@@ -480,6 +480,42 @@ fn model_order_group_non_string_node_long_edge_strategy_returns_invalid_error() 
 }
 
 #[test]
+fn model_order_group_id_non_integer_node_component_group_id_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.componentGroupId": 1.5
+              }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.componentGroupId must be an integer",
+    );
+}
+
+#[test]
+fn model_order_group_id_non_integer_node_crossing_minimization_id_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId": true
+              }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId must be an integer",
+    );
+}
+
+#[test]
 fn unsupported_node_port_constraints_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

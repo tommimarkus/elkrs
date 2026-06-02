@@ -1369,6 +1369,40 @@ fn layered_layout_reports_node_unsupported_model_order_group_options() {
 }
 
 #[test]
+fn layered_layout_reports_node_unsupported_model_order_group_ids() {
+    let mut graph = ElkGraph::new("root");
+    let mut child = node("child", 60.0, 30.0);
+    child.properties.set_component_group_id(2);
+    child.properties.set_crossing_minimization_id(4);
+    child.properties.set_cycle_breaking_id(6);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("component group ID")
+            && diagnostic.message.contains("2")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("crossing minimization ID")
+            && diagnostic.message.contains("4")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("cycle breaking ID")
+            && diagnostic.message.contains("6")
+            && diagnostic.message.contains("child")
+    }));
+}
+
+#[test]
 fn layered_layout_reports_unsupported_non_orthogonal_edge_routing() {
     let mut graph = ElkGraph::new("root");
     graph.properties.set_edge_routing(EdgeRouting::Polyline);

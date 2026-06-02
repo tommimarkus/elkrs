@@ -31,6 +31,12 @@ const CYCLE_BREAKING_PREFERRED_TARGET_ID_KEY: &str =
     "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cbPreferredTargetId";
 const CROSSING_MINIMIZATION_GROUP_ORDER_STRATEGY_KEY: &str =
     "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cmGroupOrderStrategy";
+const COMPONENT_GROUP_ID_KEY: &str =
+    "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.componentGroupId";
+const CROSSING_MINIMIZATION_ID_KEY: &str =
+    "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId";
+const CYCLE_BREAKING_ID_KEY: &str =
+    "org.eclipse.elk.layered.considerModelOrder.groupModelOrder.cycleBreakingId";
 const LONG_EDGE_STRATEGY_KEY: &str = "org.eclipse.elk.layered.considerModelOrder.longEdgeStrategy";
 const CONSIDER_MODEL_ORDER_STRATEGY_KEY: &str =
     "org.eclipse.elk.layered.considerModelOrder.strategy";
@@ -993,6 +999,16 @@ fn apply_node_layout_options(
                         value, key,
                     )?);
             }
+            COMPONENT_GROUP_ID_KEY => {
+                node.properties.set_component_group_id(integer(value, key)?);
+            }
+            CROSSING_MINIMIZATION_ID_KEY => {
+                node.properties
+                    .set_crossing_minimization_id(integer(value, key)?);
+            }
+            CYCLE_BREAKING_ID_KEY => {
+                node.properties.set_cycle_breaking_id(integer(value, key)?);
+            }
             LONG_EDGE_STRATEGY_KEY => {
                 node.properties
                     .set_long_edge_ordering_strategy(parse_long_edge_ordering_strategy(
@@ -1229,6 +1245,17 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
             CROSSING_MINIMIZATION_GROUP_ORDER_STRATEGY_KEY.to_string(),
             serde_json::Value::String(format_group_ordering_strategy(*strategy).to_string()),
         );
+    }
+    if let Some(PropertyValue::Integer(id)) = node.properties.get(CoreOption::ComponentGroupId) {
+        options.insert(COMPONENT_GROUP_ID_KEY.to_string(), (*id).into());
+    }
+    if let Some(PropertyValue::Integer(id)) =
+        node.properties.get(CoreOption::CrossingMinimizationId)
+    {
+        options.insert(CROSSING_MINIMIZATION_ID_KEY.to_string(), (*id).into());
+    }
+    if let Some(PropertyValue::Integer(id)) = node.properties.get(CoreOption::CycleBreakingId) {
+        options.insert(CYCLE_BREAKING_ID_KEY.to_string(), (*id).into());
     }
     if let Some(PropertyValue::LongEdgeOrderingStrategy(strategy)) =
         node.properties.get(CoreOption::LongEdgeOrderingStrategy)
