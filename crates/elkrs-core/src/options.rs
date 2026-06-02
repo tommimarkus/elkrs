@@ -45,6 +45,22 @@ pub enum EdgeRouting {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ComponentOrderingStrategy {
+    GroupModelOrder,
+    InsidePortSideGroups,
+    ModelOrder,
+    None,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ModelOrderStrategy {
+    NodesAndEdges,
+    None,
+    PreferEdges,
+    PreferNodes,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PortSide {
     North,
     East,
@@ -83,9 +99,11 @@ pub enum PropertyValue {
     Number(f64),
     Text(String),
     Algorithm(Algorithm),
+    ComponentOrderingStrategy(ComponentOrderingStrategy),
     Direction(Direction),
     EdgeRouting(EdgeRouting),
     HierarchyHandling(HierarchyHandling),
+    ModelOrderStrategy(ModelOrderStrategy),
     PortAlignment(PortAlignment),
     PortConstraints(PortConstraints),
 }
@@ -94,6 +112,8 @@ pub enum PropertyValue {
 pub enum CoreOption {
     Algorithm,
     CommentBox,
+    ConsiderModelOrderComponents,
+    ConsiderModelOrderStrategy,
     ConnectedComponentsCompaction,
     ConsiderPortOrder,
     DebugMode,
@@ -167,6 +187,26 @@ impl Properties {
 
     pub fn set_connected_components_compaction(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::ConnectedComponentsCompaction, enabled)
+    }
+
+    pub fn set_consider_model_order_components(
+        &mut self,
+        strategy: ComponentOrderingStrategy,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::ConsiderModelOrderComponents,
+            PropertyValue::ComponentOrderingStrategy(strategy),
+        )
+    }
+
+    pub fn set_consider_model_order_strategy(
+        &mut self,
+        strategy: ModelOrderStrategy,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::ConsiderModelOrderStrategy,
+            PropertyValue::ModelOrderStrategy(strategy),
+        )
     }
 
     pub fn set_consider_port_order(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -485,6 +525,26 @@ impl Properties {
 
     pub fn comment_box(&self) -> bool {
         self.bool_option(CoreOption::CommentBox, "comment box")
+    }
+
+    pub fn consider_model_order_components(&self) -> Option<ComponentOrderingStrategy> {
+        match self.get(CoreOption::ConsiderModelOrderComponents) {
+            Some(PropertyValue::ComponentOrderingStrategy(strategy)) => Some(*strategy),
+            Some(value) => {
+                unreachable!("consider model order components stored incompatible value: {value:?}")
+            }
+            _ => None,
+        }
+    }
+
+    pub fn consider_model_order_strategy(&self) -> Option<ModelOrderStrategy> {
+        match self.get(CoreOption::ConsiderModelOrderStrategy) {
+            Some(PropertyValue::ModelOrderStrategy(strategy)) => Some(*strategy),
+            Some(value) => {
+                unreachable!("consider model order strategy stored incompatible value: {value:?}")
+            }
+            _ => None,
+        }
     }
 
     pub fn consider_port_order(&self) -> bool {
@@ -976,6 +1036,26 @@ mod tests {
             Some(PortAlignment::Distributed)
         );
         assert_eq!(properties.port_alignment_west(), Some(PortAlignment::End));
+    }
+
+    #[test]
+    fn model_order_options_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.consider_model_order_components(), None);
+        assert_eq!(properties.consider_model_order_strategy(), None);
+
+        properties.set_consider_model_order_components(ComponentOrderingStrategy::ModelOrder);
+        properties.set_consider_model_order_strategy(ModelOrderStrategy::PreferNodes);
+
+        assert_eq!(
+            properties.consider_model_order_components(),
+            Some(ComponentOrderingStrategy::ModelOrder)
+        );
+        assert_eq!(
+            properties.consider_model_order_strategy(),
+            Some(ModelOrderStrategy::PreferNodes)
+        );
     }
 
     #[test]

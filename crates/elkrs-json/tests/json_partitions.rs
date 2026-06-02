@@ -1,8 +1,8 @@
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::options::{
-    Algorithm, CoreOption, Direction, EdgeRouting, HierarchyHandling, PortAlignment,
-    PortConstraints, PortSide, PropertyValue,
+    Algorithm, ComponentOrderingStrategy, CoreOption, Direction, EdgeRouting, HierarchyHandling,
+    ModelOrderStrategy, PortAlignment, PortConstraints, PortSide, PropertyValue,
 };
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
@@ -1213,6 +1213,136 @@ fn serializes_node_hierarchy_handling_with_java_key() {
     assert_eq!(
         json["children"][0]["layoutOptions"]["org.eclipse.elk.hierarchyHandling"],
         Value::String("SEPARATE_CHILDREN".to_owned())
+    );
+}
+
+#[test]
+fn imports_java_model_order_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.considerModelOrder.components": "MODEL_ORDER",
+            "org.eclipse.elk.layered.considerModelOrder.strategy": "PREFER_NODES"
+          }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::ConsiderModelOrderComponents),
+        Some(&PropertyValue::ComponentOrderingStrategy(
+            ComponentOrderingStrategy::ModelOrder
+        ))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::ConsiderModelOrderStrategy),
+        Some(&PropertyValue::ModelOrderStrategy(
+            ModelOrderStrategy::PreferNodes
+        ))
+    );
+}
+
+#[test]
+fn imports_none_model_order_layout_options_as_unset() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.considerModelOrder.components": "NONE",
+            "org.eclipse.elk.layered.considerModelOrder.strategy": "NONE"
+          }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::ConsiderModelOrderComponents),
+        None
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::ConsiderModelOrderStrategy),
+        None
+    );
+}
+
+#[test]
+fn serializes_model_order_with_java_keys() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_consider_model_order_components(ComponentOrderingStrategy::InsidePortSideGroups);
+    graph
+        .properties
+        .set_consider_model_order_strategy(ModelOrderStrategy::NodesAndEdges);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.layered.considerModelOrder.components"],
+        Value::String("INSIDE_PORT_SIDE_GROUPS".to_owned())
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.layered.considerModelOrder.strategy"],
+        Value::String("NODES_AND_EDGES".to_owned())
+    );
+}
+
+#[test]
+fn imports_node_model_order_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "parent",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.considerModelOrder.components": "GROUP_MODEL_ORDER",
+                "org.eclipse.elk.layered.considerModelOrder.strategy": "PREFER_EDGES"
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+    let properties = &graph.nodes[&ElementId::from("parent")].properties;
+
+    assert_eq!(
+        properties.get(CoreOption::ConsiderModelOrderComponents),
+        Some(&PropertyValue::ComponentOrderingStrategy(
+            ComponentOrderingStrategy::GroupModelOrder
+        ))
+    );
+    assert_eq!(
+        properties.get(CoreOption::ConsiderModelOrderStrategy),
+        Some(&PropertyValue::ModelOrderStrategy(
+            ModelOrderStrategy::PreferEdges
+        ))
+    );
+}
+
+#[test]
+fn serializes_node_model_order_with_java_keys() {
+    let mut node = ElkNode::new("node");
+    node.properties
+        .set_consider_model_order_components(ComponentOrderingStrategy::GroupModelOrder);
+    node.properties
+        .set_consider_model_order_strategy(ModelOrderStrategy::PreferEdges);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let options = &json["children"][0]["layoutOptions"];
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.components"],
+        Value::String("GROUP_MODEL_ORDER".to_owned())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.considerModelOrder.strategy"],
+        Value::String("PREFER_EDGES".to_owned())
     );
 }
 

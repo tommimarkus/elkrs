@@ -5,8 +5,8 @@ use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
-    Algorithm, Direction, EdgeRouting, HierarchyHandling, PortAlignment, PortConstraints, PortSide,
-    Properties, PropertyValue,
+    Algorithm, ComponentOrderingStrategy, Direction, EdgeRouting, HierarchyHandling,
+    ModelOrderStrategy, PortAlignment, PortConstraints, PortSide, Properties, PropertyValue,
 };
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
@@ -1055,6 +1055,93 @@ fn layered_layout_reports_node_unsupported_hierarchy_handling() {
             && diagnostic.severity == Severity::Warning
             && diagnostic.message.contains("hierarchy handling")
             && diagnostic.message.contains("child")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_unsupported_model_order_options() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_consider_model_order_components(ComponentOrderingStrategy::ModelOrder);
+    graph
+        .properties
+        .set_consider_model_order_strategy(ModelOrderStrategy::PreferNodes);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("consider model order components")
+            && diagnostic.message.contains("ModelOrder")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("consider model order strategy")
+            && diagnostic.message.contains("PreferNodes")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_node_unsupported_model_order_options() {
+    let mut graph = ElkGraph::new("root");
+    let mut child = node("child", 60.0, 30.0);
+    child
+        .properties
+        .set_consider_model_order_components(ComponentOrderingStrategy::InsidePortSideGroups);
+    child
+        .properties
+        .set_consider_model_order_strategy(ModelOrderStrategy::PreferEdges);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("consider model order components")
+            && diagnostic.message.contains("InsidePortSideGroups")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("consider model order strategy")
+            && diagnostic.message.contains("PreferEdges")
+            && diagnostic.message.contains("child")
+    }));
+}
+
+#[test]
+fn layered_layout_accepts_none_model_order_options_without_diagnostic() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_consider_model_order_components(ComponentOrderingStrategy::None);
+    graph
+        .properties
+        .set_consider_model_order_strategy(ModelOrderStrategy::None);
+    let mut child = node("child", 60.0, 30.0);
+    child
+        .properties
+        .set_consider_model_order_components(ComponentOrderingStrategy::None);
+    child
+        .properties
+        .set_consider_model_order_strategy(ModelOrderStrategy::None);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().all(|diagnostic| {
+        diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            || !diagnostic.message.contains("consider model order")
     }));
 }
 

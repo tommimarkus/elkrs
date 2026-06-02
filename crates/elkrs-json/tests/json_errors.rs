@@ -304,6 +304,68 @@ fn non_string_node_hierarchy_handling_returns_invalid_error() {
 }
 
 #[test]
+fn unsupported_model_order_components_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.considerModelOrder.components": "SORTED"
+          }
+        }"#,
+        "unsupported org.eclipse.elk.layered.considerModelOrder.components value: SORTED",
+    );
+}
+
+#[test]
+fn non_string_model_order_strategy_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.considerModelOrder.strategy": 7
+          }
+        }"#,
+        "org.eclipse.elk.layered.considerModelOrder.strategy must be a string",
+    );
+}
+
+#[test]
+fn unsupported_node_model_order_strategy_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.considerModelOrder.strategy": "SORTED"
+              }
+            }
+          ]
+        }"#,
+        "unsupported org.eclipse.elk.layered.considerModelOrder.strategy value: SORTED",
+    );
+}
+
+#[test]
+fn non_string_node_model_order_components_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.considerModelOrder.components": 7
+              }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.layered.considerModelOrder.components must be a string",
+    );
+}
+
+#[test]
 fn unsupported_node_port_constraints_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

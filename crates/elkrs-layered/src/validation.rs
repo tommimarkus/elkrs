@@ -2,8 +2,8 @@ use elkrs_core::diagnostic::Diagnostic;
 use elkrs_core::graph::{ElkGraph, ElkNode};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
-    Algorithm, CoreOption, EdgeRouting, HierarchyHandling, PortAlignment, PortConstraints,
-    Properties, PropertyValue,
+    Algorithm, ComponentOrderingStrategy, CoreOption, EdgeRouting, HierarchyHandling,
+    ModelOrderStrategy, PortAlignment, PortConstraints, Properties, PropertyValue,
 };
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
@@ -102,6 +102,7 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
         PARENT_UNSUPPORTED_BOOLEAN_OPTIONS,
         &mut diagnostics,
     );
+    collect_unsupported_model_order_diagnostics(properties, None, &mut diagnostics);
     match properties.edge_routing() {
         EdgeRouting::Orthogonal => {}
         edge_routing => diagnostics.push(unsupported_edge_routing_diagnostic(edge_routing, None)),
@@ -224,6 +225,60 @@ fn unsupported_boolean_option_diagnostic(name: &str, node_id: Option<&str>) -> D
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
 
+fn collect_unsupported_model_order_diagnostics(
+    properties: &Properties,
+    node_id: Option<&str>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    match properties.consider_model_order_components() {
+        None | Some(ComponentOrderingStrategy::None) => {}
+        Some(strategy) => diagnostics.push(unsupported_component_ordering_strategy_diagnostic(
+            strategy, node_id,
+        )),
+    }
+
+    match properties.consider_model_order_strategy() {
+        None | Some(ModelOrderStrategy::None) => {}
+        Some(strategy) => {
+            diagnostics.push(unsupported_model_order_strategy_diagnostic(
+                strategy, node_id,
+            ));
+        }
+    }
+}
+
+fn unsupported_component_ordering_strategy_diagnostic(
+    strategy: ComponentOrderingStrategy,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "consider model order components {strategy:?} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!(
+            "consider model order components {strategy:?} is recognized but not implemented by elkrs-layered yet"
+        )
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
+fn unsupported_model_order_strategy_diagnostic(
+    strategy: ModelOrderStrategy,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "consider model order strategy {strategy:?} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!(
+            "consider model order strategy {strategy:?} is recognized but not implemented by elkrs-layered yet"
+        )
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
 fn collect_unsupported_port_alignment_diagnostics(
     properties: &Properties,
     node_id: Option<&str>,
@@ -272,6 +327,11 @@ fn collect_node_hierarchy_diagnostics(
         diagnostics,
     );
     collect_unsupported_port_alignment_diagnostics(
+        &node.properties,
+        Some(node.id.as_str()),
+        diagnostics,
+    );
+    collect_unsupported_model_order_diagnostics(
         &node.properties,
         Some(node.id.as_str()),
         diagnostics,

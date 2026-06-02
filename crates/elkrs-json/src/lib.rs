@@ -7,8 +7,8 @@ use elkrs_core::graph::{
     ElementId, ElementRef, ElkEdge, ElkEdgeSection, ElkGraph, ElkLabel, ElkNode, ElkPort,
 };
 use elkrs_core::options::{
-    Algorithm, CoreOption, Direction, EdgeRouting, HierarchyHandling, PortAlignment,
-    PortConstraints, PortSide, PropertyValue,
+    Algorithm, ComponentOrderingStrategy, CoreOption, Direction, EdgeRouting, HierarchyHandling,
+    ModelOrderStrategy, PortAlignment, PortConstraints, PortSide, PropertyValue,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -16,6 +16,10 @@ use thiserror::Error;
 const ALGORITHM_KEY: &str = "org.eclipse.elk.algorithm";
 const LEGACY_ALGORITHM_KEY: &str = "elk.algorithm";
 const COMMENT_BOX_KEY: &str = "org.eclipse.elk.commentBox";
+const CONSIDER_MODEL_ORDER_COMPONENTS_KEY: &str =
+    "org.eclipse.elk.layered.considerModelOrder.components";
+const CONSIDER_MODEL_ORDER_STRATEGY_KEY: &str =
+    "org.eclipse.elk.layered.considerModelOrder.strategy";
 const CONNECTED_COMPONENTS_COMPACTION_KEY: &str =
     "org.eclipse.elk.layered.compaction.connectedComponents";
 const CONSIDER_PORT_ORDER_KEY: &str = "org.eclipse.elk.layered.considerModelOrder.portModelOrder";
@@ -404,6 +408,22 @@ fn apply_layout_options(
             ALGORITHM_KEY | LEGACY_ALGORITHM_KEY => {
                 graph.properties.set_algorithm(parse_algorithm(value, key)?)
             }
+            CONSIDER_MODEL_ORDER_COMPONENTS_KEY => {
+                if let Some(strategy) = parse_component_ordering_strategy(value, key)? {
+                    graph
+                        .properties
+                        .set_consider_model_order_components(strategy)
+                } else {
+                    None
+                }
+            }
+            CONSIDER_MODEL_ORDER_STRATEGY_KEY => {
+                if let Some(strategy) = parse_model_order_strategy(value, key)? {
+                    graph.properties.set_consider_model_order_strategy(strategy)
+                } else {
+                    None
+                }
+            }
             CONNECTED_COMPONENTS_COMPACTION_KEY => graph
                 .properties
                 .set_connected_components_compaction(boolean(value, key)?),
@@ -542,6 +562,23 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         CoreOption::ConnectedComponentsCompaction,
         CONNECTED_COMPONENTS_COMPACTION_KEY,
     );
+    if let Some(PropertyValue::ComponentOrderingStrategy(strategy)) = graph
+        .properties
+        .get(CoreOption::ConsiderModelOrderComponents)
+    {
+        options.insert(
+            CONSIDER_MODEL_ORDER_COMPONENTS_KEY.to_string(),
+            serde_json::Value::String(format_component_ordering_strategy(*strategy).to_string()),
+        );
+    }
+    if let Some(PropertyValue::ModelOrderStrategy(strategy)) =
+        graph.properties.get(CoreOption::ConsiderModelOrderStrategy)
+    {
+        options.insert(
+            CONSIDER_MODEL_ORDER_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_model_order_strategy(*strategy).to_string()),
+        );
+    }
     insert_boolean_option(
         &mut options,
         &graph.properties,
@@ -781,6 +818,17 @@ fn apply_node_layout_options(
             COMMENT_BOX_KEY => {
                 node.properties.set_comment_box(boolean(value, key)?);
             }
+            CONSIDER_MODEL_ORDER_COMPONENTS_KEY => {
+                if let Some(strategy) = parse_component_ordering_strategy(value, key)? {
+                    node.properties
+                        .set_consider_model_order_components(strategy);
+                }
+            }
+            CONSIDER_MODEL_ORDER_STRATEGY_KEY => {
+                if let Some(strategy) = parse_model_order_strategy(value, key)? {
+                    node.properties.set_consider_model_order_strategy(strategy);
+                }
+            }
             CONNECTED_COMPONENTS_COMPACTION_KEY => {
                 node.properties
                     .set_connected_components_compaction(boolean(value, key)?);
@@ -932,6 +980,23 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         CoreOption::CommentBox,
         COMMENT_BOX_KEY,
     );
+    if let Some(PropertyValue::ComponentOrderingStrategy(strategy)) = node
+        .properties
+        .get(CoreOption::ConsiderModelOrderComponents)
+    {
+        options.insert(
+            CONSIDER_MODEL_ORDER_COMPONENTS_KEY.to_string(),
+            serde_json::Value::String(format_component_ordering_strategy(*strategy).to_string()),
+        );
+    }
+    if let Some(PropertyValue::ModelOrderStrategy(strategy)) =
+        node.properties.get(CoreOption::ConsiderModelOrderStrategy)
+    {
+        options.insert(
+            CONSIDER_MODEL_ORDER_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_model_order_strategy(*strategy).to_string()),
+        );
+    }
     insert_boolean_option(
         &mut options,
         &node.properties,
@@ -1303,6 +1368,36 @@ fn parse_edge_routing(
     }
 }
 
+fn parse_component_ordering_strategy(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<Option<ComponentOrderingStrategy>, JsonError> {
+    match string(value, key)? {
+        "GROUP_MODEL_ORDER" => Ok(Some(ComponentOrderingStrategy::GroupModelOrder)),
+        "INSIDE_PORT_SIDE_GROUPS" => Ok(Some(ComponentOrderingStrategy::InsidePortSideGroups)),
+        "MODEL_ORDER" => Ok(Some(ComponentOrderingStrategy::ModelOrder)),
+        "NONE" => Ok(None),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
+fn parse_model_order_strategy(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<Option<ModelOrderStrategy>, JsonError> {
+    match string(value, key)? {
+        "NODES_AND_EDGES" => Ok(Some(ModelOrderStrategy::NodesAndEdges)),
+        "NONE" => Ok(None),
+        "PREFER_EDGES" => Ok(Some(ModelOrderStrategy::PreferEdges)),
+        "PREFER_NODES" => Ok(Some(ModelOrderStrategy::PreferNodes)),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
 fn parse_hierarchy_handling(
     value: &serde_json::Value,
     key: &str,
@@ -1351,6 +1446,24 @@ fn format_hierarchy_handling(hierarchy_handling: HierarchyHandling) -> &'static 
     match hierarchy_handling {
         HierarchyHandling::IncludeChildren => "INCLUDE_CHILDREN",
         HierarchyHandling::SeparateChildren => "SEPARATE_CHILDREN",
+    }
+}
+
+fn format_component_ordering_strategy(strategy: ComponentOrderingStrategy) -> &'static str {
+    match strategy {
+        ComponentOrderingStrategy::GroupModelOrder => "GROUP_MODEL_ORDER",
+        ComponentOrderingStrategy::InsidePortSideGroups => "INSIDE_PORT_SIDE_GROUPS",
+        ComponentOrderingStrategy::ModelOrder => "MODEL_ORDER",
+        ComponentOrderingStrategy::None => "NONE",
+    }
+}
+
+fn format_model_order_strategy(strategy: ModelOrderStrategy) -> &'static str {
+    match strategy {
+        ModelOrderStrategy::NodesAndEdges => "NODES_AND_EDGES",
+        ModelOrderStrategy::None => "NONE",
+        ModelOrderStrategy::PreferEdges => "PREFER_EDGES",
+        ModelOrderStrategy::PreferNodes => "PREFER_NODES",
     }
 }
 

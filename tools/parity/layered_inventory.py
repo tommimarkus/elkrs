@@ -151,10 +151,20 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "Connected-components compaction is parsed and diagnosed; component compaction semantics are not implemented yet",
     ),
+    "org.eclipse.elk.layered.considerModelOrder.components": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked model_order`; `cargo test -p elkrs-layered --test basic_layout --locked model_order`; `cargo test -p elkrs-json --test json_partitions --locked model_order`; `cargo test -p elkrs-json --test json_errors --locked model_order`",
+        "Component model order is parsed and diagnosed; component ordering semantics are not implemented yet",
+    ),
     "org.eclipse.elk.layered.considerModelOrder.portModelOrder": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "Port model order is parsed and diagnosed; port-order-aware crossing behavior is not implemented yet",
+    ),
+    "org.eclipse.elk.layered.considerModelOrder.strategy": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked model_order`; `cargo test -p elkrs-layered --test basic_layout --locked model_order`; `cargo test -p elkrs-json --test json_partitions --locked model_order`; `cargo test -p elkrs-json --test json_errors --locked model_order`",
+        "Model order strategy is parsed and diagnosed; model-order crossing semantics are not implemented yet",
     ),
     "org.eclipse.elk.layered.considerModelOrder.noModelOrder": (
         "diagnostic",
