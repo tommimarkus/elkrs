@@ -251,6 +251,11 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
         "Port-label next-to-port behavior is parsed and diagnosed; port-label placement semantics are not implemented yet",
     ),
+    "org.eclipse.elk.portLabels.treatAsGroup": (
+        "diagnostic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked node_boolean`; `cargo test -p elkrs-json --test json_partitions --locked node_boolean`; `cargo test -p elkrs-json --test json_errors --locked node_boolean`",
+        "Port-label group treatment is parsed and diagnosed; port-label placement semantics are not implemented yet",
+    ),
     "org.eclipse.elk.nodeSize.options": (
         "unsupported",
         "No public option model yet",

@@ -66,6 +66,10 @@ const NODE_UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
         CoreOption::PortLabelsNextToPortIfPossible,
         "port labels next to port if possible",
     ),
+    (
+        CoreOption::PortLabelsTreatAsGroup,
+        "port labels treat as group",
+    ),
 ];
 
 pub(crate) fn validate_options(graph: &ElkGraph) -> Result<Vec<Diagnostic>, LayoutError> {

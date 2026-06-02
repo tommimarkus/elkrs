@@ -515,7 +515,7 @@ fn parent_boolean_option_keys() -> [&'static str; 17] {
     ]
 }
 
-fn node_boolean_option_keys() -> [&'static str; 8] {
+fn node_boolean_option_keys() -> [&'static str; 9] {
     [
         "org.eclipse.elk.commentBox",
         "org.eclipse.elk.hypernode",
@@ -525,5 +525,6 @@ fn node_boolean_option_keys() -> [&'static str; 8] {
         "org.eclipse.elk.layered.layerUnzipping.resetOnLongEdges",
         "org.eclipse.elk.noLayout",
         "org.eclipse.elk.portLabels.nextToPortIfPossible",
+        "org.eclipse.elk.portLabels.treatAsGroup",
     ]
 }

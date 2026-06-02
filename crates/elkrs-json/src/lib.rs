@@ -68,6 +68,7 @@ const PORT_SIDE_KEY: &str = "org.eclipse.elk.port.side";
 const LEGACY_PORT_SIDE_KEY: &str = "side";
 const PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY: &str =
     "org.eclipse.elk.portLabels.nextToPortIfPossible";
+const PORT_LABELS_TREAT_AS_GROUP_KEY: &str = "org.eclipse.elk.portLabels.treatAsGroup";
 const SEPARATE_CONNECTED_COMPONENTS_KEY: &str = "org.eclipse.elk.separateConnectedComponents";
 const SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY: &str =
     "org.eclipse.elk.layered.crossingMinimization.semiInteractive";
@@ -854,6 +855,10 @@ fn apply_node_layout_options(
                 node.properties
                     .set_port_labels_next_to_port_if_possible(boolean(value, key)?);
             }
+            PORT_LABELS_TREAT_AS_GROUP_KEY => {
+                node.properties
+                    .set_port_labels_treat_as_group(boolean(value, key)?);
+            }
             PORT_PORT_SPACING_KEY => {
                 node.properties
                     .set_spacing_port_port(non_negative_number(value, key)?);
@@ -1029,6 +1034,12 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         &node.properties,
         CoreOption::PortLabelsNextToPortIfPossible,
         PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY,
+    );
+    insert_boolean_option(
+        &mut options,
+        &node.properties,
+        CoreOption::PortLabelsTreatAsGroup,
+        PORT_LABELS_TREAT_AS_GROUP_KEY,
     );
     if let Some(PropertyValue::Number(spacing)) = node.properties.get(CoreOption::SpacingPortPort) {
         options.insert(PORT_PORT_SPACING_KEY.to_string(), (*spacing).into());

@@ -441,7 +441,8 @@ fn imports_node_boolean_layout_options() {
                 "org.eclipse.elk.layered.layerUnzipping.resetOnLongEdges": true,
                 "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength": true,
                 "org.eclipse.elk.noLayout": true,
-                "org.eclipse.elk.portLabels.nextToPortIfPossible": true
+                "org.eclipse.elk.portLabels.nextToPortIfPossible": true,
+                "org.eclipse.elk.portLabels.treatAsGroup": true
               }
             }
           ]
@@ -475,7 +476,8 @@ fn imports_disabled_node_boolean_layout_options() {
                 "org.eclipse.elk.layered.layerUnzipping.resetOnLongEdges": false,
                 "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength": false,
                 "org.eclipse.elk.noLayout": false,
-                "org.eclipse.elk.portLabels.nextToPortIfPossible": false
+                "org.eclipse.elk.portLabels.nextToPortIfPossible": false,
+                "org.eclipse.elk.portLabels.treatAsGroup": false
               }
             }
           ]
@@ -1556,7 +1558,7 @@ fn parent_boolean_options() -> [(&'static str, CoreOption); 17] {
     ]
 }
 
-fn node_boolean_options() -> [(&'static str, CoreOption); 8] {
+fn node_boolean_options() -> [(&'static str, CoreOption); 9] {
     [
         ("org.eclipse.elk.commentBox", CoreOption::CommentBox),
         ("org.eclipse.elk.hypernode", CoreOption::Hypernode),
@@ -1580,6 +1582,10 @@ fn node_boolean_options() -> [(&'static str, CoreOption); 8] {
         (
             "org.eclipse.elk.portLabels.nextToPortIfPossible",
             CoreOption::PortLabelsNextToPortIfPossible,
+        ),
+        (
+            "org.eclipse.elk.portLabels.treatAsGroup",
+            CoreOption::PortLabelsTreatAsGroup,
         ),
     ]
 }
@@ -1643,6 +1649,7 @@ fn set_node_boolean_options(node: &mut ElkNode, enabled: bool) {
         .set_layer_unzipping_reset_on_long_edges(enabled);
     node.properties
         .set_port_labels_next_to_port_if_possible(enabled);
+    node.properties.set_port_labels_treat_as_group(enabled);
 }
 
 fn port_value<'a>(node: &'a Value, id: &str) -> &'a Value {

@@ -93,6 +93,7 @@ pub enum CoreOption {
     NoLayout,
     NoModelOrder,
     PortLabelsNextToPortIfPossible,
+    PortLabelsTreatAsGroup,
     SeparateConnectedComponents,
     SemiInteractiveCrossingMinimization,
     SpacingNodeNode,
@@ -243,6 +244,10 @@ impl Properties {
         enabled: bool,
     ) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::PortLabelsNextToPortIfPossible, enabled)
+    }
+
+    pub fn set_port_labels_treat_as_group(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::PortLabelsTreatAsGroup, enabled)
     }
 
     pub fn set_separate_connected_components(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -527,6 +532,13 @@ impl Properties {
         )
     }
 
+    pub fn port_labels_treat_as_group(&self) -> bool {
+        self.bool_option(
+            CoreOption::PortLabelsTreatAsGroup,
+            "port labels treat as group",
+        )
+    }
+
     pub fn separate_connected_components(&self) -> bool {
         self.bool_option(
             CoreOption::SeparateConnectedComponents,
@@ -727,6 +739,7 @@ mod tests {
         assert!(!properties.layer_unzipping_minimize_edge_length());
         assert!(!properties.layer_unzipping_reset_on_long_edges());
         assert!(!properties.port_labels_next_to_port_if_possible());
+        assert!(!properties.port_labels_treat_as_group());
 
         properties.set_comment_box(true);
         properties.set_hypernode(true);
@@ -736,6 +749,7 @@ mod tests {
         properties.set_layer_unzipping_minimize_edge_length(true);
         properties.set_layer_unzipping_reset_on_long_edges(true);
         properties.set_port_labels_next_to_port_if_possible(true);
+        properties.set_port_labels_treat_as_group(true);
 
         assert!(properties.comment_box());
         assert!(properties.hypernode());
@@ -745,6 +759,7 @@ mod tests {
         assert!(properties.layer_unzipping_minimize_edge_length());
         assert!(properties.layer_unzipping_reset_on_long_edges());
         assert!(properties.port_labels_next_to_port_if_possible());
+        assert!(properties.port_labels_treat_as_group());
     }
 
     #[test]

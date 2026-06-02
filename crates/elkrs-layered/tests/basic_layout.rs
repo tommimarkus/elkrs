@@ -1182,7 +1182,7 @@ fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 17] {
     ]
 }
 
-fn node_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 8] {
+fn node_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 9] {
     [
         ("comment box", Properties::set_comment_box),
         ("hypernode", Properties::set_hypernode),
@@ -1200,6 +1200,10 @@ fn node_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 8] {
         (
             "port labels next to port if possible",
             Properties::set_port_labels_next_to_port_if_possible,
+        ),
+        (
+            "port labels treat as group",
+            Properties::set_port_labels_treat_as_group,
         ),
     ]
 }
