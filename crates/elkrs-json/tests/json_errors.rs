@@ -405,6 +405,68 @@ fn unsupported_greedy_switch_type_returns_invalid_error() {
 }
 
 #[test]
+fn crossing_minimization_controls_non_number_sweepiness_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.crossingMinimization.hierarchicalSweepiness": false
+          }
+        }"#,
+        "org.eclipse.elk.layered.crossingMinimization.hierarchicalSweepiness must be a number",
+    );
+}
+
+#[test]
+fn crossing_minimization_controls_unsupported_strategy_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.crossingMinimization.strategy": "SIFT"
+          }
+        }"#,
+        "unsupported org.eclipse.elk.layered.crossingMinimization.strategy value: SIFT",
+    );
+}
+
+#[test]
+fn crossing_minimization_controls_non_string_node_in_layer_predecessor_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.crossingMinimization.inLayerPredOf": 1
+              }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.layered.crossingMinimization.inLayerPredOf must be a string",
+    );
+}
+
+#[test]
+fn crossing_minimization_controls_non_integer_node_position_id_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.crossingMinimization.positionId": true
+              }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.layered.crossingMinimization.positionId must be an integer",
+    );
+}
+
+#[test]
 fn non_string_node_greedy_switch_hierarchical_type_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

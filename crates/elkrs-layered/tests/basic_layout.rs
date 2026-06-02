@@ -5,9 +5,9 @@ use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
-    Algorithm, ComponentOrderingStrategy, Direction, EdgeRouting, GreedySwitchType,
-    GroupOrderingStrategy, HierarchyHandling, LongEdgeOrderingStrategy, ModelOrderStrategy,
-    PortAlignment, PortConstraints, PortSide, Properties, PropertyValue,
+    Algorithm, ComponentOrderingStrategy, CrossingMinimizationStrategy, Direction, EdgeRouting,
+    GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LongEdgeOrderingStrategy,
+    ModelOrderStrategy, PortAlignment, PortConstraints, PortSide, Properties, PropertyValue,
 };
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
@@ -1249,6 +1249,101 @@ fn layered_layout_accepts_off_greedy_switch_types_without_diagnostic() {
     assert!(report.diagnostics.iter().all(|diagnostic| {
         diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
             || !diagnostic.message.contains("greedy switch")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_unsupported_crossing_minimization_controls() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_crossing_minimization_hierarchical_sweepiness(0.75);
+    graph
+        .properties
+        .set_crossing_minimization_strategy(CrossingMinimizationStrategy::MedianLayerSweep);
+    graph.properties.set_thoroughness(42);
+    graph.properties.set_random_seed(123);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("crossing minimization hierarchical sweepiness")
+            && diagnostic.message.contains("0.75")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("crossing minimization strategy")
+            && diagnostic.message.contains("MedianLayerSweep")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("thoroughness")
+            && diagnostic.message.contains("42")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("random seed")
+            && diagnostic.message.contains("123")
+    }));
+}
+
+#[test]
+fn layered_layout_reports_node_unsupported_crossing_minimization_controls() {
+    let mut graph = ElkGraph::new("root");
+    let mut child = node("child", 60.0, 30.0);
+    child
+        .properties
+        .set_crossing_minimization_in_layer_predecessor_of("left".to_owned());
+    child
+        .properties
+        .set_crossing_minimization_in_layer_successor_of("right".to_owned());
+    child
+        .properties
+        .set_crossing_minimization_position_choice_constraint(3);
+    child.properties.set_crossing_minimization_position_id(4);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("in-layer predecessor constraint")
+            && diagnostic.message.contains("left")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("in-layer successor constraint")
+            && diagnostic.message.contains("right")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("position choice constraint")
+            && diagnostic.message.contains("3")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("position ID")
+            && diagnostic.message.contains("4")
+            && diagnostic.message.contains("child")
     }));
 }
 

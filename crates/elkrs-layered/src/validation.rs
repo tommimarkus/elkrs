@@ -2,9 +2,9 @@ use elkrs_core::diagnostic::Diagnostic;
 use elkrs_core::graph::{ElkGraph, ElkNode};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
-    Algorithm, ComponentOrderingStrategy, CoreOption, EdgeRouting, GreedySwitchType,
-    GroupOrderingStrategy, HierarchyHandling, LongEdgeOrderingStrategy, ModelOrderStrategy,
-    PortAlignment, PortConstraints, Properties, PropertyValue,
+    Algorithm, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy, EdgeRouting,
+    GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LongEdgeOrderingStrategy,
+    ModelOrderStrategy, PortAlignment, PortConstraints, Properties, PropertyValue,
 };
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
@@ -106,6 +106,11 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
     collect_unsupported_model_order_diagnostics(properties, None, &mut diagnostics);
     collect_unsupported_model_order_group_diagnostics(properties, None, &mut diagnostics);
     collect_unsupported_greedy_switch_diagnostics(properties, None, &mut diagnostics);
+    collect_unsupported_crossing_minimization_control_diagnostics(
+        properties,
+        None,
+        &mut diagnostics,
+    );
     match properties.edge_routing() {
         EdgeRouting::Orthogonal => {}
         edge_routing => diagnostics.push(unsupported_edge_routing_diagnostic(edge_routing, None)),
@@ -497,6 +502,98 @@ fn unsupported_greedy_switch_type_diagnostic(
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
 
+fn collect_unsupported_crossing_minimization_control_diagnostics(
+    properties: &Properties,
+    node_id: Option<&str>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    if let Some(sweepiness) = properties.crossing_minimization_hierarchical_sweepiness() {
+        diagnostics.push(unsupported_number_option_diagnostic(
+            "crossing minimization hierarchical sweepiness",
+            sweepiness,
+            node_id,
+        ));
+    }
+    if let Some(strategy) = properties.crossing_minimization_strategy() {
+        diagnostics.push(unsupported_crossing_minimization_strategy_diagnostic(
+            strategy, node_id,
+        ));
+    }
+    if let Some(id) = properties.crossing_minimization_in_layer_predecessor_of() {
+        diagnostics.push(unsupported_text_option_diagnostic(
+            "in-layer predecessor constraint",
+            id,
+            node_id,
+        ));
+    }
+    if let Some(id) = properties.crossing_minimization_in_layer_successor_of() {
+        diagnostics.push(unsupported_text_option_diagnostic(
+            "in-layer successor constraint",
+            id,
+            node_id,
+        ));
+    }
+    if let Some(constraint) = properties.crossing_minimization_position_choice_constraint() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "position choice constraint",
+            constraint,
+            node_id,
+        ));
+    }
+    if let Some(id) = properties.crossing_minimization_position_id() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "position ID",
+            id,
+            node_id,
+        ));
+    }
+    if let Some(thoroughness) = properties.thoroughness() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "thoroughness",
+            thoroughness,
+            node_id,
+        ));
+    }
+    if let Some(seed) = properties.random_seed() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "random seed",
+            seed,
+            node_id,
+        ));
+    }
+}
+
+fn unsupported_crossing_minimization_strategy_diagnostic(
+    strategy: CrossingMinimizationStrategy,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "crossing minimization strategy {strategy:?} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!(
+            "crossing minimization strategy {strategy:?} is recognized but not implemented by elkrs-layered yet"
+        )
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
+fn unsupported_text_option_diagnostic(
+    name: &str,
+    value: &str,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "{name} {value} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!("{name} {value} is recognized but not implemented by elkrs-layered yet")
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
 fn collect_unsupported_port_alignment_diagnostics(
     properties: &Properties,
     node_id: Option<&str>,
@@ -560,6 +657,11 @@ fn collect_node_hierarchy_diagnostics(
         diagnostics,
     );
     collect_unsupported_greedy_switch_diagnostics(
+        &node.properties,
+        Some(node.id.as_str()),
+        diagnostics,
+    );
+    collect_unsupported_crossing_minimization_control_diagnostics(
         &node.properties,
         Some(node.id.as_str()),
         diagnostics,

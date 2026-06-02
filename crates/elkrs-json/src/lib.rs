@@ -7,9 +7,10 @@ use elkrs_core::graph::{
     ElementId, ElementRef, ElkEdge, ElkEdgeSection, ElkGraph, ElkLabel, ElkNode, ElkPort,
 };
 use elkrs_core::options::{
-    Algorithm, ComponentOrderingStrategy, CoreOption, Direction, EdgeRouting, GreedySwitchType,
-    GroupOrderingStrategy, HierarchyHandling, LongEdgeOrderingStrategy, ModelOrderStrategy,
-    PortAlignment, PortConstraints, PortSide, PropertyValue,
+    Algorithm, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy, Direction,
+    EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
+    LongEdgeOrderingStrategy, ModelOrderStrategy, PortAlignment, PortConstraints, PortSide,
+    PropertyValue,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -62,6 +63,18 @@ const GREEDY_SWITCH_TYPE_KEY: &str =
     "org.eclipse.elk.layered.crossingMinimization.greedySwitch.type";
 const GREEDY_SWITCH_HIERARCHICAL_TYPE_KEY: &str =
     "org.eclipse.elk.layered.crossingMinimization.greedySwitchHierarchical.type";
+const CROSSING_MINIMIZATION_HIERARCHICAL_SWEEPINESS_KEY: &str =
+    "org.eclipse.elk.layered.crossingMinimization.hierarchicalSweepiness";
+const CROSSING_MINIMIZATION_IN_LAYER_PREDECESSOR_KEY: &str =
+    "org.eclipse.elk.layered.crossingMinimization.inLayerPredOf";
+const CROSSING_MINIMIZATION_IN_LAYER_SUCCESSOR_KEY: &str =
+    "org.eclipse.elk.layered.crossingMinimization.inLayerSuccOf";
+const CROSSING_MINIMIZATION_POSITION_CHOICE_CONSTRAINT_KEY: &str =
+    "org.eclipse.elk.layered.crossingMinimization.positionChoiceConstraint";
+const CROSSING_MINIMIZATION_POSITION_ID_KEY: &str =
+    "org.eclipse.elk.layered.crossingMinimization.positionId";
+const CROSSING_MINIMIZATION_STRATEGY_KEY: &str =
+    "org.eclipse.elk.layered.crossingMinimization.strategy";
 const HIGH_DEGREE_NODE_TREATMENT_KEY: &str = "org.eclipse.elk.layered.highDegreeNodes.treatment";
 const HIERARCHY_HANDLING_KEY: &str = "org.eclipse.elk.hierarchyHandling";
 const HYPERNODE_KEY: &str = "org.eclipse.elk.hypernode";
@@ -108,10 +121,12 @@ const LEGACY_PORT_SIDE_KEY: &str = "side";
 const PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY: &str =
     "org.eclipse.elk.portLabels.nextToPortIfPossible";
 const PORT_LABELS_TREAT_AS_GROUP_KEY: &str = "org.eclipse.elk.portLabels.treatAsGroup";
+const RANDOM_SEED_KEY: &str = "org.eclipse.elk.randomSeed";
 const SEPARATE_CONNECTED_COMPONENTS_KEY: &str = "org.eclipse.elk.separateConnectedComponents";
 const SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY: &str =
     "org.eclipse.elk.layered.crossingMinimization.semiInteractive";
 const TOPDOWN_LAYOUT_KEY: &str = "org.eclipse.elk.topdownLayout";
+const THOROUGHNESS_KEY: &str = "org.eclipse.elk.layered.thoroughness";
 const UNNECESSARY_BENDPOINTS_KEY: &str = "org.eclipse.elk.layered.unnecessaryBendpoints";
 const WRAPPING_ADDITIONAL_EDGE_SPACING_KEY: &str =
     "org.eclipse.elk.layered.wrapping.additionalEdgeSpacing";
@@ -514,6 +529,14 @@ fn apply_layout_options(
             GREEDY_SWITCH_HIERARCHICAL_TYPE_KEY => graph
                 .properties
                 .set_greedy_switch_hierarchical_type(parse_greedy_switch_type(value, key)?),
+            CROSSING_MINIMIZATION_HIERARCHICAL_SWEEPINESS_KEY => graph
+                .properties
+                .set_crossing_minimization_hierarchical_sweepiness(number(value, key)?),
+            CROSSING_MINIMIZATION_STRATEGY_KEY => {
+                graph.properties.set_crossing_minimization_strategy(
+                    parse_crossing_minimization_strategy(value, key)?,
+                )
+            }
             HIGH_DEGREE_NODE_TREATMENT_KEY => graph
                 .properties
                 .set_high_degree_node_treatment(boolean(value, key)?),
@@ -588,6 +611,7 @@ fn apply_layout_options(
             PORT_PORT_SPACING_KEY => graph
                 .properties
                 .set_spacing_port_port(non_negative_number(value, key)?),
+            RANDOM_SEED_KEY => graph.properties.set_random_seed(integer(value, key)?),
             SEPARATE_CONNECTED_COMPONENTS_KEY => graph
                 .properties
                 .set_separate_connected_components(boolean(value, key)?),
@@ -595,6 +619,7 @@ fn apply_layout_options(
                 .properties
                 .set_semi_interactive_crossing_minimization(boolean(value, key)?),
             TOPDOWN_LAYOUT_KEY => graph.properties.set_topdown_layout(boolean(value, key)?),
+            THOROUGHNESS_KEY => graph.properties.set_thoroughness(integer(value, key)?),
             UNNECESSARY_BENDPOINTS_KEY => graph
                 .properties
                 .set_unnecessary_bendpoints(boolean(value, key)?),
@@ -799,6 +824,24 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
             serde_json::Value::String(format_greedy_switch_type(*greedy_switch_type).to_string()),
         );
     }
+    if let Some(PropertyValue::Number(sweepiness)) = graph
+        .properties
+        .get(CoreOption::CrossingMinimizationHierarchicalSweepiness)
+    {
+        options.insert(
+            CROSSING_MINIMIZATION_HIERARCHICAL_SWEEPINESS_KEY.to_string(),
+            (*sweepiness).into(),
+        );
+    }
+    if let Some(PropertyValue::CrossingMinimizationStrategy(strategy)) = graph
+        .properties
+        .get(CoreOption::CrossingMinimizationStrategy)
+    {
+        options.insert(
+            CROSSING_MINIMIZATION_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_crossing_minimization_strategy(*strategy).to_string()),
+        );
+    }
     insert_boolean_option(
         &mut options,
         &graph.properties,
@@ -923,6 +966,9 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     {
         options.insert(PORT_PORT_SPACING_KEY.to_string(), (*spacing).into());
     }
+    if let Some(PropertyValue::Integer(seed)) = graph.properties.get(CoreOption::RandomSeed) {
+        options.insert(RANDOM_SEED_KEY.to_string(), (*seed).into());
+    }
     insert_boolean_option(
         &mut options,
         &graph.properties,
@@ -941,6 +987,11 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         CoreOption::TopdownLayout,
         TOPDOWN_LAYOUT_KEY,
     );
+    if let Some(PropertyValue::Integer(thoroughness)) =
+        graph.properties.get(CoreOption::Thoroughness)
+    {
+        options.insert(THOROUGHNESS_KEY.to_string(), (*thoroughness).into());
+    }
     insert_boolean_option(
         &mut options,
         &graph.properties,
@@ -1084,6 +1135,35 @@ fn apply_node_layout_options(
                 node.properties
                     .set_greedy_switch_hierarchical_type(parse_greedy_switch_type(value, key)?);
             }
+            CROSSING_MINIMIZATION_HIERARCHICAL_SWEEPINESS_KEY => {
+                node.properties
+                    .set_crossing_minimization_hierarchical_sweepiness(number(value, key)?);
+            }
+            CROSSING_MINIMIZATION_IN_LAYER_PREDECESSOR_KEY => {
+                node.properties
+                    .set_crossing_minimization_in_layer_predecessor_of(
+                        string(value, key)?.to_owned(),
+                    );
+            }
+            CROSSING_MINIMIZATION_IN_LAYER_SUCCESSOR_KEY => {
+                node.properties
+                    .set_crossing_minimization_in_layer_successor_of(
+                        string(value, key)?.to_owned(),
+                    );
+            }
+            CROSSING_MINIMIZATION_POSITION_CHOICE_CONSTRAINT_KEY => {
+                node.properties
+                    .set_crossing_minimization_position_choice_constraint(integer(value, key)?);
+            }
+            CROSSING_MINIMIZATION_POSITION_ID_KEY => {
+                node.properties
+                    .set_crossing_minimization_position_id(integer(value, key)?);
+            }
+            CROSSING_MINIMIZATION_STRATEGY_KEY => {
+                node.properties.set_crossing_minimization_strategy(
+                    parse_crossing_minimization_strategy(value, key)?,
+                );
+            }
             HIGH_DEGREE_NODE_TREATMENT_KEY => {
                 node.properties
                     .set_high_degree_node_treatment(boolean(value, key)?);
@@ -1164,6 +1244,9 @@ fn apply_node_layout_options(
                 node.properties
                     .set_spacing_port_port(non_negative_number(value, key)?);
             }
+            RANDOM_SEED_KEY => {
+                node.properties.set_random_seed(integer(value, key)?);
+            }
             SEPARATE_CONNECTED_COMPONENTS_KEY => {
                 node.properties
                     .set_separate_connected_components(boolean(value, key)?);
@@ -1174,6 +1257,9 @@ fn apply_node_layout_options(
             }
             TOPDOWN_LAYOUT_KEY => {
                 node.properties.set_topdown_layout(boolean(value, key)?);
+            }
+            THOROUGHNESS_KEY => {
+                node.properties.set_thoroughness(integer(value, key)?);
             }
             UNNECESSARY_BENDPOINTS_KEY => {
                 node.properties
@@ -1384,6 +1470,60 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
             serde_json::Value::String(format_greedy_switch_type(*greedy_switch_type).to_string()),
         );
     }
+    if let Some(PropertyValue::Number(sweepiness)) = node
+        .properties
+        .get(CoreOption::CrossingMinimizationHierarchicalSweepiness)
+    {
+        options.insert(
+            CROSSING_MINIMIZATION_HIERARCHICAL_SWEEPINESS_KEY.to_string(),
+            (*sweepiness).into(),
+        );
+    }
+    if let Some(PropertyValue::Text(id)) = node
+        .properties
+        .get(CoreOption::CrossingMinimizationInLayerPredecessorOf)
+    {
+        options.insert(
+            CROSSING_MINIMIZATION_IN_LAYER_PREDECESSOR_KEY.to_string(),
+            serde_json::Value::String(id.clone()),
+        );
+    }
+    if let Some(PropertyValue::Text(id)) = node
+        .properties
+        .get(CoreOption::CrossingMinimizationInLayerSuccessorOf)
+    {
+        options.insert(
+            CROSSING_MINIMIZATION_IN_LAYER_SUCCESSOR_KEY.to_string(),
+            serde_json::Value::String(id.clone()),
+        );
+    }
+    if let Some(PropertyValue::Integer(constraint)) = node
+        .properties
+        .get(CoreOption::CrossingMinimizationPositionChoiceConstraint)
+    {
+        options.insert(
+            CROSSING_MINIMIZATION_POSITION_CHOICE_CONSTRAINT_KEY.to_string(),
+            (*constraint).into(),
+        );
+    }
+    if let Some(PropertyValue::Integer(id)) = node
+        .properties
+        .get(CoreOption::CrossingMinimizationPositionId)
+    {
+        options.insert(
+            CROSSING_MINIMIZATION_POSITION_ID_KEY.to_string(),
+            (*id).into(),
+        );
+    }
+    if let Some(PropertyValue::CrossingMinimizationStrategy(strategy)) = node
+        .properties
+        .get(CoreOption::CrossingMinimizationStrategy)
+    {
+        options.insert(
+            CROSSING_MINIMIZATION_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_crossing_minimization_strategy(*strategy).to_string()),
+        );
+    }
     insert_boolean_option(
         &mut options,
         &node.properties,
@@ -1508,6 +1648,9 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
     if let Some(PropertyValue::Number(spacing)) = node.properties.get(CoreOption::SpacingPortPort) {
         options.insert(PORT_PORT_SPACING_KEY.to_string(), (*spacing).into());
     }
+    if let Some(PropertyValue::Integer(seed)) = node.properties.get(CoreOption::RandomSeed) {
+        options.insert(RANDOM_SEED_KEY.to_string(), (*seed).into());
+    }
     insert_boolean_option(
         &mut options,
         &node.properties,
@@ -1526,6 +1669,11 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         CoreOption::TopdownLayout,
         TOPDOWN_LAYOUT_KEY,
     );
+    if let Some(PropertyValue::Integer(thoroughness)) =
+        node.properties.get(CoreOption::Thoroughness)
+    {
+        options.insert(THOROUGHNESS_KEY.to_string(), (*thoroughness).into());
+    }
     insert_boolean_option(
         &mut options,
         &node.properties,
@@ -1750,6 +1898,21 @@ fn parse_greedy_switch_type(
     }
 }
 
+fn parse_crossing_minimization_strategy(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<CrossingMinimizationStrategy, JsonError> {
+    match string(value, key)? {
+        "INTERACTIVE" => Ok(CrossingMinimizationStrategy::Interactive),
+        "LAYER_SWEEP" => Ok(CrossingMinimizationStrategy::LayerSweep),
+        "MEDIAN_LAYER_SWEEP" => Ok(CrossingMinimizationStrategy::MedianLayerSweep),
+        "NONE" => Ok(CrossingMinimizationStrategy::None),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
 fn parse_group_ordering_strategy(
     value: &serde_json::Value,
     key: &str,
@@ -1852,6 +2015,15 @@ fn format_greedy_switch_type(greedy_switch_type: GreedySwitchType) -> &'static s
         GreedySwitchType::Off => "OFF",
         GreedySwitchType::OneSided => "ONE_SIDED",
         GreedySwitchType::TwoSided => "TWO_SIDED",
+    }
+}
+
+fn format_crossing_minimization_strategy(strategy: CrossingMinimizationStrategy) -> &'static str {
+    match strategy {
+        CrossingMinimizationStrategy::Interactive => "INTERACTIVE",
+        CrossingMinimizationStrategy::LayerSweep => "LAYER_SWEEP",
+        CrossingMinimizationStrategy::MedianLayerSweep => "MEDIAN_LAYER_SWEEP",
+        CrossingMinimizationStrategy::None => "NONE",
     }
 }
 

@@ -61,6 +61,14 @@ pub enum ModelOrderStrategy {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CrossingMinimizationStrategy {
+    Interactive,
+    LayerSweep,
+    MedianLayerSweep,
+    None,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GreedySwitchType {
     Off,
     OneSided,
@@ -123,6 +131,7 @@ pub enum PropertyValue {
     Text(String),
     Algorithm(Algorithm),
     ComponentOrderingStrategy(ComponentOrderingStrategy),
+    CrossingMinimizationStrategy(CrossingMinimizationStrategy),
     Direction(Direction),
     EdgeRouting(EdgeRouting),
     GroupOrderingStrategy(GroupOrderingStrategy),
@@ -146,8 +155,14 @@ pub enum CoreOption {
     CrossingCounterNodeInfluence,
     CrossingCounterPortInfluence,
     CrossingMinimizationEnforcedGroupOrders,
+    CrossingMinimizationHierarchicalSweepiness,
     CrossingMinimizationId,
+    CrossingMinimizationInLayerPredecessorOf,
+    CrossingMinimizationInLayerSuccessorOf,
     CrossingMinimizationGroupOrderStrategy,
+    CrossingMinimizationPositionChoiceConstraint,
+    CrossingMinimizationPositionId,
+    CrossingMinimizationStrategy,
     CycleBreakingGroupOrderStrategy,
     CycleBreakingId,
     CycleBreakingPreferredSourceId,
@@ -184,6 +199,7 @@ pub enum CoreOption {
     PortConstraints,
     PortLabelsNextToPortIfPossible,
     PortLabelsTreatAsGroup,
+    RandomSeed,
     SeparateConnectedComponents,
     SemiInteractiveCrossingMinimization,
     SpacingNodeNode,
@@ -204,6 +220,7 @@ pub enum CoreOption {
     SpacingNodeSelfLoop,
     SpacingPortPort,
     TopdownLayout,
+    Thoroughness,
     UnnecessaryBendpoints,
     WrappingAdditionalEdgeSpacing,
     WrappingImproveCuts,
@@ -269,6 +286,63 @@ impl Properties {
         self.values.insert(
             CoreOption::CrossingCounterPortInfluence,
             PropertyValue::Number(influence),
+        )
+    }
+
+    pub fn set_crossing_minimization_hierarchical_sweepiness(
+        &mut self,
+        sweepiness: f64,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::CrossingMinimizationHierarchicalSweepiness,
+            PropertyValue::Number(sweepiness),
+        )
+    }
+
+    pub fn set_crossing_minimization_strategy(
+        &mut self,
+        strategy: CrossingMinimizationStrategy,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::CrossingMinimizationStrategy,
+            PropertyValue::CrossingMinimizationStrategy(strategy),
+        )
+    }
+
+    pub fn set_crossing_minimization_in_layer_predecessor_of(
+        &mut self,
+        id: String,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::CrossingMinimizationInLayerPredecessorOf,
+            PropertyValue::Text(id),
+        )
+    }
+
+    pub fn set_crossing_minimization_in_layer_successor_of(
+        &mut self,
+        id: String,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::CrossingMinimizationInLayerSuccessorOf,
+            PropertyValue::Text(id),
+        )
+    }
+
+    pub fn set_crossing_minimization_position_choice_constraint(
+        &mut self,
+        constraint: i64,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::CrossingMinimizationPositionChoiceConstraint,
+            PropertyValue::Integer(constraint),
+        )
+    }
+
+    pub fn set_crossing_minimization_position_id(&mut self, id: i64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::CrossingMinimizationPositionId,
+            PropertyValue::Integer(id),
         )
     }
 
@@ -464,6 +538,11 @@ impl Properties {
         self.set_bool_option(CoreOption::NoModelOrder, enabled)
     }
 
+    pub fn set_random_seed(&mut self, seed: i64) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::RandomSeed, PropertyValue::Integer(seed))
+    }
+
     pub fn set_port_constraints(
         &mut self,
         port_constraints: PortConstraints,
@@ -640,6 +719,13 @@ impl Properties {
         self.set_bool_option(CoreOption::TopdownLayout, enabled)
     }
 
+    pub fn set_thoroughness(&mut self, thoroughness: i64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::Thoroughness,
+            PropertyValue::Integer(thoroughness),
+        )
+    }
+
     pub fn set_unnecessary_bendpoints(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::UnnecessaryBendpoints, enabled)
     }
@@ -721,6 +807,51 @@ impl Properties {
         self.number_option(
             CoreOption::CrossingCounterPortInfluence,
             "crossing counter port influence",
+        )
+    }
+
+    pub fn crossing_minimization_hierarchical_sweepiness(&self) -> Option<f64> {
+        self.number_option(
+            CoreOption::CrossingMinimizationHierarchicalSweepiness,
+            "crossing minimization hierarchical sweepiness",
+        )
+    }
+
+    pub fn crossing_minimization_strategy(&self) -> Option<CrossingMinimizationStrategy> {
+        match self.get(CoreOption::CrossingMinimizationStrategy) {
+            Some(PropertyValue::CrossingMinimizationStrategy(strategy)) => Some(*strategy),
+            Some(value) => {
+                unreachable!("crossing minimization strategy stored incompatible value: {value:?}")
+            }
+            _ => None,
+        }
+    }
+
+    pub fn crossing_minimization_in_layer_predecessor_of(&self) -> Option<&str> {
+        self.text_option(
+            CoreOption::CrossingMinimizationInLayerPredecessorOf,
+            "crossing minimization in-layer predecessor",
+        )
+    }
+
+    pub fn crossing_minimization_in_layer_successor_of(&self) -> Option<&str> {
+        self.text_option(
+            CoreOption::CrossingMinimizationInLayerSuccessorOf,
+            "crossing minimization in-layer successor",
+        )
+    }
+
+    pub fn crossing_minimization_position_choice_constraint(&self) -> Option<i64> {
+        self.integer_option(
+            CoreOption::CrossingMinimizationPositionChoiceConstraint,
+            "crossing minimization position choice constraint",
+        )
+    }
+
+    pub fn crossing_minimization_position_id(&self) -> Option<i64> {
+        self.integer_option(
+            CoreOption::CrossingMinimizationPositionId,
+            "crossing minimization position ID",
         )
     }
 
@@ -962,6 +1093,10 @@ impl Properties {
         )
     }
 
+    pub fn random_seed(&self) -> Option<i64> {
+        self.integer_option(CoreOption::RandomSeed, "random seed")
+    }
+
     pub fn separate_connected_components(&self) -> bool {
         self.bool_option(
             CoreOption::SeparateConnectedComponents,
@@ -1042,6 +1177,10 @@ impl Properties {
         self.bool_option(CoreOption::TopdownLayout, "topdown layout")
     }
 
+    pub fn thoroughness(&self) -> Option<i64> {
+        self.integer_option(CoreOption::Thoroughness, "thoroughness")
+    }
+
     pub fn unnecessary_bendpoints(&self) -> bool {
         self.bool_option(CoreOption::UnnecessaryBendpoints, "unnecessary bendpoints")
     }
@@ -1080,6 +1219,14 @@ impl Properties {
     fn number_option(&self, option: CoreOption, name: &str) -> Option<f64> {
         match self.get(option) {
             Some(PropertyValue::Number(value)) => Some(*value),
+            Some(value) => unreachable!("{name} stored incompatible value: {value:?}"),
+            _ => None,
+        }
+    }
+
+    fn text_option(&self, option: CoreOption, name: &str) -> Option<&str> {
+        match self.get(option) {
+            Some(PropertyValue::Text(value)) => Some(value.as_str()),
             Some(value) => unreachable!("{name} stored incompatible value: {value:?}"),
             _ => None,
         }
@@ -1429,6 +1576,66 @@ mod tests {
             properties.get(CoreOption::CrossingMinimizationEnforcedGroupOrders),
             Some(&PropertyValue::IntegerList(orders.to_vec()))
         );
+    }
+
+    #[test]
+    fn crossing_minimization_controls_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(
+            properties.crossing_minimization_hierarchical_sweepiness(),
+            None
+        );
+        assert_eq!(properties.crossing_minimization_strategy(), None);
+        assert_eq!(
+            properties.crossing_minimization_in_layer_predecessor_of(),
+            None
+        );
+        assert_eq!(
+            properties.crossing_minimization_in_layer_successor_of(),
+            None
+        );
+        assert_eq!(
+            properties.crossing_minimization_position_choice_constraint(),
+            None
+        );
+        assert_eq!(properties.crossing_minimization_position_id(), None);
+        assert_eq!(properties.thoroughness(), None);
+        assert_eq!(properties.random_seed(), None);
+
+        properties.set_crossing_minimization_hierarchical_sweepiness(0.75);
+        properties
+            .set_crossing_minimization_strategy(CrossingMinimizationStrategy::MedianLayerSweep);
+        properties.set_crossing_minimization_in_layer_predecessor_of("left".to_owned());
+        properties.set_crossing_minimization_in_layer_successor_of("right".to_owned());
+        properties.set_crossing_minimization_position_choice_constraint(3);
+        properties.set_crossing_minimization_position_id(4);
+        properties.set_thoroughness(42);
+        properties.set_random_seed(123);
+
+        assert_eq!(
+            properties.crossing_minimization_hierarchical_sweepiness(),
+            Some(0.75)
+        );
+        assert_eq!(
+            properties.crossing_minimization_strategy(),
+            Some(CrossingMinimizationStrategy::MedianLayerSweep)
+        );
+        assert_eq!(
+            properties.crossing_minimization_in_layer_predecessor_of(),
+            Some("left")
+        );
+        assert_eq!(
+            properties.crossing_minimization_in_layer_successor_of(),
+            Some("right")
+        );
+        assert_eq!(
+            properties.crossing_minimization_position_choice_constraint(),
+            Some(3)
+        );
+        assert_eq!(properties.crossing_minimization_position_id(), Some(4));
+        assert_eq!(properties.thoroughness(), Some(42));
+        assert_eq!(properties.random_seed(), Some(123));
     }
 
     #[test]

@@ -1,9 +1,10 @@
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::options::{
-    Algorithm, ComponentOrderingStrategy, CoreOption, Direction, EdgeRouting, GreedySwitchType,
-    GroupOrderingStrategy, HierarchyHandling, LongEdgeOrderingStrategy, ModelOrderStrategy,
-    PortAlignment, PortConstraints, PortSide, PropertyValue,
+    Algorithm, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy, Direction,
+    EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
+    LongEdgeOrderingStrategy, ModelOrderStrategy, PortAlignment, PortConstraints, PortSide,
+    PropertyValue,
 };
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
@@ -1465,6 +1466,149 @@ fn serializes_node_greedy_switch_with_java_keys() {
     assert_eq!(
         options["org.eclipse.elk.layered.crossingMinimization.greedySwitchHierarchical.type"],
         Value::String("TWO_SIDED".to_owned())
+    );
+}
+
+#[test]
+fn imports_java_crossing_minimization_controls_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.crossingMinimization.hierarchicalSweepiness": 0.75,
+            "org.eclipse.elk.layered.crossingMinimization.strategy": "MEDIAN_LAYER_SWEEP",
+            "org.eclipse.elk.layered.thoroughness": 42,
+            "org.eclipse.elk.randomSeed": 123
+          }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::CrossingMinimizationHierarchicalSweepiness),
+        Some(&PropertyValue::Number(0.75))
+    );
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::CrossingMinimizationStrategy),
+        Some(&PropertyValue::CrossingMinimizationStrategy(
+            CrossingMinimizationStrategy::MedianLayerSweep
+        ))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::Thoroughness),
+        Some(&PropertyValue::Integer(42))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::RandomSeed),
+        Some(&PropertyValue::Integer(123))
+    );
+}
+
+#[test]
+fn serializes_crossing_minimization_controls_with_java_keys() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_crossing_minimization_hierarchical_sweepiness(0.5);
+    graph
+        .properties
+        .set_crossing_minimization_strategy(CrossingMinimizationStrategy::Interactive);
+    graph.properties.set_thoroughness(7);
+    graph.properties.set_random_seed(11);
+
+    let json = serialized_value(&graph);
+    let options = &json["layoutOptions"];
+    assert_eq!(
+        options["org.eclipse.elk.layered.crossingMinimization.hierarchicalSweepiness"],
+        Value::from(0.5)
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.crossingMinimization.strategy"],
+        Value::String("INTERACTIVE".to_owned())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.thoroughness"],
+        Value::Number(7.into())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.randomSeed"],
+        Value::Number(11.into())
+    );
+}
+
+#[test]
+fn imports_node_crossing_minimization_controls_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.crossingMinimization.inLayerPredOf": "left",
+                "org.eclipse.elk.layered.crossingMinimization.inLayerSuccOf": "right",
+                "org.eclipse.elk.layered.crossingMinimization.positionChoiceConstraint": 3,
+                "org.eclipse.elk.layered.crossingMinimization.positionId": "4"
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+    let properties = &graph.nodes[&ElementId::from("node")].properties;
+
+    assert_eq!(
+        properties.get(CoreOption::CrossingMinimizationInLayerPredecessorOf),
+        Some(&PropertyValue::Text("left".to_owned()))
+    );
+    assert_eq!(
+        properties.get(CoreOption::CrossingMinimizationInLayerSuccessorOf),
+        Some(&PropertyValue::Text("right".to_owned()))
+    );
+    assert_eq!(
+        properties.get(CoreOption::CrossingMinimizationPositionChoiceConstraint),
+        Some(&PropertyValue::Integer(3))
+    );
+    assert_eq!(
+        properties.get(CoreOption::CrossingMinimizationPositionId),
+        Some(&PropertyValue::Integer(4))
+    );
+}
+
+#[test]
+fn serializes_node_crossing_minimization_controls_with_java_keys() {
+    let mut node = ElkNode::new("node");
+    node.properties
+        .set_crossing_minimization_in_layer_predecessor_of("left".to_owned());
+    node.properties
+        .set_crossing_minimization_in_layer_successor_of("right".to_owned());
+    node.properties
+        .set_crossing_minimization_position_choice_constraint(3);
+    node.properties.set_crossing_minimization_position_id(4);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let options = &json["children"][0]["layoutOptions"];
+    assert_eq!(
+        options["org.eclipse.elk.layered.crossingMinimization.inLayerPredOf"],
+        Value::String("left".to_owned())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.crossingMinimization.inLayerSuccOf"],
+        Value::String("right".to_owned())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.crossingMinimization.positionChoiceConstraint"],
+        Value::Number(3.into())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.crossingMinimization.positionId"],
+        Value::Number(4.into())
     );
 }
 

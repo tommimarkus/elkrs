@@ -246,6 +246,36 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-core --locked greedy_switch`; `cargo test -p elkrs-layered --test basic_layout --locked greedy_switch`; `cargo test -p elkrs-json --test json_partitions --locked greedy_switch`; `cargo test -p elkrs-json --test json_errors --locked greedy_switch`",
         "Hierarchical greedy switch type is parsed and diagnosed; hierarchical greedy-switch crossing minimization is not implemented yet",
     ),
+    "org.eclipse.elk.layered.crossingMinimization.hierarchicalSweepiness": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked crossing_minimization_controls`; `cargo test -p elkrs-layered --test basic_layout --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_partitions --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_errors --locked crossing_minimization_controls`",
+        "Hierarchical sweepiness is parsed and diagnosed; hierarchical crossing minimization semantics are not implemented yet",
+    ),
+    "org.eclipse.elk.layered.crossingMinimization.inLayerPredOf": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked crossing_minimization_controls`; `cargo test -p elkrs-layered --test basic_layout --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_partitions --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_errors --locked crossing_minimization_controls`",
+        "In-layer predecessor constraints are parsed and diagnosed; node ordering constraints are not implemented yet",
+    ),
+    "org.eclipse.elk.layered.crossingMinimization.inLayerSuccOf": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked crossing_minimization_controls`; `cargo test -p elkrs-layered --test basic_layout --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_partitions --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_errors --locked crossing_minimization_controls`",
+        "In-layer successor constraints are parsed and diagnosed; node ordering constraints are not implemented yet",
+    ),
+    "org.eclipse.elk.layered.crossingMinimization.positionChoiceConstraint": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked crossing_minimization_controls`; `cargo test -p elkrs-layered --test basic_layout --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_partitions --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_errors --locked crossing_minimization_controls`",
+        "Position choice constraints are parsed and diagnosed; position-constrained crossing minimization is not implemented yet",
+    ),
+    "org.eclipse.elk.layered.crossingMinimization.positionId": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked crossing_minimization_controls`; `cargo test -p elkrs-layered --test basic_layout --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_partitions --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_errors --locked crossing_minimization_controls`",
+        "Position IDs are parsed and diagnosed; position-constrained crossing minimization is not implemented yet",
+    ),
+    "org.eclipse.elk.layered.crossingMinimization.strategy": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked crossing_minimization_controls`; `cargo test -p elkrs-layered --test basic_layout --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_partitions --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_errors --locked crossing_minimization_controls`",
+        "Crossing minimization strategy is parsed and diagnosed; alternate crossing minimization strategies are not implemented yet",
+    ),
     "org.eclipse.elk.layered.crossingMinimization.semiInteractive": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
@@ -400,6 +430,16 @@ STATUS_OVERRIDES = {
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked parent_boolean`; `cargo test -p elkrs-json --test json_partitions --locked parent_boolean`; `cargo test -p elkrs-json --test json_errors --locked parent_boolean`",
         "Topdown layout is parsed and diagnosed; topdown hierarchy semantics are not implemented yet",
+    ),
+    "org.eclipse.elk.layered.thoroughness": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked crossing_minimization_controls`; `cargo test -p elkrs-layered --test basic_layout --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_partitions --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_errors --locked crossing_minimization_controls`",
+        "Thoroughness is parsed and diagnosed; sweep iteration tuning is not implemented yet",
+    ),
+    "org.eclipse.elk.randomSeed": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked crossing_minimization_controls`; `cargo test -p elkrs-layered --test basic_layout --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_partitions --locked crossing_minimization_controls`; `cargo test -p elkrs-json --test json_errors --locked crossing_minimization_controls`",
+        "Randomization seed is parsed and diagnosed; random-dependent crossing behavior is not implemented yet",
     ),
 }
 
