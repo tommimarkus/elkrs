@@ -630,6 +630,17 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             }],
         },
         ParityFixture {
+            id: "LAYERED-META-OPTION-138",
+            name: "edge-node-spacing-metadata",
+            status: ParityFixtureStatus::JavaComparable,
+            build: edge_node_spacing_obstacle,
+            assertions: &[ParityAssertion::EdgeNodeClearance {
+                edge_id: "direct",
+                node_id: "b-obstacle",
+                minimum: 48.0,
+            }],
+        },
+        ParityFixture {
             id: "LAYERED-P5-003",
             name: "obstacle-detour",
             status: ParityFixtureStatus::JavaComparable,
@@ -653,8 +664,32 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             }],
         },
         ParityFixture {
+            id: "LAYERED-META-OPTION-144",
+            name: "node-node-spacing-metadata",
+            status: ParityFixtureStatus::JavaComparable,
+            build: node_node_spacing,
+            assertions: &[ParityAssertion::NodeSeparation {
+                first: "a",
+                second: "b",
+                axis: Axis::Y,
+                minimum: 200.0,
+            }],
+        },
+        ParityFixture {
             id: "LAYERED-OPT-004",
             name: "layer-node-node-spacing",
+            status: ParityFixtureStatus::JavaComparable,
+            build: layer_node_node_spacing,
+            assertions: &[ParityAssertion::NodeSeparation {
+                first: "a",
+                second: "b",
+                axis: Axis::X,
+                minimum: 300.0,
+            }],
+        },
+        ParityFixture {
+            id: "LAYERED-META-OPTION-091",
+            name: "layer-node-node-spacing-metadata",
             status: ParityFixtureStatus::JavaComparable,
             build: layer_node_node_spacing,
             assertions: &[ParityAssertion::NodeSeparation {
