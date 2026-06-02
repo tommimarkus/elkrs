@@ -3,15 +3,16 @@ use std::collections::BTreeMap;
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::ElementId;
 use elkrs_core::layout::LayoutError;
-use elkrs_core::options::{Direction, Properties};
+use elkrs_core::options::{Direction, PortSide, Properties};
 
-use crate::internal::LGraph;
+use crate::internal::{LGraph, LPort};
 use crate::pipeline::{LayeredContext, LayeredProcessor};
 
 #[derive(Debug, Clone, Copy)]
 struct LayoutSpacing {
     node_node: f64,
     layer_node_node: f64,
+    port_port: f64,
 }
 
 impl LayoutSpacing {
@@ -19,6 +20,7 @@ impl LayoutSpacing {
         Self {
             node_node: properties.spacing_node_node(),
             layer_node_node: properties.spacing_layer_node_node(),
+            port_port: properties.spacing_port_port(),
         }
     }
 }
@@ -83,6 +85,7 @@ impl LayeredProcessor for NodePlacement {
             }
         }
         place_children_inside_parents(graph, self.spacing);
+        place_default_ports(graph, self.spacing);
         Ok(())
     }
 }
@@ -113,6 +116,46 @@ fn place_children_inside_parents(graph: &mut LGraph, spacing: LayoutSpacing) {
             child_y += graph.nodes[child_index].size.height + spacing.node_node;
         }
     }
+}
+
+fn place_default_ports(graph: &mut LGraph, spacing: LayoutSpacing) {
+    for node in &mut graph.nodes {
+        let port_spacing = node.port_port_spacing.unwrap_or(spacing.port_port);
+        for side in [
+            PortSide::North,
+            PortSide::East,
+            PortSide::South,
+            PortSide::West,
+        ] {
+            let port_ids = node
+                .ports
+                .iter()
+                .filter(|(_, port)| port.side == Some(side) && has_default_port_geometry(port))
+                .map(|(id, _)| id.clone())
+                .collect::<Vec<_>>();
+            let count = port_ids.len();
+            if count == 0 {
+                continue;
+            }
+            for (index, port_id) in port_ids.into_iter().enumerate() {
+                let offset = (index as f64 - (count - 1) as f64 / 2.0) * port_spacing;
+                let port = node
+                    .ports
+                    .get_mut(&port_id)
+                    .expect("port collected from node is missing");
+                port.position = match side {
+                    PortSide::North => Point::new(node.size.width / 2.0 + offset, 0.0),
+                    PortSide::East => Point::new(node.size.width, node.size.height / 2.0 + offset),
+                    PortSide::South => Point::new(node.size.width / 2.0 + offset, node.size.height),
+                    PortSide::West => Point::new(0.0, node.size.height / 2.0 + offset),
+                };
+            }
+        }
+    }
+}
+
+fn has_default_port_geometry(port: &LPort) -> bool {
+    port.position == Point::new(0.0, 0.0) && port.size == Size::new(0.0, 0.0)
 }
 
 fn major_extent(direction: Direction, size: Size) -> f64 {

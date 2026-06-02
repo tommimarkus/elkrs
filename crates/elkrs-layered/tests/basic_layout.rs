@@ -448,6 +448,86 @@ fn layered_layout_routes_from_north_and_south_port_anchor_geometry() {
 }
 
 #[test]
+fn layered_layout_applies_port_port_spacing_to_default_side_ports() {
+    let mut source = node("source", 100.0, 60.0);
+    source.add_port(port_with_side("out-a", PortSide::East));
+    source.add_port(port_with_side("out-b", PortSide::East));
+    let target = node("target", 80.0, 40.0);
+
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_port_port(24.0);
+    graph.add_node(source);
+    graph.add_node(target);
+    graph.add_edge(ElkEdge::new(
+        "edge-a",
+        ElementRef::Port {
+            node: ElementId::from("source"),
+            port: ElementId::from("out-a"),
+        },
+        ElementRef::Node(ElementId::from("target")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "edge-b",
+        ElementRef::Port {
+            node: ElementId::from("source"),
+            port: ElementId::from("out-b"),
+        },
+        ElementRef::Node(ElementId::from("target")),
+    ));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report
+        .diagnostics
+        .iter()
+        .all(|diagnostic| !diagnostic.message.contains("port-port spacing")));
+    let source = &graph.nodes[&ElementId::from("source")];
+    let first = graph.edges[&ElementId::from("edge-a")].sections[0].points[0];
+    let second = graph.edges[&ElementId::from("edge-b")].sections[0].points[0];
+
+    assert_eq!(first.x, source.position.x + source.size.width);
+    assert_eq!(second.x, source.position.x + source.size.width);
+    assert_eq!((first.y - second.y).abs(), 24.0);
+}
+
+#[test]
+fn layered_layout_prefers_node_port_port_spacing_for_default_side_ports() {
+    let mut source = node("source", 100.0, 60.0);
+    source.properties.set_spacing_port_port(32.0);
+    source.add_port(port_with_side("out-a", PortSide::East));
+    source.add_port(port_with_side("out-b", PortSide::East));
+    let target = node("target", 80.0, 40.0);
+
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_port_port(12.0);
+    graph.add_node(source);
+    graph.add_node(target);
+    graph.add_edge(ElkEdge::new(
+        "edge-a",
+        ElementRef::Port {
+            node: ElementId::from("source"),
+            port: ElementId::from("out-a"),
+        },
+        ElementRef::Node(ElementId::from("target")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "edge-b",
+        ElementRef::Port {
+            node: ElementId::from("source"),
+            port: ElementId::from("out-b"),
+        },
+        ElementRef::Node(ElementId::from("target")),
+    ));
+
+    LayeredLayout.layout(&mut graph).unwrap();
+
+    let first = graph.edges[&ElementId::from("edge-a")].sections[0].points[0];
+    let second = graph.edges[&ElementId::from("edge-b")].sections[0].points[0];
+
+    assert_eq!((first.y - second.y).abs(), 32.0);
+}
+
+#[test]
 fn layered_layout_routes_node_self_loop_outside_node() {
     let mut graph = ElkGraph::new("root");
     graph.add_node(node("a", 80.0, 40.0));
@@ -1266,6 +1346,12 @@ fn port_with_geometry(id: &str, side: PortSide, position: Point, size: Size) -> 
     port.side = Some(side);
     port.position = position;
     port.size = size;
+    port
+}
+
+fn port_with_side(id: &str, side: PortSide) -> ElkPort {
+    let mut port = ElkPort::new(id);
+    port.side = Some(side);
     port
 }
 

@@ -5,6 +5,7 @@ pub const DEFAULT_LAYER_NODE_NODE_SPACING: f64 = 120.0;
 pub const DEFAULT_EDGE_NODE_SPACING: f64 = 20.0;
 pub const DEFAULT_EDGE_EDGE_SPACING: f64 = 10.0;
 pub const DEFAULT_NODE_SELF_LOOP_SPACING: f64 = 10.0;
+pub const DEFAULT_PORT_PORT_SPACING: f64 = 10.0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
@@ -598,6 +599,14 @@ impl Properties {
         }
     }
 
+    pub fn spacing_port_port(&self) -> f64 {
+        match self.get(CoreOption::SpacingPortPort) {
+            Some(PropertyValue::Number(spacing)) => *spacing,
+            Some(value) => unreachable!("port-port spacing stored incompatible value: {value:?}"),
+            _ => DEFAULT_PORT_PORT_SPACING,
+        }
+    }
+
     pub fn topdown_layout(&self) -> bool {
         self.bool_option(CoreOption::TopdownLayout, "topdown layout")
     }
@@ -814,6 +823,7 @@ mod tests {
             properties.spacing_node_self_loop(),
             DEFAULT_NODE_SELF_LOOP_SPACING
         );
+        assert_eq!(properties.spacing_port_port(), DEFAULT_PORT_PORT_SPACING);
     }
 
     #[test]
@@ -825,11 +835,13 @@ mod tests {
         properties.set_spacing_edge_node(12.0);
         properties.set_spacing_edge_edge(24.0);
         properties.set_spacing_node_self_loop(36.0);
+        properties.set_spacing_port_port(48.0);
 
         assert_eq!(properties.spacing_node_node(), 42.0);
         assert_eq!(properties.spacing_layer_node_node(), 300.0);
         assert_eq!(properties.spacing_edge_node(), 12.0);
         assert_eq!(properties.spacing_edge_edge(), 24.0);
         assert_eq!(properties.spacing_node_self_loop(), 36.0);
+        assert_eq!(properties.spacing_port_port(), 48.0);
     }
 }

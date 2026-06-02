@@ -17,6 +17,7 @@ pub(crate) struct LNode {
     pub(crate) position: Point,
     pub(crate) layer: usize,
     pub(crate) no_layout: bool,
+    pub(crate) port_port_spacing: Option<f64>,
     pub(crate) parent: Option<ElementId>,
     pub(crate) ports: BTreeMap<ElementId, LPort>,
 }

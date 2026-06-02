@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use elkrs_core::graph::{ElementId, ElementRef, ElkGraph, ElkNode};
 use elkrs_core::layout::LayoutError;
+use elkrs_core::options::{CoreOption, PropertyValue};
 
 use crate::internal::{LEdge, LEdgeKind, LEndpoint, LGraph, LNode, LPort};
 
@@ -79,6 +80,7 @@ fn import_node(
         position: node.position,
         layer: 0,
         no_layout: node.properties.no_layout(),
+        port_port_spacing: node_port_port_spacing(node),
         parent: parent.clone(),
         ports,
     });
@@ -86,6 +88,14 @@ fn import_node(
         import_node(child, Some(node.id.clone()), nodes, node_ids)?;
     }
     Ok(())
+}
+
+fn node_port_port_spacing(node: &ElkNode) -> Option<f64> {
+    match node.properties.get(CoreOption::SpacingPortPort) {
+        Some(PropertyValue::Number(spacing)) => Some(*spacing),
+        Some(value) => unreachable!("port-port spacing stored incompatible value: {value:?}"),
+        _ => None,
+    }
 }
 
 fn endpoint_node(graph: &ElkGraph, endpoint: &ElementRef) -> Result<LEndpoint, LayoutError> {

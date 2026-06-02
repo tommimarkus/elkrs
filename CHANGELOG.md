@@ -9,6 +9,7 @@
 - Tightened validation for selected option values and spacing values.
 - Preserved node coordinates for nodes marked with `org.eclipse.elk.noLayout`.
 - Applied `org.eclipse.elk.spacing.nodeSelfLoop` to node self-loop route clearance.
+- Applied `org.eclipse.elk.spacing.portPort` to default-geometry same-side ports.
 
 This release is still a clean-room subset. It does not claim full ELK Layered v0.11.0 parity, full option semantics, crates.io distribution, CLI support, Dediren adapter support, or pixel-perfect Java coordinates.
 

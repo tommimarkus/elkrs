@@ -132,9 +132,9 @@ STATUS_OVERRIDES = {
         "Node self-loop spacing controls self-loop route clearance; Java oracle fixture expansion remains open",
     ),
     "org.eclipse.elk.spacing.portPort": (
-        "parsed",
-        "`cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_node_port_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_label_and_port_spacing`",
-        "Parsed and validated on graph and node layout options; port spacing semantics remain open",
+        "semantic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked port_port_spacing`; `cargo test -p elkrs-json --test json_partitions --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked label_and_port_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_node_port_spacing_returns_invalid_error`",
+        "Port spacing positions default-geometry same-side ports on graph and node layout options; explicit port geometry and broader port constraints remain open",
     ),
     "org.eclipse.elk.edgeRouting": (
         "diagnostic",
