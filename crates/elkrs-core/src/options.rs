@@ -94,12 +94,18 @@ pub enum CoreOption {
     SemiInteractiveCrossingMinimization,
     SpacingNodeNode,
     SpacingLayerNodeNode,
+    SpacingBaseValue,
+    SpacingCommentComment,
+    SpacingCommentNode,
+    SpacingComponentComponent,
     SpacingEdgeNode,
     SpacingEdgeEdge,
     SpacingEdgeNodeBetweenLayers,
     SpacingEdgeEdgeBetweenLayers,
+    SpacingNodeSelfLoop,
     TopdownLayout,
     UnnecessaryBendpoints,
+    WrappingAdditionalEdgeSpacing,
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -236,6 +242,32 @@ impl Properties {
         )
     }
 
+    pub fn set_spacing_base_value(&mut self, spacing: f64) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::SpacingBaseValue, PropertyValue::Number(spacing))
+    }
+
+    pub fn set_spacing_comment_comment(&mut self, spacing: f64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::SpacingCommentComment,
+            PropertyValue::Number(spacing),
+        )
+    }
+
+    pub fn set_spacing_comment_node(&mut self, spacing: f64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::SpacingCommentNode,
+            PropertyValue::Number(spacing),
+        )
+    }
+
+    pub fn set_spacing_component_component(&mut self, spacing: f64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::SpacingComponentComponent,
+            PropertyValue::Number(spacing),
+        )
+    }
+
     pub fn set_spacing_edge_node(&mut self, spacing: f64) -> Option<PropertyValue> {
         self.values
             .insert(CoreOption::SpacingEdgeNode, PropertyValue::Number(spacing))
@@ -260,12 +292,26 @@ impl Properties {
         )
     }
 
+    pub fn set_spacing_node_self_loop(&mut self, spacing: f64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::SpacingNodeSelfLoop,
+            PropertyValue::Number(spacing),
+        )
+    }
+
     pub fn set_topdown_layout(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::TopdownLayout, enabled)
     }
 
     pub fn set_unnecessary_bendpoints(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::UnnecessaryBendpoints, enabled)
+    }
+
+    pub fn set_wrapping_additional_edge_spacing(&mut self, spacing: f64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::WrappingAdditionalEdgeSpacing,
+            PropertyValue::Number(spacing),
+        )
     }
 
     pub fn get(&self, option: CoreOption) -> Option<&PropertyValue> {

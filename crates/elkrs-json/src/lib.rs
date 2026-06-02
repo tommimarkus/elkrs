@@ -42,6 +42,10 @@ const NO_LAYOUT_KEY: &str = "org.eclipse.elk.noLayout";
 const NO_MODEL_ORDER_KEY: &str = "org.eclipse.elk.layered.considerModelOrder.noModelOrder";
 const NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.nodeNode";
 const LEGACY_NODE_NODE_SPACING_KEY: &str = "elk.spacing.nodeNode";
+const SPACING_BASE_VALUE_KEY: &str = "org.eclipse.elk.layered.spacing.baseValue";
+const COMMENT_COMMENT_SPACING_KEY: &str = "org.eclipse.elk.spacing.commentComment";
+const COMMENT_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.commentNode";
+const COMPONENT_COMPONENT_SPACING_KEY: &str = "org.eclipse.elk.spacing.componentComponent";
 const LAYER_NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers";
 const LEGACY_LAYER_NODE_NODE_SPACING_KEY: &str = "elk.spacing.layerNodeNode";
 const EDGE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.edgeNode";
@@ -50,6 +54,7 @@ const EDGE_EDGE_SPACING_KEY: &str = "org.eclipse.elk.spacing.edgeEdge";
 const LEGACY_EDGE_EDGE_SPACING_KEY: &str = "elk.spacing.edgeEdge";
 const LAYER_EDGE_NODE_SPACING_KEY: &str = "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers";
 const LAYER_EDGE_EDGE_SPACING_KEY: &str = "org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers";
+const NODE_SELF_LOOP_SPACING_KEY: &str = "org.eclipse.elk.spacing.nodeSelfLoop";
 const PORT_SIDE_KEY: &str = "org.eclipse.elk.port.side";
 const LEGACY_PORT_SIDE_KEY: &str = "side";
 const PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY: &str =
@@ -58,6 +63,8 @@ const SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY: &str =
     "org.eclipse.elk.layered.crossingMinimization.semiInteractive";
 const TOPDOWN_LAYOUT_KEY: &str = "org.eclipse.elk.topdownLayout";
 const UNNECESSARY_BENDPOINTS_KEY: &str = "org.eclipse.elk.layered.unnecessaryBendpoints";
+const WRAPPING_ADDITIONAL_EDGE_SPACING_KEY: &str =
+    "org.eclipse.elk.layered.wrapping.additionalEdgeSpacing";
 
 #[derive(Debug, Error)]
 pub enum JsonError {
@@ -424,6 +431,18 @@ fn apply_layout_options(
             NODE_NODE_SPACING_KEY | LEGACY_NODE_NODE_SPACING_KEY => {
                 graph.properties.set_spacing_node_node(number(value, key)?)
             }
+            SPACING_BASE_VALUE_KEY => graph
+                .properties
+                .set_spacing_base_value(non_negative_number(value, key)?),
+            COMMENT_COMMENT_SPACING_KEY => graph
+                .properties
+                .set_spacing_comment_comment(non_negative_number(value, key)?),
+            COMMENT_NODE_SPACING_KEY => graph
+                .properties
+                .set_spacing_comment_node(non_negative_number(value, key)?),
+            COMPONENT_COMPONENT_SPACING_KEY => graph
+                .properties
+                .set_spacing_component_component(non_negative_number(value, key)?),
             LAYER_NODE_NODE_SPACING_KEY | LEGACY_LAYER_NODE_NODE_SPACING_KEY => graph
                 .properties
                 .set_spacing_layer_node_node(number(value, key)?),
@@ -439,6 +458,9 @@ fn apply_layout_options(
             LAYER_EDGE_EDGE_SPACING_KEY => graph
                 .properties
                 .set_spacing_edge_edge_between_layers(non_negative_number(value, key)?),
+            NODE_SELF_LOOP_SPACING_KEY => graph
+                .properties
+                .set_spacing_node_self_loop(non_negative_number(value, key)?),
             SEMI_INTERACTIVE_CROSSING_MINIMIZATION_KEY => graph
                 .properties
                 .set_semi_interactive_crossing_minimization(boolean(value, key)?),
@@ -446,6 +468,9 @@ fn apply_layout_options(
             UNNECESSARY_BENDPOINTS_KEY => graph
                 .properties
                 .set_unnecessary_bendpoints(boolean(value, key)?),
+            WRAPPING_ADDITIONAL_EDGE_SPACING_KEY => graph
+                .properties
+                .set_wrapping_additional_edge_spacing(non_negative_number(value, key)?),
             _ => continue,
         };
     }
@@ -562,6 +587,28 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     {
         options.insert(LAYER_NODE_NODE_SPACING_KEY.to_string(), (*spacing).into());
     }
+    if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingBaseValue)
+    {
+        options.insert(SPACING_BASE_VALUE_KEY.to_string(), (*spacing).into());
+    }
+    if let Some(PropertyValue::Number(spacing)) =
+        graph.properties.get(CoreOption::SpacingCommentComment)
+    {
+        options.insert(COMMENT_COMMENT_SPACING_KEY.to_string(), (*spacing).into());
+    }
+    if let Some(PropertyValue::Number(spacing)) =
+        graph.properties.get(CoreOption::SpacingCommentNode)
+    {
+        options.insert(COMMENT_NODE_SPACING_KEY.to_string(), (*spacing).into());
+    }
+    if let Some(PropertyValue::Number(spacing)) =
+        graph.properties.get(CoreOption::SpacingComponentComponent)
+    {
+        options.insert(
+            COMPONENT_COMPONENT_SPACING_KEY.to_string(),
+            (*spacing).into(),
+        );
+    }
     if let Some(PropertyValue::Number(spacing)) = graph.properties.get(CoreOption::SpacingEdgeNode)
     {
         options.insert(EDGE_NODE_SPACING_KEY.to_string(), (*spacing).into());
@@ -582,6 +629,11 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
     {
         options.insert(LAYER_EDGE_EDGE_SPACING_KEY.to_string(), (*spacing).into());
     }
+    if let Some(PropertyValue::Number(spacing)) =
+        graph.properties.get(CoreOption::SpacingNodeSelfLoop)
+    {
+        options.insert(NODE_SELF_LOOP_SPACING_KEY.to_string(), (*spacing).into());
+    }
     insert_boolean_option(
         &mut options,
         &graph.properties,
@@ -600,6 +652,15 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         CoreOption::UnnecessaryBendpoints,
         UNNECESSARY_BENDPOINTS_KEY,
     );
+    if let Some(PropertyValue::Number(spacing)) = graph
+        .properties
+        .get(CoreOption::WrappingAdditionalEdgeSpacing)
+    {
+        options.insert(
+            WRAPPING_ADDITIONAL_EDGE_SPACING_KEY.to_string(),
+            (*spacing).into(),
+        );
+    }
     options
 }
 

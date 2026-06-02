@@ -604,6 +604,51 @@ fn imports_java_layered_edge_spacing_layout_options() {
 }
 
 #[test]
+fn imports_java_additional_spacing_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.spacing.baseValue": 11,
+            "org.eclipse.elk.layered.wrapping.additionalEdgeSpacing": 12,
+            "org.eclipse.elk.spacing.commentComment": 13,
+            "org.eclipse.elk.spacing.commentNode": 14,
+            "org.eclipse.elk.spacing.componentComponent": 15,
+            "org.eclipse.elk.spacing.nodeSelfLoop": 16
+          }
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.properties.get(CoreOption::SpacingBaseValue),
+        Some(&PropertyValue::Number(11.0))
+    );
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::WrappingAdditionalEdgeSpacing),
+        Some(&PropertyValue::Number(12.0))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::SpacingCommentComment),
+        Some(&PropertyValue::Number(13.0))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::SpacingCommentNode),
+        Some(&PropertyValue::Number(14.0))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::SpacingComponentComponent),
+        Some(&PropertyValue::Number(15.0))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::SpacingNodeSelfLoop),
+        Some(&PropertyValue::Number(16.0))
+    );
+}
+
+#[test]
 fn imports_short_spacing_layout_options() {
     let graph = from_str(
         r#"{
@@ -702,6 +747,43 @@ fn serializes_layered_edge_spacing_with_java_keys() {
     assert_eq!(
         json["layoutOptions"]["org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers"],
         Value::from(44.0)
+    );
+}
+
+#[test]
+fn serializes_additional_spacing_with_java_keys() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_base_value(11.0);
+    graph.properties.set_wrapping_additional_edge_spacing(12.0);
+    graph.properties.set_spacing_comment_comment(13.0);
+    graph.properties.set_spacing_comment_node(14.0);
+    graph.properties.set_spacing_component_component(15.0);
+    graph.properties.set_spacing_node_self_loop(16.0);
+
+    let json = serialized_value(&graph);
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.layered.spacing.baseValue"],
+        Value::from(11.0)
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.layered.wrapping.additionalEdgeSpacing"],
+        Value::from(12.0)
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.spacing.commentComment"],
+        Value::from(13.0)
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.spacing.commentNode"],
+        Value::from(14.0)
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.spacing.componentComponent"],
+        Value::from(15.0)
+    );
+    assert_eq!(
+        json["layoutOptions"]["org.eclipse.elk.spacing.nodeSelfLoop"],
+        Value::from(16.0)
     );
 }
 

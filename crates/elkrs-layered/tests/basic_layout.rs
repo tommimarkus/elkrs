@@ -762,6 +762,41 @@ fn layered_layout_rejects_negative_layered_edge_edge_spacing() {
 }
 
 #[test]
+fn layered_layout_rejects_negative_additional_spacing() {
+    assert_negative_additional_spacing_rejected("spacing base value", |properties| {
+        properties.set_spacing_base_value(-1.0);
+    });
+    assert_negative_additional_spacing_rejected("additional edge wrapping spacing", |properties| {
+        properties.set_wrapping_additional_edge_spacing(-1.0);
+    });
+    assert_negative_additional_spacing_rejected("comment-comment spacing", |properties| {
+        properties.set_spacing_comment_comment(-1.0);
+    });
+    assert_negative_additional_spacing_rejected("comment-node spacing", |properties| {
+        properties.set_spacing_comment_node(-1.0);
+    });
+    assert_negative_additional_spacing_rejected("component-component spacing", |properties| {
+        properties.set_spacing_component_component(-1.0);
+    });
+    assert_negative_additional_spacing_rejected("node self-loop spacing", |properties| {
+        properties.set_spacing_node_self_loop(-1.0);
+    });
+}
+
+fn assert_negative_additional_spacing_rejected(name: &str, set_spacing: fn(&mut Properties)) {
+    let mut graph = ElkGraph::new("root");
+    set_spacing(&mut graph.properties);
+    graph.add_node(node("source", 60.0, 30.0));
+
+    let error = LayeredLayout.layout(&mut graph).unwrap_err();
+
+    assert!(
+        matches!(error, LayoutError::InvalidOption(message) if message.contains(name)),
+        "{name} should be rejected with its option name"
+    );
+}
+
+#[test]
 fn layered_layout_rejects_non_layered_algorithm_option() {
     let mut graph = ElkGraph::new("root");
     graph

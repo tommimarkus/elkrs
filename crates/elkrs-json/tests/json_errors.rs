@@ -370,6 +370,28 @@ fn negative_layered_edge_spacing_returns_invalid_error() {
 }
 
 #[test]
+fn negative_additional_spacing_returns_invalid_error() {
+    for key in [
+        "org.eclipse.elk.layered.spacing.baseValue",
+        "org.eclipse.elk.layered.wrapping.additionalEdgeSpacing",
+        "org.eclipse.elk.spacing.commentComment",
+        "org.eclipse.elk.spacing.commentNode",
+        "org.eclipse.elk.spacing.componentComponent",
+        "org.eclipse.elk.spacing.nodeSelfLoop",
+    ] {
+        assert_invalid_contains(
+            &format!(
+                r#"{{
+                  "id": "root",
+                  "layoutOptions": {{ "{key}": -1 }}
+                }}"#
+            ),
+            &format!("{key} must be non-negative"),
+        );
+    }
+}
+
+#[test]
 fn unsupported_port_side_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

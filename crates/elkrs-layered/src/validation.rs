@@ -88,6 +88,31 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
     validate_non_negative_spacing(properties, CoreOption::SpacingEdgeEdge, "edge-edge spacing")?;
     validate_non_negative_spacing(
         properties,
+        CoreOption::SpacingBaseValue,
+        "spacing base value",
+    )?;
+    validate_non_negative_spacing(
+        properties,
+        CoreOption::WrappingAdditionalEdgeSpacing,
+        "additional edge wrapping spacing",
+    )?;
+    validate_non_negative_spacing(
+        properties,
+        CoreOption::SpacingCommentComment,
+        "comment-comment spacing",
+    )?;
+    validate_non_negative_spacing(
+        properties,
+        CoreOption::SpacingCommentNode,
+        "comment-node spacing",
+    )?;
+    validate_non_negative_spacing(
+        properties,
+        CoreOption::SpacingComponentComponent,
+        "component-component spacing",
+    )?;
+    validate_non_negative_spacing(
+        properties,
         CoreOption::SpacingEdgeNodeBetweenLayers,
         "edge-node between-layers spacing",
     )?;
@@ -95,6 +120,11 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
         properties,
         CoreOption::SpacingEdgeEdgeBetweenLayers,
         "edge-edge between-layers spacing",
+    )?;
+    validate_non_negative_spacing(
+        properties,
+        CoreOption::SpacingNodeSelfLoop,
+        "node self-loop spacing",
     )?;
 
     Ok(diagnostics)
@@ -207,6 +237,17 @@ fn spacing_value(properties: &Properties, option: CoreOption) -> Option<f64> {
     match option {
         CoreOption::SpacingEdgeNode => Some(properties.spacing_edge_node()),
         CoreOption::SpacingEdgeEdge => Some(properties.spacing_edge_edge()),
+        CoreOption::SpacingBaseValue => stored_number(properties, option, "spacing base value"),
+        CoreOption::WrappingAdditionalEdgeSpacing => {
+            stored_number(properties, option, "additional edge wrapping spacing")
+        }
+        CoreOption::SpacingCommentComment => {
+            stored_number(properties, option, "comment-comment spacing")
+        }
+        CoreOption::SpacingCommentNode => stored_number(properties, option, "comment-node spacing"),
+        CoreOption::SpacingComponentComponent => {
+            stored_number(properties, option, "component-component spacing")
+        }
         CoreOption::SpacingEdgeNodeBetweenLayers => match properties.get(option) {
             Some(PropertyValue::Number(spacing)) => Some(*spacing),
             Some(value) => unreachable!(
@@ -221,6 +262,17 @@ fn spacing_value(properties: &Properties, option: CoreOption) -> Option<f64> {
             ),
             _ => None,
         },
+        CoreOption::SpacingNodeSelfLoop => {
+            stored_number(properties, option, "node self-loop spacing")
+        }
+        _ => None,
+    }
+}
+
+fn stored_number(properties: &Properties, option: CoreOption, name: &str) -> Option<f64> {
+    match properties.get(option) {
+        Some(PropertyValue::Number(spacing)) => Some(*spacing),
+        Some(value) => unreachable!("{name} stored incompatible value: {value:?}"),
         _ => None,
     }
 }
