@@ -761,6 +761,13 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             assertions: &[],
         },
         ParityFixture {
+            id: "LAYERED-GRAPH-007",
+            name: "ports-as-endpoints",
+            status: ParityFixtureStatus::JavaComparable,
+            build: port_heavy,
+            assertions: &[],
+        },
+        ParityFixture {
             id: "LAYERED-META-FEATURE-006",
             name: "ports-feature",
             status: ParityFixtureStatus::JavaComparable,
