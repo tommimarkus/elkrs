@@ -78,6 +78,7 @@ fn import_node(
         size: node.size,
         position: node.position,
         layer: 0,
+        no_layout: node.properties.no_layout(),
         parent: parent.clone(),
         ports,
     });

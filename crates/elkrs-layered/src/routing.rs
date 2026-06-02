@@ -673,6 +673,7 @@ mod tests {
             size,
             position,
             layer: 0,
+            no_layout: false,
             parent: None,
             ports: BTreeMap::new(),
         }

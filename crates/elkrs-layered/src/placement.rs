@@ -78,7 +78,9 @@ impl LayeredProcessor for NodePlacement {
         }
 
         for (node, position) in graph.nodes.iter_mut().zip(positions) {
-            node.position = position;
+            if !node.no_layout {
+                node.position = position;
+            }
         }
         place_children_inside_parents(graph, self.spacing);
         Ok(())
@@ -104,6 +106,9 @@ fn place_children_inside_parents(graph: &mut LGraph, spacing: LayoutSpacing) {
         let parent_position = graph.nodes[parent_index].position;
         let mut child_y = parent_position.y + padding;
         for child_index in child_indices {
+            if graph.nodes[child_index].no_layout {
+                continue;
+            }
             graph.nodes[child_index].position = Point::new(parent_position.x + padding, child_y);
             child_y += graph.nodes[child_index].size.height + spacing.node_node;
         }

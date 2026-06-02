@@ -223,6 +223,36 @@ fn layered_layout_writes_child_coordinates_as_absolute_output() {
 }
 
 #[test]
+fn layered_layout_preserves_no_layout_node_position() {
+    let mut fixed = node("fixed", 60.0, 30.0);
+    fixed.position = Point::new(250.0, 125.0);
+    fixed.properties.set_no_layout(true);
+    let mut target = node("target", 60.0, 30.0);
+    target.position = Point::new(0.0, 0.0);
+
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(fixed);
+    graph.add_node(target);
+    graph.add_edge(ElkEdge::new(
+        "edge",
+        ElementRef::Node(ElementId::from("fixed")),
+        ElementRef::Node(ElementId::from("target")),
+    ));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert_eq!(
+        graph.nodes[&ElementId::from("fixed")].position,
+        Point::new(250.0, 125.0)
+    );
+    assert!(report.diagnostics.iter().all(|diagnostic| {
+        diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            || !diagnostic.message.contains("no layout")
+            || !diagnostic.message.contains("fixed")
+    }));
+}
+
+#[test]
 fn layered_layout_accepts_parent_child_edge_endpoints() {
     let mut group = node("group", 200.0, 120.0);
     group.add_child(node("child", 40.0, 30.0));
@@ -1182,13 +1212,12 @@ fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 17] {
     ]
 }
 
-fn node_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 9] {
+fn node_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 8] {
     [
         ("comment box", Properties::set_comment_box),
         ("hypernode", Properties::set_hypernode),
         ("inside self-loops", Properties::set_inside_self_loops),
         ("no model order", Properties::set_no_model_order),
-        ("no layout", Properties::set_no_layout),
         (
             "layer unzipping minimize edge length",
             Properties::set_layer_unzipping_minimize_edge_length,

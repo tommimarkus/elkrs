@@ -7,6 +7,7 @@
 - Added parity inventory coverage from pinned Java ELK v0.11.0 metadata and kept the matrix status vocabulary aligned with the current Rust proof surface.
 - Added Java oracle fixtures for selected deterministic layout behavior while keeping the oracle harness opt-in.
 - Tightened validation for selected option values and spacing values.
+- Preserved node coordinates for nodes marked with `org.eclipse.elk.noLayout`.
 
 This release is still a clean-room subset. It does not claim full ELK Layered v0.11.0 parity, full option semantics, crates.io distribution, CLI support, Dediren adapter support, or pixel-perfect Java coordinates.
 

@@ -53,7 +53,6 @@ const NODE_UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
     (CoreOption::Hypernode, "hypernode"),
     (CoreOption::InsideSelfLoops, "inside self-loops"),
     (CoreOption::NoModelOrder, "no model order"),
-    (CoreOption::NoLayout, "no layout"),
     (
         CoreOption::LayerUnzippingMinimizeEdgeLength,
         "layer unzipping minimize edge length",
