@@ -10,6 +10,9 @@
 
 Integration tests live in each crate's `tests/` directory. Shared layered helpers are in `crates/elkrs-layered/tests/support/`. Parity tracking is in `docs/parity/elk-layered-v0.11.0.md`. The optional Java oracle runner lives in `tools/java-elk-json-runner/`.
 
+Before starting parity implementation, read `docs/parity/delivery-workqueue.md`.
+It is the durable execution-order source and is mirrored in GitHub issue #30.
+
 ## Initialized Policies
 
 This repository initializes `souroldgeezer-policy` for agent workflow:

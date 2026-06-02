@@ -3,6 +3,8 @@
 This document defines how GitHub Issues track the `elkrs` `1.0.0` full ELK `v0.11.0` parity program, excluding external plugins.
 
 The parity matrix is the product contract. GitHub Issues are the execution ledger.
+`docs/parity/delivery-workqueue.md` is the durable execution-order source for
+delivery issues and is mirrored in GitHub issue #30.
 
 ## Product Boundary
 
@@ -55,6 +57,13 @@ A row is complete only when it has:
 An issue is complete only when all covered rows meet the row standard and the issue links the verifying commands or workflow evidence.
 
 The `1.0.0` program is complete only when every in-scope ELK `v0.11.0` row is `java-parity`, and every excluded row has an explicit documented rationale.
+
+## Delivery Workqueue
+
+Delivery issues are ordered in `docs/parity/delivery-workqueue.md`. Use that
+file before selecting the next parity implementation issue. Do not infer the
+next issue from recent commits, recent chat, or broad epic titles when a
+delivery workqueue entry covers the same rows.
 
 ## GitHub MCP Execution
 
