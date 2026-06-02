@@ -3,8 +3,9 @@ use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPo
 use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
     Direction, EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
-    LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy, ModelOrderStrategy,
-    NodeLayeringStrategy, PortAlignment, PortConstraints, PortSide, PropertyValue,
+    InteractiveReferencePoint, LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy,
+    ModelOrderStrategy, NodeLayeringStrategy, PortAlignment, PortConstraints, PortSide,
+    PropertyValue,
 };
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
@@ -2894,6 +2895,78 @@ fn serializes_port_sides_with_java_key() {
         port_value(node, "north").get("side"),
         None,
         "legacy top-level port side should not be emitted"
+    );
+}
+
+#[test]
+fn imports_interactive_reference_point_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.interactiveReferencePoint": "TOP_LEFT"
+          },
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.interactiveReferencePoint": "TOP_LEFT"
+              }
+            },
+            {
+              "id": "unset",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.interactiveReferencePoint": "CENTER"
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.properties.get(CoreOption::InteractiveReferencePoint),
+        Some(&PropertyValue::InteractiveReferencePoint(
+            InteractiveReferencePoint::TopLeft
+        ))
+    );
+    let node = &graph.nodes[&ElementId::from("node")];
+    assert_eq!(
+        node.properties.get(CoreOption::InteractiveReferencePoint),
+        Some(&PropertyValue::InteractiveReferencePoint(
+            InteractiveReferencePoint::TopLeft
+        ))
+    );
+    let unset = &graph.nodes[&ElementId::from("unset")];
+    assert_eq!(
+        unset.properties.get(CoreOption::InteractiveReferencePoint),
+        None
+    );
+}
+
+#[test]
+fn serializes_interactive_reference_point_with_java_key() {
+    let mut node = ElkNode::new("node");
+    node.properties
+        .set_interactive_reference_point(InteractiveReferencePoint::TopLeft);
+
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_interactive_reference_point(InteractiveReferencePoint::TopLeft);
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let graph_options = &json["layoutOptions"];
+    assert_eq!(
+        graph_options["org.eclipse.elk.layered.interactiveReferencePoint"],
+        Value::String("TOP_LEFT".to_owned())
+    );
+
+    let node_options = &json["children"][0]["layoutOptions"];
+    assert_eq!(
+        node_options["org.eclipse.elk.layered.interactiveReferencePoint"],
+        Value::String("TOP_LEFT".to_owned())
     );
 }
 

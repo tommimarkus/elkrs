@@ -9,8 +9,9 @@ use elkrs_core::graph::{
 use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
     Direction, EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
-    LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy, ModelOrderStrategy,
-    NodeLayeringStrategy, PortAlignment, PortConstraints, PortSide, PropertyValue,
+    InteractiveReferencePoint, LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy,
+    ModelOrderStrategy, NodeLayeringStrategy, PortAlignment, PortConstraints, PortSide,
+    PropertyValue,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -88,6 +89,7 @@ const HYPERNODE_KEY: &str = "org.eclipse.elk.hypernode";
 const INSIDE_SELF_LOOP_KEY: &str = "org.eclipse.elk.insideSelfLoops.yo";
 const INSIDE_SELF_LOOPS_KEY: &str = "org.eclipse.elk.insideSelfLoops.activate";
 const INTERACTIVE_LAYOUT_KEY: &str = "org.eclipse.elk.interactiveLayout";
+const INTERACTIVE_REFERENCE_POINT_KEY: &str = "org.eclipse.elk.layered.interactiveReferencePoint";
 const LAYER_BOUND_KEY: &str = "org.eclipse.elk.layered.layering.coffmanGraham.layerBound";
 const LAYER_CHOICE_CONSTRAINT_KEY: &str = "org.eclipse.elk.layered.layering.layerChoiceConstraint";
 const LAYER_CONSTRAINT_KEY: &str = "org.eclipse.elk.layered.layering.layerConstraint";
@@ -586,6 +588,13 @@ fn apply_layout_options(
             INTERACTIVE_LAYOUT_KEY => graph
                 .properties
                 .set_interactive_layout(boolean(value, key)?),
+            INTERACTIVE_REFERENCE_POINT_KEY => {
+                if let Some(point) = parse_interactive_reference_point(value, key)? {
+                    graph.properties.set_interactive_reference_point(point)
+                } else {
+                    None
+                }
+            }
             LAYERING_STRATEGY_KEY => graph
                 .properties
                 .set_layering_strategy(parse_node_layering_strategy(value, key)?),
@@ -926,6 +935,14 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         CoreOption::InteractiveLayout,
         INTERACTIVE_LAYOUT_KEY,
     );
+    if let Some(PropertyValue::InteractiveReferencePoint(point)) =
+        graph.properties.get(CoreOption::InteractiveReferencePoint)
+    {
+        options.insert(
+            INTERACTIVE_REFERENCE_POINT_KEY.to_string(),
+            serde_json::Value::String(format_interactive_reference_point(*point).to_string()),
+        );
+    }
     if let Some(PropertyValue::NodeLayeringStrategy(strategy)) =
         graph.properties.get(CoreOption::LayeringStrategy)
     {
@@ -1287,6 +1304,11 @@ fn apply_node_layout_options(
             }
             INTERACTIVE_LAYOUT_KEY => {
                 node.properties.set_interactive_layout(boolean(value, key)?);
+            }
+            INTERACTIVE_REFERENCE_POINT_KEY => {
+                if let Some(point) = parse_interactive_reference_point(value, key)? {
+                    node.properties.set_interactive_reference_point(point);
+                }
             }
             LAYERING_STRATEGY_KEY => {
                 node.properties
@@ -1714,6 +1736,14 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         CoreOption::InteractiveLayout,
         INTERACTIVE_LAYOUT_KEY,
     );
+    if let Some(PropertyValue::InteractiveReferencePoint(point)) =
+        node.properties.get(CoreOption::InteractiveReferencePoint)
+    {
+        options.insert(
+            INTERACTIVE_REFERENCE_POINT_KEY.to_string(),
+            serde_json::Value::String(format_interactive_reference_point(*point).to_string()),
+        );
+    }
     if let Some(PropertyValue::NodeLayeringStrategy(strategy)) =
         node.properties.get(CoreOption::LayeringStrategy)
     {
@@ -2266,6 +2296,19 @@ fn parse_layer_unzipping_strategy(
     }
 }
 
+fn parse_interactive_reference_point(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<Option<InteractiveReferencePoint>, JsonError> {
+    match string(value, key)? {
+        "CENTER" => Ok(None),
+        "TOP_LEFT" => Ok(Some(InteractiveReferencePoint::TopLeft)),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
 fn parse_hierarchy_handling(
     value: &serde_json::Value,
     key: &str,
@@ -2410,6 +2453,13 @@ fn format_layer_unzipping_strategy(strategy: LayerUnzippingStrategy) -> &'static
     match strategy {
         LayerUnzippingStrategy::Alternating => "ALTERNATING",
         LayerUnzippingStrategy::None => "NONE",
+    }
+}
+
+fn format_interactive_reference_point(point: InteractiveReferencePoint) -> &'static str {
+    match point {
+        InteractiveReferencePoint::Center => "CENTER",
+        InteractiveReferencePoint::TopLeft => "TOP_LEFT",
     }
 }
 

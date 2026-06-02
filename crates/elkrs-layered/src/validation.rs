@@ -3,9 +3,10 @@ use elkrs_core::graph::{ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
-    EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
-    LayerUnzippingStrategy, LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy,
-    PortAlignment, PortConstraints, Properties, PropertyValue,
+    EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
+    InteractiveReferencePoint, LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy,
+    ModelOrderStrategy, NodeLayeringStrategy, PortAlignment, PortConstraints, Properties,
+    PropertyValue,
 };
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
@@ -460,6 +461,12 @@ fn collect_unsupported_placement_option_diagnostics(
             node_id,
         ));
     }
+    match properties.interactive_reference_point() {
+        None | Some(InteractiveReferencePoint::Center) => {}
+        Some(point) => diagnostics.push(unsupported_interactive_reference_point_diagnostic(
+            point, node_id,
+        )),
+    }
 }
 
 fn unsupported_alignment_diagnostic(alignment: Alignment, node_id: Option<&str>) -> Diagnostic {
@@ -469,6 +476,22 @@ fn unsupported_alignment_diagnostic(alignment: Alignment, node_id: Option<&str>)
         )
     } else {
         format!("alignment {alignment:?} is recognized but not implemented by elkrs-layered yet")
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
+fn unsupported_interactive_reference_point_diagnostic(
+    point: InteractiveReferencePoint,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "interactive reference point {point:?} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!(
+            "interactive reference point {point:?} is recognized but not implemented by elkrs-layered yet"
+        )
     };
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }

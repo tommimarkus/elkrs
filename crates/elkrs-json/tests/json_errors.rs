@@ -1149,6 +1149,37 @@ fn layer_unzipping_strategy_unsupported_value_returns_invalid_error() {
     );
 }
 
+#[test]
+fn interactive_reference_point_non_string_option_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.interactiveReferencePoint": false
+          }
+        }"#,
+        "org.eclipse.elk.layered.interactiveReferencePoint must be a string",
+    );
+}
+
+#[test]
+fn interactive_reference_point_unsupported_value_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.interactiveReferencePoint": "BOTTOM_RIGHT"
+              }
+            }
+          ]
+        }"#,
+        "unsupported org.eclipse.elk.layered.interactiveReferencePoint value: BOTTOM_RIGHT",
+    );
+}
+
 fn assert_invalid_contains(input: &str, expected: &str) {
     let error = from_str(input).unwrap_err();
 

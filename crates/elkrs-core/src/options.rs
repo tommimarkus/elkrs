@@ -155,6 +155,12 @@ pub enum HierarchyHandling {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InteractiveReferencePoint {
+    Center,
+    TopLeft,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LayerUnzippingStrategy {
     Alternating,
     None,
@@ -176,6 +182,7 @@ pub enum PropertyValue {
     GroupOrderingStrategy(GroupOrderingStrategy),
     GreedySwitchType(GreedySwitchType),
     HierarchyHandling(HierarchyHandling),
+    InteractiveReferencePoint(InteractiveReferencePoint),
     LayerConstraint(LayerConstraint),
     LayerUnzippingStrategy(LayerUnzippingStrategy),
     LongEdgeOrderingStrategy(LongEdgeOrderingStrategy),
@@ -232,6 +239,7 @@ pub enum CoreOption {
     InsideSelfLoop,
     InsideSelfLoops,
     InteractiveLayout,
+    InteractiveReferencePoint,
     LayerBound,
     LayerChoiceConstraint,
     LayerConstraint,
@@ -584,6 +592,16 @@ impl Properties {
 
     pub fn set_interactive_layout(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::InteractiveLayout, enabled)
+    }
+
+    pub fn set_interactive_reference_point(
+        &mut self,
+        point: InteractiveReferencePoint,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::InteractiveReferencePoint,
+            PropertyValue::InteractiveReferencePoint(point),
+        )
     }
 
     pub fn set_layer_bound(&mut self, bound: i64) -> Option<PropertyValue> {
@@ -1205,6 +1223,16 @@ impl Properties {
         self.bool_option(CoreOption::InteractiveLayout, "interactive layout")
     }
 
+    pub fn interactive_reference_point(&self) -> Option<InteractiveReferencePoint> {
+        match self.get(CoreOption::InteractiveReferencePoint) {
+            Some(PropertyValue::InteractiveReferencePoint(point)) => Some(*point),
+            Some(value) => {
+                unreachable!("interactive reference point stored incompatible value: {value:?}")
+            }
+            _ => None,
+        }
+    }
+
     pub fn layer_bound(&self) -> Option<i64> {
         self.integer_option(CoreOption::LayerBound, "layer bound")
     }
@@ -1823,6 +1851,20 @@ mod tests {
         assert_eq!(
             properties.layer_unzipping_strategy(),
             Some(LayerUnzippingStrategy::Alternating)
+        );
+    }
+
+    #[test]
+    fn interactive_reference_point_option_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.interactive_reference_point(), None);
+
+        properties.set_interactive_reference_point(InteractiveReferencePoint::TopLeft);
+
+        assert_eq!(
+            properties.interactive_reference_point(),
+            Some(InteractiveReferencePoint::TopLeft)
         );
     }
 

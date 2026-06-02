@@ -287,6 +287,15 @@ fn layer_unzipping_strategy_metadata_row_is_diagnostic() {
     );
 }
 
+#[test]
+fn interactive_reference_point_metadata_row_is_diagnostic() {
+    assert_eq!(
+        row_status(PARITY_MATRIX, "LAYERED-META-OPTION-061"),
+        Some("diagnostic"),
+        "LAYERED-META-OPTION-061 should be marked as diagnostic in the parity matrix"
+    );
+}
+
 fn row_status<'a>(matrix: &'a str, row_id: &str) -> Option<&'a str> {
     matrix.lines().find_map(|line| {
         let mut columns = line.split('|').map(str::trim);

@@ -6,9 +6,10 @@ use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPo
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CrossingMinimizationStrategy, Direction,
-    EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
-    LayerUnzippingStrategy, LongEdgeOrderingStrategy, ModelOrderStrategy, NodeLayeringStrategy,
-    PortAlignment, PortConstraints, PortSide, Properties, PropertyValue,
+    EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
+    InteractiveReferencePoint, LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy,
+    ModelOrderStrategy, NodeLayeringStrategy, PortAlignment, PortConstraints, PortSide, Properties,
+    PropertyValue,
 };
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
@@ -1980,6 +1981,37 @@ fn layered_layout_reports_unsupported_layer_unzipping_strategy() {
                     && diagnostic.severity == Severity::Warning
                     && diagnostic.message.contains("layer unzipping strategy")
                     && diagnostic.message.contains("Alternating")
+                    && match node_id {
+                        Some(node_id) => diagnostic.message.contains(node_id),
+                        None => true,
+                    }
+            }),
+            "{node_id:?}"
+        );
+    }
+}
+
+#[test]
+fn layered_layout_reports_unsupported_interactive_reference_point() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_interactive_reference_point(InteractiveReferencePoint::TopLeft);
+    let mut child = node("child", 60.0, 30.0);
+    child
+        .properties
+        .set_interactive_reference_point(InteractiveReferencePoint::TopLeft);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    for node_id in [None, Some("child")] {
+        assert!(
+            report.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+                    && diagnostic.severity == Severity::Warning
+                    && diagnostic.message.contains("interactive reference point")
+                    && diagnostic.message.contains("TopLeft")
                     && match node_id {
                         Some(node_id) => diagnostic.message.contains(node_id),
                         None => true,
