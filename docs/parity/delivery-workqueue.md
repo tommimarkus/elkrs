@@ -33,12 +33,11 @@ Current safe parallel batches:
 
 - Batch A: #37 and #40 are complete.
 - Batch B: #39 and #38 are complete.
-- Batch C: #41 is complete. #43 is now the next integration item; its routing
-  boundaries have been explored in parallel and should integrate before #42
-  and #44.
-- Batch D: #42 and #44 can be investigated in parallel after #41 boundaries are
-  known. Integrate #42 before #44 unless node placement work is limited to a
-  documented exclusion decision.
+- Batch C: #41 and #43 are complete.
+- Batch D: #42 is now the next integration item. #42 and #44 can be
+  investigated in parallel after #41/#43 boundaries are known. Integrate #42
+  before #44 unless node placement work is limited to a documented exclusion
+  decision.
 - #45 is a rolling cross-cutting contract check. It may be updated by every
   delivery issue, but it closes last.
 
@@ -46,10 +45,9 @@ Current safe parallel batches:
 
 | Order | Issue | Delivery target | Why this order |
 | --- | --- | --- | --- |
-| 1 | #43 `Delivery: routing variants, self-loops, junctions, and merging v1` | Deliver or exclude route variants, inside self-loops, junctions, and merging. | Builds on existing routing and port evidence; high product visibility. |
-| 2 | #42 `Delivery: crossing minimization constraints v1` | Deliver model-order, group-order, greedy-switch, and crossing controls. | Important quality behavior, but easiest after layering and routing boundaries settle. |
-| 3 | #44 `Delivery: node placement, compaction, and wrapping v1` | Deliver or exclude placement, compaction, margins, padding, and wrapping. | Broadest and riskiest slice; defer until upstream boundaries are clearer. |
-| 4 | #45 `Delivery: all in-scope JSON option round trip v1` | Close the full JSON contract for all in-scope 1.0.0 behavior. | Cross-cutting closeout; should follow capability decisions rather than lead them. |
+| 1 | #42 `Delivery: crossing minimization constraints v1` | Deliver model-order, group-order, greedy-switch, and crossing controls. | Important quality behavior; layering and routing boundaries are now settled. |
+| 2 | #44 `Delivery: node placement, compaction, and wrapping v1` | Deliver or exclude placement, compaction, margins, padding, and wrapping. | Broadest and riskiest slice; defer until upstream boundaries are clearer. |
+| 3 | #45 `Delivery: all in-scope JSON option round trip v1` | Close the full JSON contract for all in-scope 1.0.0 behavior. | Cross-cutting closeout; should follow capability decisions rather than lead them. |
 
 ## Completed Deliveries
 
@@ -60,6 +58,7 @@ Current safe parallel batches:
 | #39 `Delivery: port constraints and ordering v1` | `30cbba7` | Preserved Java-backed explicit port anchors and port-port spacing; recorded 1.0.0 compatibility exclusions for fixed port-order, fixed-position, alignment distribution, offset-aware placement, non-flow side switching, port sorting strategy, port anchor offsets, and surrounding port-space object semantics. |
 | #38 `Delivery: labels and node sizing v1` | `c539621` | Promoted node labels as Java-backed node-size inputs, node-size constraints, and node-size minimum to `java-parity`; added typed node-label placement input for Java-compatible sizing fixtures; recorded 1.0.0 compatibility exclusions for edge-label placement, full node-label placement/padding, port-label placement, comment spacing, label spacing, advanced node-size flags, fixed graph-size semantics, and port/port-label size constraints. |
 | #41 `Delivery: layer assignment semantics v1` | `48509db` | Promoted `NETWORK_SIMPLEX` default layering, generated layer IDs, and generated crossing position IDs to `java-parity`; added Java string-boolean import compatibility for oracle output; recorded 1.0.0 compatibility exclusions for alternate layerers, layer constraints, layer-choice constraints, ID-driven input assignment, high-degree layer behavior, layer unzipping, partition-aware assignment, direction congruency, and priority-driven assignment. |
+| #43 `Delivery: routing variants, self-loops, junctions, and merging v1` | `bfad10b` | Preserved Java-backed orthogonal routing and ordinary external self-loop support; added JSON multi-section route round-trip coverage; recorded 1.0.0 compatibility exclusions for inside self-loops, POLYLINE/straight route geometry, SPLINES route geometry, junction output, merged routing, implicit merge-port semantics, route priorities, configurable self-loop distribution/order, unnecessary bendpoints, edge thickness, and per-element individual spacing. |
 
 ## Closeout Standard
 
