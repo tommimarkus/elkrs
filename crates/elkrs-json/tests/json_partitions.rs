@@ -4,8 +4,8 @@ use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
     Direction, EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
     InteractiveReferencePoint, LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy,
-    ModelOrderStrategy, NodeLayeringStrategy, PortAlignment, PortConstraints, PortSide,
-    PropertyValue,
+    ModelOrderStrategy, NodeLayeringStrategy, NodePromotionStrategy, PortAlignment,
+    PortConstraints, PortSide, PropertyValue,
 };
 use elkrs_json::{from_str, to_string_pretty};
 use serde_json::Value;
@@ -2431,6 +2431,87 @@ fn imports_node_layer_assignment_layout_options() {
 }
 
 #[test]
+fn imports_min_width_and_node_promotion_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.layering.minWidth.upperBoundOnWidth": -1,
+            "org.eclipse.elk.layered.layering.minWidth.upperLayerEstimationScalingFactor": 2,
+            "org.eclipse.elk.layered.layering.nodePromotion.maxIterations": 4,
+            "org.eclipse.elk.layered.layering.nodePromotion.strategy": "NIKOLOV_IMPROVED"
+          },
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.layering.minWidth.upperBoundOnWidth": 8,
+                "org.eclipse.elk.layered.layering.minWidth.upperLayerEstimationScalingFactor": -1,
+                "org.eclipse.elk.layered.layering.nodePromotion.maxIterations": 0,
+                "org.eclipse.elk.layered.layering.nodePromotion.strategy": "NO_BOUNDARY"
+              }
+            },
+            {
+              "id": "unset",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.layering.nodePromotion.strategy": "NONE"
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+        graph.properties.get(CoreOption::MinWidthUpperBoundOnWidth),
+        Some(&PropertyValue::Integer(-1))
+    );
+    assert_eq!(
+        graph
+            .properties
+            .get(CoreOption::MinWidthUpperLayerEstimationScalingFactor),
+        Some(&PropertyValue::Integer(2))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::NodePromotionMaxIterations),
+        Some(&PropertyValue::Integer(4))
+    );
+    assert_eq!(
+        graph.properties.get(CoreOption::NodePromotionStrategy),
+        Some(&PropertyValue::NodePromotionStrategy(
+            NodePromotionStrategy::NikolovImproved
+        ))
+    );
+
+    let node = &graph.nodes[&ElementId::from("node")];
+    assert_eq!(
+        node.properties.get(CoreOption::MinWidthUpperBoundOnWidth),
+        Some(&PropertyValue::Integer(8))
+    );
+    assert_eq!(
+        node.properties
+            .get(CoreOption::MinWidthUpperLayerEstimationScalingFactor),
+        Some(&PropertyValue::Integer(-1))
+    );
+    assert_eq!(
+        node.properties.get(CoreOption::NodePromotionMaxIterations),
+        Some(&PropertyValue::Integer(0))
+    );
+    assert_eq!(
+        node.properties.get(CoreOption::NodePromotionStrategy),
+        Some(&PropertyValue::NodePromotionStrategy(
+            NodePromotionStrategy::NoBoundary
+        ))
+    );
+
+    let unset = &graph.nodes[&ElementId::from("unset")];
+    assert_eq!(
+        unset.properties.get(CoreOption::NodePromotionStrategy),
+        None
+    );
+}
+
+#[test]
 fn serializes_layer_assignment_options_with_java_keys() {
     let mut node = ElkNode::new("node");
     node.properties.set_layer_choice_constraint(2);
@@ -2438,6 +2519,12 @@ fn serializes_layer_assignment_options_with_java_keys() {
         .set_layer_constraint(LayerConstraint::FirstSeparate);
     node.properties.set_layer_id(7);
     node.properties.set_layout_partition(4);
+    node.properties.set_min_width_upper_bound_on_width(8);
+    node.properties
+        .set_min_width_upper_layer_estimation_scaling_factor(-1);
+    node.properties.set_node_promotion_max_iterations(0);
+    node.properties
+        .set_node_promotion_strategy(NodePromotionStrategy::NoBoundary);
 
     let mut graph = ElkGraph::new("root");
     graph
@@ -2445,6 +2532,14 @@ fn serializes_layer_assignment_options_with_java_keys() {
         .set_layering_strategy(NodeLayeringStrategy::NetworkSimplex);
     graph.properties.set_layer_bound(5);
     graph.properties.set_layout_partition(3);
+    graph.properties.set_min_width_upper_bound_on_width(-1);
+    graph
+        .properties
+        .set_min_width_upper_layer_estimation_scaling_factor(2);
+    graph.properties.set_node_promotion_max_iterations(4);
+    graph
+        .properties
+        .set_node_promotion_strategy(NodePromotionStrategy::NikolovImproved);
     graph.add_node(node);
 
     let json = serialized_value(&graph);
@@ -2460,6 +2555,23 @@ fn serializes_layer_assignment_options_with_java_keys() {
     assert_eq!(
         graph_options["org.eclipse.elk.partitioning.partition"],
         Value::Number(3.into())
+    );
+    assert_eq!(
+        graph_options["org.eclipse.elk.layered.layering.minWidth.upperBoundOnWidth"],
+        Value::Number((-1).into())
+    );
+    assert_eq!(
+        graph_options
+            ["org.eclipse.elk.layered.layering.minWidth.upperLayerEstimationScalingFactor"],
+        Value::Number(2.into())
+    );
+    assert_eq!(
+        graph_options["org.eclipse.elk.layered.layering.nodePromotion.maxIterations"],
+        Value::Number(4.into())
+    );
+    assert_eq!(
+        graph_options["org.eclipse.elk.layered.layering.nodePromotion.strategy"],
+        Value::String("NIKOLOV_IMPROVED".to_owned())
     );
 
     let node_options = &json["children"][0]["layoutOptions"];
@@ -2478,6 +2590,22 @@ fn serializes_layer_assignment_options_with_java_keys() {
     assert_eq!(
         node_options["org.eclipse.elk.partitioning.partition"],
         Value::Number(4.into())
+    );
+    assert_eq!(
+        node_options["org.eclipse.elk.layered.layering.minWidth.upperBoundOnWidth"],
+        Value::Number(8.into())
+    );
+    assert_eq!(
+        node_options["org.eclipse.elk.layered.layering.minWidth.upperLayerEstimationScalingFactor"],
+        Value::Number((-1).into())
+    );
+    assert_eq!(
+        node_options["org.eclipse.elk.layered.layering.nodePromotion.maxIterations"],
+        Value::Number(0.into())
+    );
+    assert_eq!(
+        node_options["org.eclipse.elk.layered.layering.nodePromotion.strategy"],
+        Value::String("NO_BOUNDARY".to_owned())
     );
 }
 

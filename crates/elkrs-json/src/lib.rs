@@ -10,8 +10,8 @@ use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
     Direction, EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
     InteractiveReferencePoint, LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy,
-    ModelOrderStrategy, NodeLayeringStrategy, PortAlignment, PortConstraints, PortSide,
-    PropertyValue,
+    ModelOrderStrategy, NodeLayeringStrategy, NodePromotionStrategy, PortAlignment,
+    PortConstraints, PortSide, PropertyValue,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -105,8 +105,15 @@ const LAYOUT_PARTITION_KEY: &str = "org.eclipse.elk.partitioning.partition";
 const LAYOUT_PARTITIONING_KEY: &str = "org.eclipse.elk.partitioning.activate";
 const MERGE_EDGES_KEY: &str = "org.eclipse.elk.layered.mergeEdges";
 const MERGE_HIERARCHY_EDGES_KEY: &str = "org.eclipse.elk.layered.mergeHierarchyEdges";
+const MIN_WIDTH_UPPER_BOUND_ON_WIDTH_KEY: &str =
+    "org.eclipse.elk.layered.layering.minWidth.upperBoundOnWidth";
+const MIN_WIDTH_UPPER_LAYER_ESTIMATION_SCALING_FACTOR_KEY: &str =
+    "org.eclipse.elk.layered.layering.minWidth.upperLayerEstimationScalingFactor";
 const NO_LAYOUT_KEY: &str = "org.eclipse.elk.noLayout";
 const NO_MODEL_ORDER_KEY: &str = "org.eclipse.elk.layered.considerModelOrder.noModelOrder";
+const NODE_PROMOTION_MAX_ITERATIONS_KEY: &str =
+    "org.eclipse.elk.layered.layering.nodePromotion.maxIterations";
+const NODE_PROMOTION_STRATEGY_KEY: &str = "org.eclipse.elk.layered.layering.nodePromotion.strategy";
 const NODE_NODE_SPACING_KEY: &str = "org.eclipse.elk.spacing.nodeNode";
 const LEGACY_NODE_NODE_SPACING_KEY: &str = "elk.spacing.nodeNode";
 const SPACING_BASE_VALUE_KEY: &str = "org.eclipse.elk.layered.spacing.baseValue";
@@ -614,6 +621,24 @@ fn apply_layout_options(
             MERGE_HIERARCHY_EDGES_KEY => graph
                 .properties
                 .set_merge_hierarchy_edges(boolean(value, key)?),
+            MIN_WIDTH_UPPER_BOUND_ON_WIDTH_KEY => graph
+                .properties
+                .set_min_width_upper_bound_on_width(integer_at_least(value, key, -1)?),
+            MIN_WIDTH_UPPER_LAYER_ESTIMATION_SCALING_FACTOR_KEY => graph
+                .properties
+                .set_min_width_upper_layer_estimation_scaling_factor(integer_at_least(
+                    value, key, -1,
+                )?),
+            NODE_PROMOTION_MAX_ITERATIONS_KEY => graph
+                .properties
+                .set_node_promotion_max_iterations(non_negative_integer(value, key)?),
+            NODE_PROMOTION_STRATEGY_KEY => {
+                if let Some(strategy) = parse_node_promotion_strategy(value, key)? {
+                    graph.properties.set_node_promotion_strategy(strategy)
+                } else {
+                    None
+                }
+            }
             DIRECTION_KEY | LEGACY_DIRECTION_KEY => {
                 graph.properties.set_direction(parse_direction(value, key)?)
             }
@@ -966,6 +991,39 @@ fn layout_options_from_graph(graph: &ElkGraph) -> BTreeMap<String, serde_json::V
         graph.properties.get(CoreOption::LayoutPartition)
     {
         options.insert(LAYOUT_PARTITION_KEY.to_string(), (*partition).into());
+    }
+    if let Some(PropertyValue::Integer(width)) =
+        graph.properties.get(CoreOption::MinWidthUpperBoundOnWidth)
+    {
+        options.insert(
+            MIN_WIDTH_UPPER_BOUND_ON_WIDTH_KEY.to_string(),
+            (*width).into(),
+        );
+    }
+    if let Some(PropertyValue::Integer(factor)) = graph
+        .properties
+        .get(CoreOption::MinWidthUpperLayerEstimationScalingFactor)
+    {
+        options.insert(
+            MIN_WIDTH_UPPER_LAYER_ESTIMATION_SCALING_FACTOR_KEY.to_string(),
+            (*factor).into(),
+        );
+    }
+    if let Some(PropertyValue::Integer(iterations)) =
+        graph.properties.get(CoreOption::NodePromotionMaxIterations)
+    {
+        options.insert(
+            NODE_PROMOTION_MAX_ITERATIONS_KEY.to_string(),
+            (*iterations).into(),
+        );
+    }
+    if let Some(PropertyValue::NodePromotionStrategy(strategy)) =
+        graph.properties.get(CoreOption::NodePromotionStrategy)
+    {
+        options.insert(
+            NODE_PROMOTION_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_node_promotion_strategy(*strategy).to_string()),
+        );
     }
     insert_boolean_option(
         &mut options,
@@ -1358,6 +1416,25 @@ fn apply_node_layout_options(
             MERGE_HIERARCHY_EDGES_KEY => {
                 node.properties
                     .set_merge_hierarchy_edges(boolean(value, key)?);
+            }
+            MIN_WIDTH_UPPER_BOUND_ON_WIDTH_KEY => {
+                node.properties
+                    .set_min_width_upper_bound_on_width(integer_at_least(value, key, -1)?);
+            }
+            MIN_WIDTH_UPPER_LAYER_ESTIMATION_SCALING_FACTOR_KEY => {
+                node.properties
+                    .set_min_width_upper_layer_estimation_scaling_factor(integer_at_least(
+                        value, key, -1,
+                    )?);
+            }
+            NODE_PROMOTION_MAX_ITERATIONS_KEY => {
+                node.properties
+                    .set_node_promotion_max_iterations(non_negative_integer(value, key)?);
+            }
+            NODE_PROMOTION_STRATEGY_KEY => {
+                if let Some(strategy) = parse_node_promotion_strategy(value, key)? {
+                    node.properties.set_node_promotion_strategy(strategy);
+                }
             }
             NO_LAYOUT_KEY => {
                 node.properties.set_no_layout(boolean(value, key)?);
@@ -1803,6 +1880,39 @@ fn layout_options_from_node(node: &ElkNode) -> BTreeMap<String, serde_json::Valu
         node.properties.get(CoreOption::LayoutPartition)
     {
         options.insert(LAYOUT_PARTITION_KEY.to_string(), (*partition).into());
+    }
+    if let Some(PropertyValue::Integer(width)) =
+        node.properties.get(CoreOption::MinWidthUpperBoundOnWidth)
+    {
+        options.insert(
+            MIN_WIDTH_UPPER_BOUND_ON_WIDTH_KEY.to_string(),
+            (*width).into(),
+        );
+    }
+    if let Some(PropertyValue::Integer(factor)) = node
+        .properties
+        .get(CoreOption::MinWidthUpperLayerEstimationScalingFactor)
+    {
+        options.insert(
+            MIN_WIDTH_UPPER_LAYER_ESTIMATION_SCALING_FACTOR_KEY.to_string(),
+            (*factor).into(),
+        );
+    }
+    if let Some(PropertyValue::Integer(iterations)) =
+        node.properties.get(CoreOption::NodePromotionMaxIterations)
+    {
+        options.insert(
+            NODE_PROMOTION_MAX_ITERATIONS_KEY.to_string(),
+            (*iterations).into(),
+        );
+    }
+    if let Some(PropertyValue::NodePromotionStrategy(strategy)) =
+        node.properties.get(CoreOption::NodePromotionStrategy)
+    {
+        options.insert(
+            NODE_PROMOTION_STRATEGY_KEY.to_string(),
+            serde_json::Value::String(format_node_promotion_strategy(*strategy).to_string()),
+        );
     }
     insert_boolean_option(
         &mut options,
@@ -2296,6 +2406,27 @@ fn parse_layer_unzipping_strategy(
     }
 }
 
+fn parse_node_promotion_strategy(
+    value: &serde_json::Value,
+    key: &str,
+) -> Result<Option<NodePromotionStrategy>, JsonError> {
+    match string(value, key)? {
+        "DUMMYNODE_PERCENTAGE" => Ok(Some(NodePromotionStrategy::DummyNodePercentage)),
+        "MODEL_ORDER_LEFT_TO_RIGHT" => Ok(Some(NodePromotionStrategy::ModelOrderLeftToRight)),
+        "MODEL_ORDER_RIGHT_TO_LEFT" => Ok(Some(NodePromotionStrategy::ModelOrderRightToLeft)),
+        "NIKOLOV" => Ok(Some(NodePromotionStrategy::Nikolov)),
+        "NIKOLOV_IMPROVED" => Ok(Some(NodePromotionStrategy::NikolovImproved)),
+        "NIKOLOV_IMPROVED_PIXEL" => Ok(Some(NodePromotionStrategy::NikolovImprovedPixel)),
+        "NIKOLOV_PIXEL" => Ok(Some(NodePromotionStrategy::NikolovPixel)),
+        "NODECOUNT_PERCENTAGE" => Ok(Some(NodePromotionStrategy::NodeCountPercentage)),
+        "NONE" => Ok(None),
+        "NO_BOUNDARY" => Ok(Some(NodePromotionStrategy::NoBoundary)),
+        other => Err(JsonError::Invalid(format!(
+            "unsupported {key} value: {other}"
+        ))),
+    }
+}
+
 fn parse_interactive_reference_point(
     value: &serde_json::Value,
     key: &str,
@@ -2456,6 +2587,21 @@ fn format_layer_unzipping_strategy(strategy: LayerUnzippingStrategy) -> &'static
     }
 }
 
+fn format_node_promotion_strategy(strategy: NodePromotionStrategy) -> &'static str {
+    match strategy {
+        NodePromotionStrategy::DummyNodePercentage => "DUMMYNODE_PERCENTAGE",
+        NodePromotionStrategy::ModelOrderLeftToRight => "MODEL_ORDER_LEFT_TO_RIGHT",
+        NodePromotionStrategy::ModelOrderRightToLeft => "MODEL_ORDER_RIGHT_TO_LEFT",
+        NodePromotionStrategy::Nikolov => "NIKOLOV",
+        NodePromotionStrategy::NikolovImproved => "NIKOLOV_IMPROVED",
+        NodePromotionStrategy::NikolovImprovedPixel => "NIKOLOV_IMPROVED_PIXEL",
+        NodePromotionStrategy::NikolovPixel => "NIKOLOV_PIXEL",
+        NodePromotionStrategy::NodeCountPercentage => "NODECOUNT_PERCENTAGE",
+        NodePromotionStrategy::None => "NONE",
+        NodePromotionStrategy::NoBoundary => "NO_BOUNDARY",
+    }
+}
+
 fn format_interactive_reference_point(point: InteractiveReferencePoint) -> &'static str {
     match point {
         InteractiveReferencePoint::Center => "CENTER",
@@ -2599,6 +2745,17 @@ fn non_negative_integer(value: &serde_json::Value, key: &str) -> Result<i64, Jso
         Ok(integer)
     } else {
         Err(JsonError::Invalid(format!("{key} must be non-negative")))
+    }
+}
+
+fn integer_at_least(value: &serde_json::Value, key: &str, minimum: i64) -> Result<i64, JsonError> {
+    let integer = integer(value, key)?;
+    if integer >= minimum {
+        Ok(integer)
+    } else {
+        Err(JsonError::Invalid(format!(
+            "{key} must be at least {minimum}"
+        )))
     }
 }
 

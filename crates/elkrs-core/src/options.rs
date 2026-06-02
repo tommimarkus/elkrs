@@ -113,6 +113,20 @@ pub enum NodeLayeringStrategy {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NodePromotionStrategy {
+    DummyNodePercentage,
+    ModelOrderLeftToRight,
+    ModelOrderRightToLeft,
+    Nikolov,
+    NikolovImproved,
+    NikolovImprovedPixel,
+    NikolovPixel,
+    NodeCountPercentage,
+    None,
+    NoBoundary,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LayerConstraint {
     First,
     FirstSeparate,
@@ -188,6 +202,7 @@ pub enum PropertyValue {
     LongEdgeOrderingStrategy(LongEdgeOrderingStrategy),
     ModelOrderStrategy(ModelOrderStrategy),
     NodeLayeringStrategy(NodeLayeringStrategy),
+    NodePromotionStrategy(NodePromotionStrategy),
     PortAlignment(PortAlignment),
     PortConstraints(PortConstraints),
 }
@@ -254,8 +269,12 @@ pub enum CoreOption {
     LongEdgeOrderingStrategy,
     MergeEdges,
     MergeHierarchyEdges,
+    MinWidthUpperBoundOnWidth,
+    MinWidthUpperLayerEstimationScalingFactor,
     NoLayout,
     NoModelOrder,
+    NodePromotionMaxIterations,
+    NodePromotionStrategy,
     PortAlignmentDefault,
     PortAlignmentEast,
     PortAlignmentNorth,
@@ -680,6 +699,23 @@ impl Properties {
         self.set_bool_option(CoreOption::LayoutPartitioning, enabled)
     }
 
+    pub fn set_min_width_upper_bound_on_width(&mut self, width: i64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::MinWidthUpperBoundOnWidth,
+            PropertyValue::Integer(width),
+        )
+    }
+
+    pub fn set_min_width_upper_layer_estimation_scaling_factor(
+        &mut self,
+        factor: i64,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::MinWidthUpperLayerEstimationScalingFactor,
+            PropertyValue::Integer(factor),
+        )
+    }
+
     pub fn set_long_edge_ordering_strategy(
         &mut self,
         strategy: LongEdgeOrderingStrategy,
@@ -704,6 +740,23 @@ impl Properties {
 
     pub fn set_no_model_order(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::NoModelOrder, enabled)
+    }
+
+    pub fn set_node_promotion_max_iterations(&mut self, iterations: i64) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::NodePromotionMaxIterations,
+            PropertyValue::Integer(iterations),
+        )
+    }
+
+    pub fn set_node_promotion_strategy(
+        &mut self,
+        strategy: NodePromotionStrategy,
+    ) -> Option<PropertyValue> {
+        self.values.insert(
+            CoreOption::NodePromotionStrategy,
+            PropertyValue::NodePromotionStrategy(strategy),
+        )
     }
 
     pub fn set_allow_non_flow_ports_to_switch_sides(
@@ -1300,6 +1353,20 @@ impl Properties {
         self.bool_option(CoreOption::LayoutPartitioning, "layout partitioning")
     }
 
+    pub fn min_width_upper_bound_on_width(&self) -> Option<i64> {
+        self.integer_option(
+            CoreOption::MinWidthUpperBoundOnWidth,
+            "min width upper bound on width",
+        )
+    }
+
+    pub fn min_width_upper_layer_estimation_scaling_factor(&self) -> Option<i64> {
+        self.integer_option(
+            CoreOption::MinWidthUpperLayerEstimationScalingFactor,
+            "min width upper layer estimation scaling factor",
+        )
+    }
+
     pub fn long_edge_ordering_strategy(&self) -> Option<LongEdgeOrderingStrategy> {
         match self.get(CoreOption::LongEdgeOrderingStrategy) {
             Some(PropertyValue::LongEdgeOrderingStrategy(strategy)) => Some(*strategy),
@@ -1327,6 +1394,23 @@ impl Properties {
 
     pub fn no_model_order(&self) -> bool {
         self.bool_option(CoreOption::NoModelOrder, "no model order")
+    }
+
+    pub fn node_promotion_max_iterations(&self) -> Option<i64> {
+        self.integer_option(
+            CoreOption::NodePromotionMaxIterations,
+            "node promotion max iterations",
+        )
+    }
+
+    pub fn node_promotion_strategy(&self) -> Option<NodePromotionStrategy> {
+        match self.get(CoreOption::NodePromotionStrategy) {
+            Some(PropertyValue::NodePromotionStrategy(strategy)) => Some(*strategy),
+            Some(value) => {
+                unreachable!("node promotion strategy stored incompatible value: {value:?}")
+            }
+            _ => None,
+        }
     }
 
     pub fn allow_non_flow_ports_to_switch_sides(&self) -> bool {
@@ -1807,6 +1891,13 @@ mod tests {
         assert_eq!(properties.layer_constraint(), None);
         assert_eq!(properties.layer_id(), None);
         assert_eq!(properties.layout_partition(), None);
+        assert_eq!(properties.min_width_upper_bound_on_width(), None);
+        assert_eq!(
+            properties.min_width_upper_layer_estimation_scaling_factor(),
+            None
+        );
+        assert_eq!(properties.node_promotion_max_iterations(), None);
+        assert_eq!(properties.node_promotion_strategy(), None);
 
         properties.set_layering_strategy(NodeLayeringStrategy::NetworkSimplex);
         properties.set_layer_bound(5);
@@ -1814,6 +1905,10 @@ mod tests {
         properties.set_layer_constraint(LayerConstraint::FirstSeparate);
         properties.set_layer_id(7);
         properties.set_layout_partition(3);
+        properties.set_min_width_upper_bound_on_width(-1);
+        properties.set_min_width_upper_layer_estimation_scaling_factor(2);
+        properties.set_node_promotion_max_iterations(4);
+        properties.set_node_promotion_strategy(NodePromotionStrategy::NikolovImproved);
 
         assert_eq!(
             properties.layering_strategy(),
@@ -1827,6 +1922,16 @@ mod tests {
         );
         assert_eq!(properties.layer_id(), Some(7));
         assert_eq!(properties.layout_partition(), Some(3));
+        assert_eq!(properties.min_width_upper_bound_on_width(), Some(-1));
+        assert_eq!(
+            properties.min_width_upper_layer_estimation_scaling_factor(),
+            Some(2)
+        );
+        assert_eq!(properties.node_promotion_max_iterations(), Some(4));
+        assert_eq!(
+            properties.node_promotion_strategy(),
+            Some(NodePromotionStrategy::NikolovImproved)
+        );
     }
 
     #[test]

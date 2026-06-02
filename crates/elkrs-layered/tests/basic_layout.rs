@@ -8,8 +8,8 @@ use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CrossingMinimizationStrategy, Direction,
     EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
     InteractiveReferencePoint, LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy,
-    ModelOrderStrategy, NodeLayeringStrategy, PortAlignment, PortConstraints, PortSide, Properties,
-    PropertyValue,
+    ModelOrderStrategy, NodeLayeringStrategy, NodePromotionStrategy, PortAlignment,
+    PortConstraints, PortSide, Properties, PropertyValue,
 };
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
@@ -1693,6 +1693,14 @@ fn layered_layout_reports_unsupported_layer_assignment_options() {
         .set_layering_strategy(NodeLayeringStrategy::NetworkSimplex);
     graph.properties.set_layer_bound(5);
     graph.properties.set_layout_partition(3);
+    graph.properties.set_min_width_upper_bound_on_width(-1);
+    graph
+        .properties
+        .set_min_width_upper_layer_estimation_scaling_factor(2);
+    graph.properties.set_node_promotion_max_iterations(4);
+    graph
+        .properties
+        .set_node_promotion_strategy(NodePromotionStrategy::NikolovImproved);
 
     let mut child = node("child", 60.0, 30.0);
     child.properties.set_layer_choice_constraint(2);
@@ -1701,6 +1709,14 @@ fn layered_layout_reports_unsupported_layer_assignment_options() {
         .set_layer_constraint(LayerConstraint::FirstSeparate);
     child.properties.set_layer_id(7);
     child.properties.set_layout_partition(4);
+    child.properties.set_min_width_upper_bound_on_width(8);
+    child
+        .properties
+        .set_min_width_upper_layer_estimation_scaling_factor(-1);
+    child.properties.set_node_promotion_max_iterations(0);
+    child
+        .properties
+        .set_node_promotion_strategy(NodePromotionStrategy::NoBoundary);
     graph.add_node(child);
 
     let report = LayeredLayout.layout(&mut graph).unwrap();
@@ -1722,6 +1738,34 @@ fn layered_layout_reports_unsupported_layer_assignment_options() {
             && diagnostic.severity == Severity::Warning
             && diagnostic.message.contains("layout partition")
             && diagnostic.message.contains("3")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("min width upper bound on width")
+            && diagnostic.message.contains("-1")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("min width upper layer estimation scaling factor")
+            && diagnostic.message.contains("2")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("node promotion max iterations")
+            && diagnostic.message.contains("4")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("node promotion strategy")
+            && diagnostic.message.contains("NikolovImproved")
     }));
     assert!(report.diagnostics.iter().any(|diagnostic| {
         diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
@@ -1749,6 +1793,38 @@ fn layered_layout_reports_unsupported_layer_assignment_options() {
             && diagnostic.severity == Severity::Warning
             && diagnostic.message.contains("layout partition")
             && diagnostic.message.contains("4")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("min width upper bound on width")
+            && diagnostic.message.contains("8")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("min width upper layer estimation scaling factor")
+            && diagnostic.message.contains("-1")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("node promotion max iterations")
+            && diagnostic.message.contains("0")
+            && diagnostic.message.contains("child")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("node promotion strategy")
+            && diagnostic.message.contains("NoBoundary")
             && diagnostic.message.contains("child")
     }));
 }

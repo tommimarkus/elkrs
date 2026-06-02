@@ -353,6 +353,26 @@ STATUS_OVERRIDES = {
         "`cargo test -p elkrs-core --locked layer_assignment_options`; `cargo test -p elkrs-layered --test basic_layout --locked layer_assignment`; `cargo test -p elkrs-json --test json_partitions --locked layer_assignment`; `cargo test -p elkrs-json --test json_errors --locked layer_assignment`",
         "Node layering strategy is parsed and diagnosed; alternate layer assignment strategies are not implemented yet",
     ),
+    "org.eclipse.elk.layered.layering.minWidth.upperBoundOnWidth": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked layer_assignment_options`; `cargo test -p elkrs-layered --test basic_layout --locked layer_assignment`; `cargo test -p elkrs-json --test json_partitions --locked min_width`; `cargo test -p elkrs-json --test json_errors --locked layer_assignment`",
+        "MinWidth upper bound on width is parsed and diagnosed; MinWidth layer assignment is not implemented yet",
+    ),
+    "org.eclipse.elk.layered.layering.minWidth.upperLayerEstimationScalingFactor": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked layer_assignment_options`; `cargo test -p elkrs-layered --test basic_layout --locked layer_assignment`; `cargo test -p elkrs-json --test json_partitions --locked min_width`; `cargo test -p elkrs-json --test json_errors --locked layer_assignment`",
+        "MinWidth upper layer estimation scaling factor is parsed and diagnosed; MinWidth layer assignment is not implemented yet",
+    ),
+    "org.eclipse.elk.layered.layering.nodePromotion.maxIterations": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked layer_assignment_options`; `cargo test -p elkrs-layered --test basic_layout --locked layer_assignment`; `cargo test -p elkrs-json --test json_partitions --locked min_width`; `cargo test -p elkrs-json --test json_errors --locked layer_assignment`",
+        "Node promotion max iterations is parsed and diagnosed; node promotion is not implemented yet",
+    ),
+    "org.eclipse.elk.layered.layering.nodePromotion.strategy": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked layer_assignment_options`; `cargo test -p elkrs-layered --test basic_layout --locked layer_assignment`; `cargo test -p elkrs-json --test json_partitions --locked min_width`; `cargo test -p elkrs-json --test json_errors --locked layer_assignment`",
+        "Node promotion strategy is parsed and diagnosed; node promotion is not implemented yet",
+    ),
     "org.eclipse.elk.layered.layerUnzipping.layerSplit": (
         "diagnostic",
         "`cargo test -p elkrs-core --locked layer_unzipping_layer_split`; `cargo test -p elkrs-layered --test basic_layout --locked layer_unzipping_layer_split`; `cargo test -p elkrs-json --test json_partitions --locked layer_unzipping_layer_split`; `cargo test -p elkrs-json --test json_errors --locked layer_unzipping_layer_split`",

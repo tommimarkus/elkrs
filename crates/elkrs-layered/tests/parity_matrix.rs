@@ -296,6 +296,22 @@ fn interactive_reference_point_metadata_row_is_diagnostic() {
     );
 }
 
+#[test]
+fn min_width_and_node_promotion_metadata_rows_are_diagnostic() {
+    for row_id in [
+        "LAYERED-META-OPTION-070",
+        "LAYERED-META-OPTION-071",
+        "LAYERED-META-OPTION-072",
+        "LAYERED-META-OPTION-073",
+    ] {
+        assert_eq!(
+            row_status(PARITY_MATRIX, row_id),
+            Some("diagnostic"),
+            "{row_id} should be marked as diagnostic in the parity matrix"
+        );
+    }
+}
+
 fn row_status<'a>(matrix: &'a str, row_id: &str) -> Option<&'a str> {
     matrix.lines().find_map(|line| {
         let mut columns = line.split('|').map(str::trim);

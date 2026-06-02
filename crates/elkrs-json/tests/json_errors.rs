@@ -1150,6 +1150,95 @@ fn layer_unzipping_strategy_unsupported_value_returns_invalid_error() {
 }
 
 #[test]
+fn layer_assignment_min_width_options_below_minus_one_return_invalid_errors() {
+    for key in [
+        "org.eclipse.elk.layered.layering.minWidth.upperBoundOnWidth",
+        "org.eclipse.elk.layered.layering.minWidth.upperLayerEstimationScalingFactor",
+    ] {
+        assert_invalid_contains(
+            &format!(
+                r#"{{
+                  "id": "root",
+                  "layoutOptions": {{
+                    "{key}": -2
+                  }}
+                }}"#
+            ),
+            &format!("{key} must be at least -1"),
+        );
+    }
+}
+
+#[test]
+fn layer_assignment_min_width_options_non_integer_return_invalid_errors() {
+    for key in [
+        "org.eclipse.elk.layered.layering.minWidth.upperBoundOnWidth",
+        "org.eclipse.elk.layered.layering.minWidth.upperLayerEstimationScalingFactor",
+    ] {
+        assert_invalid_contains(
+            &format!(
+                r#"{{
+                  "id": "root",
+                  "children": [
+                    {{
+                      "id": "node",
+                      "layoutOptions": {{
+                        "{key}": 1.5
+                      }}
+                    }}
+                  ]
+                }}"#
+            ),
+            &format!("{key} must be an integer"),
+        );
+    }
+}
+
+#[test]
+fn layer_assignment_node_promotion_max_iterations_negative_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.layering.nodePromotion.maxIterations": -1
+          }
+        }"#,
+        "org.eclipse.elk.layered.layering.nodePromotion.maxIterations must be non-negative",
+    );
+}
+
+#[test]
+fn layer_assignment_node_promotion_strategy_non_string_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.layering.nodePromotion.strategy": false
+          }
+        }"#,
+        "org.eclipse.elk.layered.layering.nodePromotion.strategy must be a string",
+    );
+}
+
+#[test]
+fn layer_assignment_node_promotion_strategy_unsupported_value_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "layoutOptions": {
+                "org.eclipse.elk.layered.layering.nodePromotion.strategy": "MAYBE"
+              }
+            }
+          ]
+        }"#,
+        "unsupported org.eclipse.elk.layered.layering.nodePromotion.strategy value: MAYBE",
+    );
+}
+
+#[test]
 fn interactive_reference_point_non_string_option_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

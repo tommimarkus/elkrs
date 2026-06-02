@@ -5,8 +5,8 @@ use elkrs_core::options::{
     Algorithm, Alignment, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy,
     EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling,
     InteractiveReferencePoint, LayerConstraint, LayerUnzippingStrategy, LongEdgeOrderingStrategy,
-    ModelOrderStrategy, NodeLayeringStrategy, PortAlignment, PortConstraints, Properties,
-    PropertyValue,
+    ModelOrderStrategy, NodeLayeringStrategy, NodePromotionStrategy, PortAlignment,
+    PortConstraints, Properties, PropertyValue,
 };
 
 const UNSUPPORTED_OPTION_CODE: &str = "ELKRS_LAYERED_UNSUPPORTED_OPTION";
@@ -690,6 +690,35 @@ fn collect_unsupported_layer_assignment_diagnostics(
             node_id,
         ));
     }
+    if let Some(width) = properties.min_width_upper_bound_on_width() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "min width upper bound on width",
+            width,
+            node_id,
+        ));
+    }
+    if let Some(factor) = properties.min_width_upper_layer_estimation_scaling_factor() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "min width upper layer estimation scaling factor",
+            factor,
+            node_id,
+        ));
+    }
+    if let Some(iterations) = properties.node_promotion_max_iterations() {
+        diagnostics.push(unsupported_integer_option_diagnostic(
+            "node promotion max iterations",
+            iterations,
+            node_id,
+        ));
+    }
+    match properties.node_promotion_strategy() {
+        None | Some(NodePromotionStrategy::None) => {}
+        Some(strategy) => {
+            diagnostics.push(unsupported_node_promotion_strategy_diagnostic(
+                strategy, node_id,
+            ));
+        }
+    }
     if let Some(split) = properties.layer_unzipping_layer_split() {
         diagnostics.push(unsupported_integer_option_diagnostic(
             "layer unzipping layer split",
@@ -764,6 +793,22 @@ fn unsupported_layer_unzipping_strategy_diagnostic(
     } else {
         format!(
             "layer unzipping strategy {strategy:?} is recognized but not implemented by elkrs-layered yet"
+        )
+    };
+    Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
+}
+
+fn unsupported_node_promotion_strategy_diagnostic(
+    strategy: NodePromotionStrategy,
+    node_id: Option<&str>,
+) -> Diagnostic {
+    let message = if let Some(node_id) = node_id {
+        format!(
+            "node promotion strategy {strategy:?} on node {node_id} is recognized but not implemented by elkrs-layered yet"
+        )
+    } else {
+        format!(
+            "node promotion strategy {strategy:?} is recognized but not implemented by elkrs-layered yet"
         )
     };
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
