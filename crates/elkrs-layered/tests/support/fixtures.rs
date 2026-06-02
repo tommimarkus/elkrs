@@ -206,6 +206,12 @@ pub fn self_loop() -> ElkGraph {
     graph
 }
 
+pub fn node_self_loop_spacing() -> ElkGraph {
+    let mut graph = self_loop();
+    graph.properties.set_spacing_node_self_loop(56.0);
+    graph
+}
+
 pub fn edge_node_spacing_obstacle() -> ElkGraph {
     let mut graph = ElkGraph::new("root");
     graph.properties.set_spacing_edge_node(48.0);
@@ -515,6 +521,13 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             name: "self-loop",
             status: ParityFixtureStatus::JavaComparable,
             build: self_loop,
+            assertions: &[],
+        },
+        ParityFixture {
+            id: "LAYERED-META-OPTION-145",
+            name: "node-self-loop-spacing",
+            status: ParityFixtureStatus::JavaComparable,
+            build: node_self_loop_spacing,
             assertions: &[],
         },
         ParityFixture {
