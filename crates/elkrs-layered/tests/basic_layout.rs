@@ -484,6 +484,30 @@ fn layered_layout_routes_node_self_loop_outside_node() {
 }
 
 #[test]
+fn layered_layout_applies_node_self_loop_spacing() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_spacing_node_self_loop(56.0);
+    graph.add_node(node("a", 80.0, 40.0));
+    graph.add_edge(ElkEdge::new(
+        "aa",
+        ElementRef::Node(ElementId::from("a")),
+        ElementRef::Node(ElementId::from("a")),
+    ));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().all(|diagnostic| {
+        !diagnostic.message.contains("node self-loop spacing")
+            && !diagnostic.message.contains("edge-node spacing")
+    }));
+    let node = &graph.nodes[&ElementId::from("a")];
+    let section = &graph.edges[&ElementId::from("aa")].sections[0];
+    assert!(section.points.iter().any(|point| {
+        (point.x - (node.position.x + node.size.width + 56.0)).abs() < f64::EPSILON
+    }));
+}
+
+#[test]
 fn layered_layout_routes_port_self_loop_from_port_anchors() {
     let mut node = node("a", 100.0, 60.0);
     node.add_port(port_with_geometry(

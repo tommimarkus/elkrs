@@ -127,9 +127,9 @@ STATUS_OVERRIDES = {
         "Parsed and validated; label-port placement semantics remain open",
     ),
     "org.eclipse.elk.spacing.nodeSelfLoop": (
-        "parsed",
-        "`cargo test -p elkrs-json --test json_partitions --locked additional_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_additional_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_additional_spacing`",
-        "Parsed and validated; node self-loop spacing semantics remain open",
+        "semantic",
+        "`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_node_self_loop_spacing`; `cargo test -p elkrs-json --test json_partitions --locked additional_spacing`; `cargo test -p elkrs-json --test json_errors --locked negative_additional_spacing_returns_invalid_error`",
+        "Node self-loop spacing controls self-loop route clearance; Java oracle fixture expansion remains open",
     ),
     "org.eclipse.elk.spacing.portPort": (
         "parsed",

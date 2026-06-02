@@ -19,6 +19,7 @@ pub(crate) struct EdgeRouting {
 struct EdgeRoutingSpacing {
     edge_node: f64,
     edge_edge: f64,
+    node_self_loop: f64,
 }
 
 impl EdgeRoutingSpacing {
@@ -26,6 +27,7 @@ impl EdgeRoutingSpacing {
         Self {
             edge_node: properties.spacing_edge_node(),
             edge_edge: properties.spacing_edge_edge(),
+            node_self_loop: properties.spacing_node_self_loop(),
         }
     }
 }
@@ -38,6 +40,7 @@ impl EdgeRouting {
             spacing: EdgeRoutingSpacing {
                 edge_node: DEFAULT_EDGE_NODE_SPACING,
                 edge_edge: DEFAULT_EDGE_EDGE_SPACING,
+                node_self_loop: elkrs_core::options::DEFAULT_NODE_SELF_LOOP_SPACING,
             },
         }
     }
@@ -109,7 +112,7 @@ impl SiblingRoute {
     }
 
     fn loop_distance(self, spacing: EdgeRoutingSpacing) -> f64 {
-        spacing.edge_node + self.index as f64 * spacing.edge_edge
+        spacing.node_self_loop + self.index as f64 * spacing.edge_edge
     }
 }
 
