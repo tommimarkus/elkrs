@@ -85,6 +85,7 @@ impl ElkNode {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ElkPort {
     pub id: ElementId,
+    pub properties: Properties,
     pub side: Option<PortSide>,
     pub position: Point,
     pub size: Size,
@@ -94,6 +95,7 @@ impl ElkPort {
     pub fn new(id: impl Into<ElementId>) -> Self {
         Self {
             id: id.into(),
+            properties: Properties::default(),
             side: None,
             position: Point::new(0.0, 0.0),
             size: Size::new(0.0, 0.0),
@@ -173,6 +175,14 @@ mod tests {
 
         assert!(node.ports.contains_key(&ElementId::from("port-a")));
         assert!(node.children.contains_key(&ElementId::from("child-a")));
+    }
+
+    #[test]
+    fn port_scoped_options_are_stored_on_ports() {
+        let mut port = ElkPort::new("port-a");
+        port.properties.set_port_index(3);
+
+        assert_eq!(port.properties.port_index(), Some(3));
     }
 
     #[test]

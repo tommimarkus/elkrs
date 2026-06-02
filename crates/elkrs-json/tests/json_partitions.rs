@@ -2236,6 +2236,74 @@ fn imports_port_side_from_layout_options() {
 }
 
 #[test]
+fn imports_port_scoped_options_from_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "node",
+              "ports": [
+                {
+                  "id": "out",
+                  "layoutOptions": {
+                    "org.eclipse.elk.port.index": 3,
+                    "org.eclipse.elk.port.borderOffset": 4.5,
+                    "org.eclipse.elk.layered.allowNonFlowPortsToSwitchSides": true
+                  }
+                }
+              ]
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let port = &graph.nodes[&ElementId::from("node")].ports[&ElementId::from("out")];
+    assert_eq!(
+        port.properties.get(CoreOption::PortIndex),
+        Some(&PropertyValue::Integer(3))
+    );
+    assert_eq!(
+        port.properties.get(CoreOption::PortBorderOffset),
+        Some(&PropertyValue::Number(4.5))
+    );
+    assert_eq!(
+        port.properties
+            .get(CoreOption::AllowNonFlowPortsToSwitchSides),
+        Some(&PropertyValue::Bool(true))
+    );
+}
+
+#[test]
+fn serializes_port_scoped_options_with_java_keys() {
+    let mut port = ElkPort::new("out");
+    port.properties.set_port_index(3);
+    port.properties.set_port_border_offset(4.5);
+    port.properties
+        .set_allow_non_flow_ports_to_switch_sides(true);
+    let mut node = ElkNode::new("node");
+    node.add_port(port);
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node);
+
+    let json = serialized_value(&graph);
+    let options = &json["children"][0]["ports"][0]["layoutOptions"];
+    assert_eq!(
+        options["org.eclipse.elk.port.index"],
+        Value::Number(3.into())
+    );
+    assert_eq!(
+        options["org.eclipse.elk.port.borderOffset"],
+        Value::from(4.5)
+    );
+    assert_eq!(
+        options["org.eclipse.elk.layered.allowNonFlowPortsToSwitchSides"],
+        Value::Bool(true)
+    );
+}
+
+#[test]
 fn imports_all_defined_port_side_layout_options() {
     let graph = from_str(
         r#"{

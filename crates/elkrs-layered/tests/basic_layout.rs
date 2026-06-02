@@ -1594,6 +1594,44 @@ fn layered_layout_reports_node_unsupported_fixed_port_constraints() {
 }
 
 #[test]
+fn layered_layout_reports_unsupported_port_scoped_options() {
+    let mut graph = ElkGraph::new("root");
+    let mut child = node("child", 60.0, 30.0);
+    let mut port = port_with_side("out", PortSide::East);
+    port.properties.set_port_index(3);
+    port.properties.set_port_border_offset(4.5);
+    port.properties
+        .set_allow_non_flow_ports_to_switch_sides(true);
+    child.add_port(port);
+    graph.add_node(child);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("port index")
+            && diagnostic.message.contains("3")
+            && diagnostic.message.contains("out")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("port border offset")
+            && diagnostic.message.contains("4.5")
+            && diagnostic.message.contains("out")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic
+                .message
+                .contains("allow non-flow ports to switch sides")
+            && diagnostic.message.contains("out")
+    }));
+}
+
+#[test]
 fn layered_layout_accepts_free_and_undefined_port_constraints_without_diagnostic() {
     for port_constraints in [PortConstraints::Free, PortConstraints::Undefined] {
         let mut graph = ElkGraph::new("root");

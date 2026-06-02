@@ -346,6 +346,11 @@ STATUS_OVERRIDES = {
         "No typed edge option model yet for the inside self-loop edge flag",
         "Parity: edge routing variants, junctions, and merging",
     ),
+    "org.eclipse.elk.layered.allowNonFlowPortsToSwitchSides": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked port_scoped_options`; `cargo test -p elkrs-layered --test basic_layout --locked port_scoped_options`; `cargo test -p elkrs-json --test json_partitions --locked port_scoped_options`; `cargo test -p elkrs-json --test json_errors --locked port_scoped_options`",
+        "Non-flow port side switching is parsed and diagnosed; side-switching semantics are not implemented yet",
+    ),
     "org.eclipse.elk.portAlignment.default": (
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked port_alignment`; `cargo test -p elkrs-json --test json_partitions --locked port_alignment`; `cargo test -p elkrs-json --test json_errors --locked port_alignment`",
@@ -375,6 +380,16 @@ STATUS_OVERRIDES = {
         "diagnostic",
         "`cargo test -p elkrs-layered --test basic_layout --locked port_constraints`; `cargo test -p elkrs-json --test json_partitions --locked port_constraints`; `cargo test -p elkrs-json --test json_errors --locked port_constraints`",
         "Port constraints are parsed and diagnosed; fixed port-order and position semantics are not implemented yet",
+    ),
+    "org.eclipse.elk.port.borderOffset": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked port_scoped_options`; `cargo test -p elkrs-layered --test basic_layout --locked port_scoped_options`; `cargo test -p elkrs-json --test json_partitions --locked port_scoped_options`; `cargo test -p elkrs-json --test json_errors --locked port_scoped_options`",
+        "Port border offset is parsed and diagnosed; offset-aware port placement is not implemented yet",
+    ),
+    "org.eclipse.elk.port.index": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked port_scoped_options`; `cargo test -p elkrs-layered --test basic_layout --locked port_scoped_options`; `cargo test -p elkrs-json --test json_partitions --locked port_scoped_options`; `cargo test -p elkrs-json --test json_errors --locked port_scoped_options`",
+        "Port index is parsed and diagnosed; fixed port-order semantics are not implemented yet",
     ),
     "org.eclipse.elk.port.side": (
         "java-parity",

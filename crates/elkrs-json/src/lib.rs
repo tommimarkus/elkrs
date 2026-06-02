@@ -63,6 +63,8 @@ const GREEDY_SWITCH_TYPE_KEY: &str =
     "org.eclipse.elk.layered.crossingMinimization.greedySwitch.type";
 const GREEDY_SWITCH_HIERARCHICAL_TYPE_KEY: &str =
     "org.eclipse.elk.layered.crossingMinimization.greedySwitchHierarchical.type";
+const ALLOW_NON_FLOW_PORTS_TO_SWITCH_SIDES_KEY: &str =
+    "org.eclipse.elk.layered.allowNonFlowPortsToSwitchSides";
 const CROSSING_MINIMIZATION_HIERARCHICAL_SWEEPINESS_KEY: &str =
     "org.eclipse.elk.layered.crossingMinimization.hierarchicalSweepiness";
 const CROSSING_MINIMIZATION_IN_LAYER_PREDECESSOR_KEY: &str =
@@ -115,7 +117,9 @@ const PORT_ALIGNMENT_EAST_KEY: &str = "org.eclipse.elk.portAlignment.east";
 const PORT_ALIGNMENT_NORTH_KEY: &str = "org.eclipse.elk.portAlignment.north";
 const PORT_ALIGNMENT_SOUTH_KEY: &str = "org.eclipse.elk.portAlignment.south";
 const PORT_ALIGNMENT_WEST_KEY: &str = "org.eclipse.elk.portAlignment.west";
+const PORT_BORDER_OFFSET_KEY: &str = "org.eclipse.elk.port.borderOffset";
 const PORT_CONSTRAINTS_KEY: &str = "org.eclipse.elk.portConstraints";
+const PORT_INDEX_KEY: &str = "org.eclipse.elk.port.index";
 const PORT_SIDE_KEY: &str = "org.eclipse.elk.port.side";
 const LEGACY_PORT_SIDE_KEY: &str = "side";
 const PORT_LABELS_NEXT_TO_PORT_IF_POSSIBLE_KEY: &str =
@@ -294,6 +298,7 @@ impl TryFrom<JsonPort> for ElkPort {
 
     fn try_from(json: JsonPort) -> Result<Self, Self::Error> {
         let mut port = ElkPort::new(json.id.as_str());
+        apply_port_layout_options(&mut port, &json.layout_options)?;
         port.position = Point::new(json.x, json.y);
         port.size = Size::new(json.width, json.height);
         port.side = port_side_from_json(&json)?;
@@ -1749,8 +1754,43 @@ fn port_side_from_json(port: &JsonPort) -> Result<Option<PortSide>, JsonError> {
     Ok(None)
 }
 
+fn apply_port_layout_options(
+    port: &mut ElkPort,
+    options: &BTreeMap<String, serde_json::Value>,
+) -> Result<(), JsonError> {
+    for (key, value) in options {
+        match key.as_str() {
+            ALLOW_NON_FLOW_PORTS_TO_SWITCH_SIDES_KEY => {
+                port.properties
+                    .set_allow_non_flow_ports_to_switch_sides(boolean(value, key)?);
+            }
+            PORT_BORDER_OFFSET_KEY => {
+                port.properties.set_port_border_offset(number(value, key)?);
+            }
+            PORT_INDEX_KEY => {
+                port.properties.set_port_index(integer(value, key)?);
+            }
+            PORT_SIDE_KEY => {}
+            _ => continue,
+        }
+    }
+    Ok(())
+}
+
 fn layout_options_from_port(port: &ElkPort) -> BTreeMap<String, serde_json::Value> {
     let mut options = BTreeMap::new();
+    insert_boolean_option(
+        &mut options,
+        &port.properties,
+        CoreOption::AllowNonFlowPortsToSwitchSides,
+        ALLOW_NON_FLOW_PORTS_TO_SWITCH_SIDES_KEY,
+    );
+    if let Some(PropertyValue::Number(offset)) = port.properties.get(CoreOption::PortBorderOffset) {
+        options.insert(PORT_BORDER_OFFSET_KEY.to_string(), (*offset).into());
+    }
+    if let Some(PropertyValue::Integer(index)) = port.properties.get(CoreOption::PortIndex) {
+        options.insert(PORT_INDEX_KEY.to_string(), (*index).into());
+    }
     if let Some(side) = port.side {
         options.insert(
             PORT_SIDE_KEY.to_string(),

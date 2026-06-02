@@ -1,5 +1,5 @@
 use elkrs_core::diagnostic::Diagnostic;
-use elkrs_core::graph::{ElkGraph, ElkNode};
+use elkrs_core::graph::{ElkGraph, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
     Algorithm, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy, EdgeRouting,
@@ -625,6 +625,57 @@ fn unsupported_port_alignment_diagnostic(
     Diagnostic::warning(UNSUPPORTED_OPTION_CODE, message)
 }
 
+fn collect_unsupported_port_scoped_option_diagnostics(
+    port: &ElkPort,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    if let Some(index) = port.properties.port_index() {
+        diagnostics.push(unsupported_integer_port_option_diagnostic(
+            "port index",
+            index,
+            port.id.as_str(),
+        ));
+    }
+    if let Some(offset) = port.properties.port_border_offset() {
+        diagnostics.push(unsupported_number_port_option_diagnostic(
+            "port border offset",
+            offset,
+            port.id.as_str(),
+        ));
+    }
+    if port.properties.allow_non_flow_ports_to_switch_sides() {
+        diagnostics.push(unsupported_boolean_port_option_diagnostic(
+            "allow non-flow ports to switch sides",
+            port.id.as_str(),
+        ));
+    }
+}
+
+fn unsupported_integer_port_option_diagnostic(name: &str, value: i64, port_id: &str) -> Diagnostic {
+    Diagnostic::warning(
+        UNSUPPORTED_OPTION_CODE,
+        format!(
+            "{name} {value} on port {port_id} is recognized but not implemented by elkrs-layered yet"
+        ),
+    )
+}
+
+fn unsupported_number_port_option_diagnostic(name: &str, value: f64, port_id: &str) -> Diagnostic {
+    Diagnostic::warning(
+        UNSUPPORTED_OPTION_CODE,
+        format!(
+            "{name} {value} on port {port_id} is recognized but not implemented by elkrs-layered yet"
+        ),
+    )
+}
+
+fn unsupported_boolean_port_option_diagnostic(name: &str, port_id: &str) -> Diagnostic {
+    Diagnostic::warning(
+        UNSUPPORTED_OPTION_CODE,
+        format!("{name} on port {port_id} is recognized but not implemented by elkrs-layered yet"),
+    )
+}
+
 fn collect_node_hierarchy_diagnostics(
     node: &ElkNode,
     diagnostics: &mut Vec<Diagnostic>,
@@ -695,6 +746,9 @@ fn collect_node_hierarchy_diagnostics(
         CoreOption::SpacingPortPort,
         &format!("port-port spacing on node {}", node.id.as_str()),
     )?;
+    for port in node.ports.values() {
+        collect_unsupported_port_scoped_option_diagnostics(port, diagnostics);
+    }
     for child in node.children.values() {
         collect_node_hierarchy_diagnostics(child, diagnostics)?;
     }

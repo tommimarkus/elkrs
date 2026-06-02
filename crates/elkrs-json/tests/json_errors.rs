@@ -853,6 +853,69 @@ fn non_string_port_side_layout_option_returns_invalid_error() {
     );
 }
 
+#[test]
+fn port_scoped_options_non_integer_index_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "source",
+              "ports": [
+                {
+                  "id": "out",
+                  "layoutOptions": { "org.eclipse.elk.port.index": 1.5 }
+                }
+              ]
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.port.index must be an integer",
+    );
+}
+
+#[test]
+fn port_scoped_options_non_number_border_offset_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "source",
+              "ports": [
+                {
+                  "id": "out",
+                  "layoutOptions": { "org.eclipse.elk.port.borderOffset": false }
+                }
+              ]
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.port.borderOffset must be a number",
+    );
+}
+
+#[test]
+fn port_scoped_options_non_boolean_allow_switch_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [
+            {
+              "id": "source",
+              "ports": [
+                {
+                  "id": "out",
+                  "layoutOptions": { "org.eclipse.elk.layered.allowNonFlowPortsToSwitchSides": "yes" }
+                }
+              ]
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.layered.allowNonFlowPortsToSwitchSides must be a boolean",
+    );
+}
+
 fn assert_invalid_contains(input: &str, expected: &str) {
     let error = from_str(input).unwrap_err();
 

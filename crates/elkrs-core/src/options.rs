@@ -146,6 +146,7 @@ pub enum PropertyValue {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum CoreOption {
     Algorithm,
+    AllowNonFlowPortsToSwitchSides,
     CommentBox,
     ComponentGroupId,
     ConsiderModelOrderComponents,
@@ -196,7 +197,9 @@ pub enum CoreOption {
     PortAlignmentNorth,
     PortAlignmentSouth,
     PortAlignmentWest,
+    PortBorderOffset,
     PortConstraints,
+    PortIndex,
     PortLabelsNextToPortIfPossible,
     PortLabelsTreatAsGroup,
     RandomSeed,
@@ -538,6 +541,13 @@ impl Properties {
         self.set_bool_option(CoreOption::NoModelOrder, enabled)
     }
 
+    pub fn set_allow_non_flow_ports_to_switch_sides(
+        &mut self,
+        enabled: bool,
+    ) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::AllowNonFlowPortsToSwitchSides, enabled)
+    }
+
     pub fn set_random_seed(&mut self, seed: i64) -> Option<PropertyValue> {
         self.values
             .insert(CoreOption::RandomSeed, PropertyValue::Integer(seed))
@@ -551,6 +561,16 @@ impl Properties {
             CoreOption::PortConstraints,
             PropertyValue::PortConstraints(port_constraints),
         )
+    }
+
+    pub fn set_port_border_offset(&mut self, offset: f64) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::PortBorderOffset, PropertyValue::Number(offset))
+    }
+
+    pub fn set_port_index(&mut self, index: i64) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::PortIndex, PropertyValue::Integer(index))
     }
 
     pub fn set_port_alignment_default(
@@ -1051,12 +1071,27 @@ impl Properties {
         self.bool_option(CoreOption::NoModelOrder, "no model order")
     }
 
+    pub fn allow_non_flow_ports_to_switch_sides(&self) -> bool {
+        self.bool_option(
+            CoreOption::AllowNonFlowPortsToSwitchSides,
+            "allow non-flow ports to switch sides",
+        )
+    }
+
     pub fn port_constraints(&self) -> PortConstraints {
         match self.get(CoreOption::PortConstraints) {
             Some(PropertyValue::PortConstraints(port_constraints)) => *port_constraints,
             Some(value) => unreachable!("port constraints stored incompatible value: {value:?}"),
             _ => PortConstraints::Undefined,
         }
+    }
+
+    pub fn port_border_offset(&self) -> Option<f64> {
+        self.number_option(CoreOption::PortBorderOffset, "port border offset")
+    }
+
+    pub fn port_index(&self) -> Option<i64> {
+        self.integer_option(CoreOption::PortIndex, "port index")
     }
 
     pub fn port_alignment_default(&self) -> Option<PortAlignment> {
@@ -1471,6 +1506,23 @@ mod tests {
             Some(PortAlignment::Distributed)
         );
         assert_eq!(properties.port_alignment_west(), Some(PortAlignment::End));
+    }
+
+    #[test]
+    fn port_scoped_options_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.port_index(), None);
+        assert_eq!(properties.port_border_offset(), None);
+        assert!(!properties.allow_non_flow_ports_to_switch_sides());
+
+        properties.set_port_index(3);
+        properties.set_port_border_offset(4.5);
+        properties.set_allow_non_flow_ports_to_switch_sides(true);
+
+        assert_eq!(properties.port_index(), Some(3));
+        assert_eq!(properties.port_border_offset(), Some(4.5));
+        assert!(properties.allow_non_flow_ports_to_switch_sides());
     }
 
     #[test]
