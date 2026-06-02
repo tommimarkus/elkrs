@@ -1633,6 +1633,58 @@ fn layered_layout_reports_unsupported_port_scoped_options() {
 }
 
 #[test]
+fn layered_layout_reports_unsupported_edge_scoped_options() {
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node("source", 60.0, 30.0));
+    graph.add_node(node("target", 60.0, 30.0));
+    let mut edge = ElkEdge::new(
+        "edge",
+        ElementRef::Node(ElementId::from("source")),
+        ElementRef::Node(ElementId::from("target")),
+    );
+    edge.properties.set_edge_thickness(2.5);
+    edge.properties.set_inside_self_loop(true);
+    graph.add_edge(edge);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("edge thickness")
+            && diagnostic.message.contains("edge")
+    }));
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            && diagnostic.severity == Severity::Warning
+            && diagnostic.message.contains("inside self-loop edge")
+            && diagnostic.message.contains("edge")
+    }));
+}
+
+#[test]
+fn layered_layout_accepts_disabled_edge_scoped_inside_self_loop_without_diagnostic() {
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(node("source", 60.0, 30.0));
+    graph.add_node(node("target", 60.0, 30.0));
+    let mut edge = ElkEdge::new(
+        "edge",
+        ElementRef::Node(ElementId::from("source")),
+        ElementRef::Node(ElementId::from("target")),
+    );
+    edge.properties.set_inside_self_loop(false);
+    graph.add_edge(edge);
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().all(|diagnostic| {
+        diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            || !diagnostic.message.contains("inside self-loop edge")
+            || !diagnostic.message.contains("edge")
+    }));
+}
+
+#[test]
 fn layered_layout_reports_unsupported_layer_assignment_options() {
     let mut graph = ElkGraph::new("root");
     graph

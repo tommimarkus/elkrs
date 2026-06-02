@@ -77,9 +77,11 @@ const CROSSING_MINIMIZATION_POSITION_ID_KEY: &str =
     "org.eclipse.elk.layered.crossingMinimization.positionId";
 const CROSSING_MINIMIZATION_STRATEGY_KEY: &str =
     "org.eclipse.elk.layered.crossingMinimization.strategy";
+const EDGE_THICKNESS_KEY: &str = "org.eclipse.elk.edge.thickness";
 const HIGH_DEGREE_NODE_TREATMENT_KEY: &str = "org.eclipse.elk.layered.highDegreeNodes.treatment";
 const HIERARCHY_HANDLING_KEY: &str = "org.eclipse.elk.hierarchyHandling";
 const HYPERNODE_KEY: &str = "org.eclipse.elk.hypernode";
+const INSIDE_SELF_LOOP_KEY: &str = "org.eclipse.elk.insideSelfLoops.yo";
 const INSIDE_SELF_LOOPS_KEY: &str = "org.eclipse.elk.insideSelfLoops.activate";
 const INTERACTIVE_LAYOUT_KEY: &str = "org.eclipse.elk.interactiveLayout";
 const LAYER_BOUND_KEY: &str = "org.eclipse.elk.layered.layering.coffmanGraham.layerBound";
@@ -227,6 +229,12 @@ struct JsonPort {
 #[derive(Debug, Deserialize, Serialize)]
 struct JsonEdge {
     id: String,
+    #[serde(
+        default,
+        rename = "layoutOptions",
+        skip_serializing_if = "BTreeMap::is_empty"
+    )]
+    layout_options: BTreeMap<String, serde_json::Value>,
     sources: Vec<String>,
     targets: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -362,6 +370,7 @@ impl JsonEdge {
             resolve_element_ref(graph, source)?,
             resolve_element_ref(graph, target)?,
         );
+        apply_edge_layout_options(&mut edge, &self.layout_options)?;
         edge.labels = self.labels.into_iter().map(JsonLabel::into_label).collect();
         edge.sections = self
             .sections
@@ -374,6 +383,7 @@ impl JsonEdge {
     fn from_edge(edge: &ElkEdge) -> Self {
         Self {
             id: edge.id.as_str().to_string(),
+            layout_options: layout_options_from_edge(edge),
             sources: vec![element_ref_id(&edge.source).to_string()],
             targets: vec![element_ref_id(&edge.target).to_string()],
             labels: edge.labels.iter().map(JsonLabel::from_label).collect(),
@@ -1880,6 +1890,38 @@ fn layout_options_from_port(port: &ElkPort) -> BTreeMap<String, serde_json::Valu
             serde_json::Value::String(format_port_side(side)),
         );
     }
+    options
+}
+
+fn apply_edge_layout_options(
+    edge: &mut ElkEdge,
+    options: &BTreeMap<String, serde_json::Value>,
+) -> Result<(), JsonError> {
+    for (key, value) in options {
+        match key.as_str() {
+            EDGE_THICKNESS_KEY => {
+                edge.properties.set_edge_thickness(number(value, key)?);
+            }
+            INSIDE_SELF_LOOP_KEY => {
+                edge.properties.set_inside_self_loop(boolean(value, key)?);
+            }
+            _ => continue,
+        }
+    }
+    Ok(())
+}
+
+fn layout_options_from_edge(edge: &ElkEdge) -> BTreeMap<String, serde_json::Value> {
+    let mut options = BTreeMap::new();
+    if let Some(PropertyValue::Number(thickness)) = edge.properties.get(CoreOption::EdgeThickness) {
+        options.insert(EDGE_THICKNESS_KEY.to_string(), (*thickness).into());
+    }
+    insert_boolean_option(
+        &mut options,
+        &edge.properties,
+        CoreOption::InsideSelfLoop,
+        INSIDE_SELF_LOOP_KEY,
+    );
     options
 }
 

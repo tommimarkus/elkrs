@@ -1,5 +1,5 @@
 use elkrs_core::geometry::{Point, Size};
-use elkrs_core::graph::{ElementId, ElkGraph, ElkNode, ElkPort};
+use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::options::{
     Algorithm, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy, Direction,
     EdgeRouting, GreedySwitchType, GroupOrderingStrategy, HierarchyHandling, LayerConstraint,
@@ -2299,6 +2299,61 @@ fn serializes_port_scoped_options_with_java_keys() {
     );
     assert_eq!(
         options["org.eclipse.elk.layered.allowNonFlowPortsToSwitchSides"],
+        Value::Bool(true)
+    );
+}
+
+#[test]
+fn imports_edge_scoped_options_from_layout_options() {
+    let graph = from_str(
+        r#"{
+          "id": "root",
+          "children": [{ "id": "source" }, { "id": "target" }],
+          "edges": [
+            {
+              "id": "edge",
+              "sources": ["source"],
+              "targets": ["target"],
+              "layoutOptions": {
+                "org.eclipse.elk.edge.thickness": 2.5,
+                "org.eclipse.elk.insideSelfLoops.yo": true
+              }
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let edge = &graph.edges[&ElementId::from("edge")];
+    assert_eq!(
+        edge.properties.get(CoreOption::EdgeThickness),
+        Some(&PropertyValue::Number(2.5))
+    );
+    assert_eq!(
+        edge.properties.get(CoreOption::InsideSelfLoop),
+        Some(&PropertyValue::Bool(true))
+    );
+}
+
+#[test]
+fn serializes_edge_scoped_options_with_java_keys() {
+    let mut graph = ElkGraph::new("root");
+    graph.add_node(ElkNode::new("source"));
+    graph.add_node(ElkNode::new("target"));
+    let mut edge = ElkEdge::new(
+        "edge",
+        ElementRef::Node(ElementId::from("source")),
+        ElementRef::Node(ElementId::from("target")),
+    );
+    edge.properties.set_edge_thickness(2.5);
+    edge.properties.set_inside_self_loop(true);
+    graph.add_edge(edge);
+
+    let json = serialized_value(&graph);
+    let options = &json["edges"][0]["layoutOptions"];
+    assert_eq!(options["org.eclipse.elk.edge.thickness"], Value::from(2.5));
+    assert_eq!(
+        options["org.eclipse.elk.insideSelfLoops.yo"],
         Value::Bool(true)
     );
 }

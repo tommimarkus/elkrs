@@ -60,6 +60,44 @@ fn edge_with_multiple_targets_returns_invalid_error() {
 }
 
 #[test]
+fn edge_scoped_options_non_number_thickness_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [{ "id": "source" }, { "id": "target" }],
+          "edges": [
+            {
+              "id": "edge",
+              "sources": ["source"],
+              "targets": ["target"],
+              "layoutOptions": { "org.eclipse.elk.edge.thickness": false }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.edge.thickness must be a number",
+    );
+}
+
+#[test]
+fn edge_scoped_options_non_boolean_inside_self_loop_returns_invalid_error() {
+    assert_invalid_contains(
+        r#"{
+          "id": "root",
+          "children": [{ "id": "source" }, { "id": "target" }],
+          "edges": [
+            {
+              "id": "edge",
+              "sources": ["source"],
+              "targets": ["target"],
+              "layoutOptions": { "org.eclipse.elk.insideSelfLoops.yo": "true" }
+            }
+          ]
+        }"#,
+        "org.eclipse.elk.insideSelfLoops.yo must be a boolean",
+    );
+}
+
+#[test]
 fn unsupported_direction_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

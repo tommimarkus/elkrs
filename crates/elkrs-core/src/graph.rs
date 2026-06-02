@@ -106,6 +106,7 @@ impl ElkPort {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ElkEdge {
     pub id: ElementId,
+    pub properties: Properties,
     pub source: ElementRef,
     pub target: ElementRef,
     pub labels: Vec<ElkLabel>,
@@ -116,6 +117,7 @@ impl ElkEdge {
     pub fn new(id: impl Into<ElementId>, source: ElementRef, target: ElementRef) -> Self {
         Self {
             id: id.into(),
+            properties: Properties::default(),
             source,
             target,
             labels: Vec::new(),

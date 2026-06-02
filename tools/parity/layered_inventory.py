@@ -38,6 +38,11 @@ STATUS_OVERRIDES = {
         '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_respects_left_direction`, `cargo test -p elkrs-json --test json_partitions --locked direction`, `cargo test -p elkrs-json --test json_errors --locked direction`, `cargo test -p elkrs-layered --test parity_matrix --locked direction_metadata_row_has_java_fixture_evidence`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete for Java-backed direction fixture",
     ),
+    "org.eclipse.elk.edge.thickness": (
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked edge_scoped_options`; `cargo test -p elkrs-layered --test basic_layout --locked edge_scoped`; `cargo test -p elkrs-json --test json_partitions --locked edge_scoped_options`; `cargo test -p elkrs-json --test json_errors --locked edge_scoped_options`",
+        "Edge thickness is parsed and diagnosed; thickness-aware edge routing and spacing are not implemented yet",
+    ),
     "org.eclipse.elk.spacing.nodeNode": (
         "java-parity",
         '`cargo test -p elkrs-layered --test quality --locked custom_node_spacing_separates_same_layer_nodes`, `cargo test -p elkrs-json --test json_partitions --locked spacing`, `cargo test -p elkrs-json --test json_errors --locked spacing`, `cargo test -p elkrs-layered --test parity_matrix --locked spacing_metadata_rows_have_java_fixture_evidence`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
@@ -369,9 +374,9 @@ STATUS_OVERRIDES = {
         "Inside self-loop activation is parsed and diagnosed; inside self-loop routing semantics are not implemented yet",
     ),
     "org.eclipse.elk.insideSelfLoops.yo": (
-        "unsupported",
-        "No typed edge option model yet for the inside self-loop edge flag",
-        "Parity: edge routing variants, junctions, and merging",
+        "diagnostic",
+        "`cargo test -p elkrs-core --locked edge_scoped_options`; `cargo test -p elkrs-layered --test basic_layout --locked edge_scoped`; `cargo test -p elkrs-json --test json_partitions --locked edge_scoped_options`; `cargo test -p elkrs-json --test json_errors --locked edge_scoped_options`",
+        "Inside self-loop edge flag is parsed and diagnosed; inside self-loop routing semantics are not implemented yet",
     ),
     "org.eclipse.elk.layered.allowNonFlowPortsToSwitchSides": (
         "diagnostic",
@@ -514,7 +519,7 @@ FEATURE_OVERRIDES = {
     ),
     "INSIDE_SELF_LOOPS": (
         "unsupported",
-        "Inside self-loop activation is parsed and diagnosed; inside self-loop routing and edge flag semantics remain unsupported",
+        "Inside self-loop activation and edge flag are parsed and diagnosed; inside self-loop routing semantics remain unsupported",
         "Parity: edge routing variants, junctions, and merging",
     ),
     "MULTI_EDGES": (

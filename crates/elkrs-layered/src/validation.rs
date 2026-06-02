@@ -1,5 +1,5 @@
 use elkrs_core::diagnostic::Diagnostic;
-use elkrs_core::graph::{ElkGraph, ElkNode, ElkPort};
+use elkrs_core::graph::{ElkEdge, ElkGraph, ElkNode, ElkPort};
 use elkrs_core::layout::LayoutError;
 use elkrs_core::options::{
     Algorithm, ComponentOrderingStrategy, CoreOption, CrossingMinimizationStrategy, EdgeRouting,
@@ -85,6 +85,9 @@ pub(crate) fn validate_options(graph: &ElkGraph) -> Result<Vec<Diagnostic>, Layo
     let mut diagnostics = validate_graph_properties(&graph.properties)?;
     for node in graph.nodes.values() {
         collect_node_hierarchy_diagnostics(node, &mut diagnostics)?;
+    }
+    for edge in graph.edges.values() {
+        collect_unsupported_edge_scoped_option_diagnostics(edge, &mut diagnostics);
     }
     Ok(diagnostics)
 }
@@ -748,6 +751,41 @@ fn unsupported_boolean_port_option_diagnostic(name: &str, port_id: &str) -> Diag
     Diagnostic::warning(
         UNSUPPORTED_OPTION_CODE,
         format!("{name} on port {port_id} is recognized but not implemented by elkrs-layered yet"),
+    )
+}
+
+fn collect_unsupported_edge_scoped_option_diagnostics(
+    edge: &ElkEdge,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    if let Some(thickness) = edge.properties.edge_thickness() {
+        diagnostics.push(unsupported_number_edge_option_diagnostic(
+            "edge thickness",
+            thickness,
+            edge.id.as_str(),
+        ));
+    }
+    if edge.properties.inside_self_loop() {
+        diagnostics.push(unsupported_boolean_edge_option_diagnostic(
+            "inside self-loop edge",
+            edge.id.as_str(),
+        ));
+    }
+}
+
+fn unsupported_number_edge_option_diagnostic(name: &str, value: f64, edge_id: &str) -> Diagnostic {
+    Diagnostic::warning(
+        UNSUPPORTED_OPTION_CODE,
+        format!(
+            "{name} {value} on edge {edge_id} is recognized but not implemented by elkrs-layered yet"
+        ),
+    )
+}
+
+fn unsupported_boolean_edge_option_diagnostic(name: &str, edge_id: &str) -> Diagnostic {
+    Diagnostic::warning(
+        UNSUPPORTED_OPTION_CODE,
+        format!("{name} on edge {edge_id} is recognized but not implemented by elkrs-layered yet"),
     )
 }
 

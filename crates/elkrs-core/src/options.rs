@@ -195,6 +195,7 @@ pub enum CoreOption {
     DebugMode,
     Direction,
     EdgeRouting,
+    EdgeThickness,
     FavorStraightEdges,
     FeedbackEdges,
     FixedGraphSize,
@@ -206,6 +207,7 @@ pub enum CoreOption {
     HighDegreeNodeTreatment,
     HierarchyHandling,
     Hypernode,
+    InsideSelfLoop,
     InsideSelfLoops,
     InteractiveLayout,
     LayerBound,
@@ -451,6 +453,11 @@ impl Properties {
         )
     }
 
+    pub fn set_edge_thickness(&mut self, thickness: f64) -> Option<PropertyValue> {
+        self.values
+            .insert(CoreOption::EdgeThickness, PropertyValue::Number(thickness))
+    }
+
     pub fn set_feedback_edges(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::FeedbackEdges, enabled)
     }
@@ -517,6 +524,10 @@ impl Properties {
 
     pub fn set_hypernode(&mut self, enabled: bool) -> Option<PropertyValue> {
         self.set_bool_option(CoreOption::Hypernode, enabled)
+    }
+
+    pub fn set_inside_self_loop(&mut self, enabled: bool) -> Option<PropertyValue> {
+        self.set_bool_option(CoreOption::InsideSelfLoop, enabled)
     }
 
     pub fn set_inside_self_loops(&mut self, enabled: bool) -> Option<PropertyValue> {
@@ -1015,6 +1026,10 @@ impl Properties {
         }
     }
 
+    pub fn edge_thickness(&self) -> Option<f64> {
+        self.number_option(CoreOption::EdgeThickness, "edge thickness")
+    }
+
     pub fn feedback_edges(&self) -> bool {
         self.bool_option(CoreOption::FeedbackEdges, "feedback edges")
     }
@@ -1085,6 +1100,10 @@ impl Properties {
 
     pub fn hypernode(&self) -> bool {
         self.bool_option(CoreOption::Hypernode, "hypernode")
+    }
+
+    pub fn inside_self_loop(&self) -> bool {
+        self.bool_option(CoreOption::InsideSelfLoop, "inside self-loop edge")
     }
 
     pub fn inside_self_loops(&self) -> bool {
@@ -1658,6 +1677,20 @@ mod tests {
         );
         assert_eq!(properties.layer_id(), Some(7));
         assert_eq!(properties.layout_partition(), Some(3));
+    }
+
+    #[test]
+    fn edge_scoped_options_can_be_set() {
+        let mut properties = Properties::default();
+
+        assert_eq!(properties.edge_thickness(), None);
+        assert!(!properties.inside_self_loop());
+
+        properties.set_edge_thickness(2.5);
+        properties.set_inside_self_loop(true);
+
+        assert_eq!(properties.edge_thickness(), Some(2.5));
+        assert!(properties.inside_self_loop());
     }
 
     #[test]
