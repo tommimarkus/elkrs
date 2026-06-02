@@ -89,7 +89,7 @@ fn edge_scoped_options_non_boolean_inside_self_loop_returns_invalid_error() {
               "id": "edge",
               "sources": ["source"],
               "targets": ["target"],
-              "layoutOptions": { "org.eclipse.elk.insideSelfLoops.yo": "true" }
+              "layoutOptions": { "org.eclipse.elk.insideSelfLoops.yo": 7 }
             }
           ]
         }"#,
@@ -135,7 +135,7 @@ fn non_bool_debug_mode_returns_invalid_error() {
     assert_invalid_contains(
         r#"{
           "id": "root",
-          "layoutOptions": { "org.eclipse.elk.debugMode": "true" }
+          "layoutOptions": { "org.eclipse.elk.debugMode": 7 }
         }"#,
         "org.eclipse.elk.debugMode must be a boolean",
     );
@@ -149,7 +149,7 @@ fn non_bool_node_debug_mode_returns_invalid_error() {
           "children": [
             {
               "id": "node",
-              "layoutOptions": { "org.eclipse.elk.debugMode": "true" }
+              "layoutOptions": { "org.eclipse.elk.debugMode": 7 }
             }
           ]
         }"#,
@@ -162,7 +162,7 @@ fn non_bool_feedback_edges_returns_invalid_error() {
     assert_invalid_contains(
         r#"{
           "id": "root",
-          "layoutOptions": { "org.eclipse.elk.layered.feedbackEdges": "true" }
+          "layoutOptions": { "org.eclipse.elk.layered.feedbackEdges": 7 }
         }"#,
         "org.eclipse.elk.layered.feedbackEdges must be a boolean",
     );
@@ -176,7 +176,7 @@ fn non_bool_node_feedback_edges_returns_invalid_error() {
           "children": [
             {
               "id": "node",
-              "layoutOptions": { "org.eclipse.elk.layered.feedbackEdges": "true" }
+              "layoutOptions": { "org.eclipse.elk.layered.feedbackEdges": 7 }
             }
           ]
         }"#,
@@ -190,7 +190,7 @@ fn non_bool_parent_boolean_layout_options_return_invalid_errors() {
         let json = format!(
             r#"{{
               "id": "root",
-              "layoutOptions": {{ "{key}": "true" }}
+              "layoutOptions": {{ "{key}": 7 }}
             }}"#
         );
         assert_invalid_contains(&json, &format!("{key} must be a boolean"));
@@ -206,7 +206,7 @@ fn non_bool_node_parent_boolean_layout_options_return_invalid_errors() {
               "children": [
                 {{
                   "id": "node",
-                  "layoutOptions": {{ "{key}": "true" }}
+                  "layoutOptions": {{ "{key}": 7 }}
                 }}
               ]
             }}"#
@@ -224,7 +224,7 @@ fn non_bool_node_boolean_layout_options_return_invalid_errors() {
               "children": [
                 {{
                   "id": "node",
-                  "layoutOptions": {{ "{key}": "true" }}
+                  "layoutOptions": {{ "{key}": 7 }}
                 }}
               ]
             }}"#

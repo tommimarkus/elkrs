@@ -21,6 +21,7 @@ impl LayoutAlgorithm for LayeredLayout {
     fn layout(&self, graph: &mut ElkGraph) -> Result<LayoutReport, LayoutError> {
         let mut diagnostics = validate_options(graph)?;
         let direction = graph.properties.direction();
+        let generate_position_and_layer_ids = graph.properties.generate_position_and_layer_ids();
         let node_placement = NodePlacement::from_properties(direction, &graph.properties);
         let mut layered = import_graph(graph)?;
         let pipeline = LayeredPipeline::new(vec![
@@ -31,7 +32,7 @@ impl LayoutAlgorithm for LayeredLayout {
             Box::new(EdgeRouting::from_properties(direction, &graph.properties)),
         ]);
         let context = pipeline.run(&mut layered)?;
-        write_back(graph, &layered);
+        write_back(graph, &layered, generate_position_and_layer_ids);
         diagnostics.extend(context.diagnostics);
         Ok(LayoutReport { diagnostics })
     }

@@ -22,10 +22,6 @@ const PARENT_UNSUPPORTED_BOOLEAN_OPTIONS: &[(CoreOption, &str)] = &[
     (CoreOption::FixedGraphSize, "fixed graph size"),
     (CoreOption::ForceNodeModelOrder, "force node model order"),
     (
-        CoreOption::GeneratePositionAndLayerIds,
-        "generate position and layer IDs",
-    ),
-    (
         CoreOption::HighDegreeNodeTreatment,
         "high degree node treatment",
     ),
@@ -656,7 +652,10 @@ fn collect_unsupported_layer_assignment_diagnostics(
     node_id: Option<&str>,
     diagnostics: &mut Vec<Diagnostic>,
 ) {
-    if let Some(strategy) = properties.layering_strategy() {
+    if let Some(strategy) = properties
+        .layering_strategy()
+        .filter(|strategy| *strategy != NodeLayeringStrategy::NetworkSimplex)
+    {
         diagnostics.push(unsupported_node_layering_strategy_diagnostic(
             strategy, node_id,
         ));

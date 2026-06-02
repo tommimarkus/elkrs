@@ -3048,9 +3048,12 @@ fn positive_number(value: &serde_json::Value, key: &str) -> Result<f64, JsonErro
 }
 
 fn boolean(value: &serde_json::Value, key: &str) -> Result<bool, JsonError> {
-    value
-        .as_bool()
-        .ok_or_else(|| JsonError::Invalid(format!("{key} must be a boolean")))
+    match value {
+        serde_json::Value::Bool(enabled) => Ok(*enabled),
+        serde_json::Value::String(enabled) if enabled == "true" => Ok(true),
+        serde_json::Value::String(enabled) if enabled == "false" => Ok(false),
+        _ => Err(JsonError::Invalid(format!("{key} must be a boolean"))),
+    }
 }
 
 fn is_default_f64(value: &f64) -> bool {

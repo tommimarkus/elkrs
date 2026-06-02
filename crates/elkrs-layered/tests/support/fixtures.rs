@@ -3,8 +3,8 @@
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkGraph, ElkLabel, ElkNode, ElkPort};
 use elkrs_core::options::{
-    Algorithm, Direction, EdgeRouting, HierarchyHandling, NodeLabelPlacement, NodeSizeConstraint,
-    PortSide,
+    Algorithm, CoreOption, Direction, EdgeRouting, HierarchyHandling, NodeLabelPlacement,
+    NodeLayeringStrategy, NodeSizeConstraint, PortSide,
 };
 
 pub fn chain() -> ElkGraph {
@@ -30,6 +30,20 @@ pub fn algorithm_layered() -> ElkGraph {
 pub fn edge_routing_orthogonal() -> ElkGraph {
     let mut graph = chain();
     graph.properties.set_edge_routing(EdgeRouting::Orthogonal);
+    graph
+}
+
+pub fn network_simplex_layering_strategy() -> ElkGraph {
+    let mut graph = chain();
+    graph
+        .properties
+        .set_layering_strategy(NodeLayeringStrategy::NetworkSimplex);
+    graph
+}
+
+pub fn generated_position_and_layer_ids() -> ElkGraph {
+    let mut graph = chain();
+    graph.properties.set_generate_position_and_layer_ids(true);
     graph
 }
 
@@ -483,6 +497,11 @@ pub enum ParityAssertion {
         width: f64,
         height: f64,
     },
+    NodeIntegerOption {
+        node_id: &'static str,
+        option: CoreOption,
+        value: i64,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -681,6 +700,107 @@ pub fn parity_fixtures() -> Vec<ParityFixture> {
             name: "reverse-insertion-chain",
             status: ParityFixtureStatus::JavaComparable,
             build: reverse_insertion_chain,
+            assertions: &[
+                ParityAssertion::NodeOrder {
+                    first: "a",
+                    second: "b",
+                    axis: Axis::X,
+                    order: Order::LessThan,
+                },
+                ParityAssertion::NodeOrder {
+                    first: "b",
+                    second: "c",
+                    axis: Axis::X,
+                    order: Order::LessThan,
+                },
+            ],
+        },
+        ParityFixture {
+            id: "LAYERED-P2-002",
+            name: "network-simplex-layering-strategy",
+            status: ParityFixtureStatus::JavaComparable,
+            build: network_simplex_layering_strategy,
+            assertions: &[
+                ParityAssertion::NodeOrder {
+                    first: "a",
+                    second: "b",
+                    axis: Axis::X,
+                    order: Order::LessThan,
+                },
+                ParityAssertion::NodeOrder {
+                    first: "b",
+                    second: "c",
+                    axis: Axis::X,
+                    order: Order::LessThan,
+                },
+            ],
+        },
+        ParityFixture {
+            id: "LAYERED-META-OPTION-057",
+            name: "generated-position-and-layer-ids",
+            status: ParityFixtureStatus::JavaComparable,
+            build: generated_position_and_layer_ids,
+            assertions: &[
+                ParityAssertion::NodeIntegerOption {
+                    node_id: "a",
+                    option: CoreOption::LayerId,
+                    value: 0,
+                },
+                ParityAssertion::NodeIntegerOption {
+                    node_id: "b",
+                    option: CoreOption::LayerId,
+                    value: 1,
+                },
+                ParityAssertion::NodeIntegerOption {
+                    node_id: "c",
+                    option: CoreOption::LayerId,
+                    value: 2,
+                },
+                ParityAssertion::NodeIntegerOption {
+                    node_id: "a",
+                    option: CoreOption::CrossingMinimizationPositionId,
+                    value: 0,
+                },
+                ParityAssertion::NodeIntegerOption {
+                    node_id: "b",
+                    option: CoreOption::CrossingMinimizationPositionId,
+                    value: 0,
+                },
+                ParityAssertion::NodeIntegerOption {
+                    node_id: "c",
+                    option: CoreOption::CrossingMinimizationPositionId,
+                    value: 0,
+                },
+            ],
+        },
+        ParityFixture {
+            id: "LAYERED-META-OPTION-069",
+            name: "generated-layer-id-metadata",
+            status: ParityFixtureStatus::JavaComparable,
+            build: generated_position_and_layer_ids,
+            assertions: &[
+                ParityAssertion::NodeIntegerOption {
+                    node_id: "a",
+                    option: CoreOption::LayerId,
+                    value: 0,
+                },
+                ParityAssertion::NodeIntegerOption {
+                    node_id: "b",
+                    option: CoreOption::LayerId,
+                    value: 1,
+                },
+                ParityAssertion::NodeIntegerOption {
+                    node_id: "c",
+                    option: CoreOption::LayerId,
+                    value: 2,
+                },
+            ],
+        },
+        ParityFixture {
+            id: "LAYERED-META-OPTION-074",
+            name: "network-simplex-layering-strategy-metadata",
+            status: ParityFixtureStatus::JavaComparable,
+            build: network_simplex_layering_strategy,
             assertions: &[
                 ParityAssertion::NodeOrder {
                     first: "a",

@@ -155,6 +155,65 @@ fn layered_layout_routes_multi_node_cycle_in_original_edge_directions() {
 }
 
 #[test]
+fn layered_layout_accepts_network_simplex_strategy_without_diagnostic() {
+    let mut graph = ElkGraph::new("root");
+    graph
+        .properties
+        .set_layering_strategy(NodeLayeringStrategy::NetworkSimplex);
+    graph.add_node(node("a", 60.0, 30.0));
+    graph.add_node(node("b", 60.0, 30.0));
+    graph.add_edge(ElkEdge::new(
+        "edge",
+        ElementRef::Node(ElementId::from("a")),
+        ElementRef::Node(ElementId::from("b")),
+    ));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().all(|diagnostic| {
+        diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            || !diagnostic.message.contains("layering strategy")
+    }));
+    assert!(
+        graph.nodes[&ElementId::from("b")].position.x
+            > graph.nodes[&ElementId::from("a")].position.x
+    );
+}
+
+#[test]
+fn layered_layout_generates_position_and_layer_ids() {
+    let mut graph = ElkGraph::new("root");
+    graph.properties.set_generate_position_and_layer_ids(true);
+    graph.add_node(node("a", 60.0, 30.0));
+    graph.add_node(node("b", 60.0, 30.0));
+    graph.add_node(node("c", 60.0, 30.0));
+    graph.add_edge(ElkEdge::new(
+        "ab",
+        ElementRef::Node(ElementId::from("a")),
+        ElementRef::Node(ElementId::from("b")),
+    ));
+    graph.add_edge(ElkEdge::new(
+        "bc",
+        ElementRef::Node(ElementId::from("b")),
+        ElementRef::Node(ElementId::from("c")),
+    ));
+
+    let report = LayeredLayout.layout(&mut graph).unwrap();
+
+    assert!(report.diagnostics.iter().all(|diagnostic| {
+        diagnostic.code != "ELKRS_LAYERED_UNSUPPORTED_OPTION"
+            || !diagnostic
+                .message
+                .contains("generate position and layer IDs")
+    }));
+    for (id, layer_id) in [("a", 0), ("b", 1), ("c", 2)] {
+        let node = &graph.nodes[&ElementId::from(id)];
+        assert_eq!(node.properties.layer_id(), Some(layer_id));
+        assert_eq!(node.properties.crossing_minimization_position_id(), Some(0));
+    }
+}
+
+#[test]
 fn self_loop_does_not_change_connected_node_layers() {
     let mut baseline = ElkGraph::new("root");
     baseline.add_node(node("source", 60.0, 30.0));
@@ -1731,7 +1790,7 @@ fn layered_layout_reports_unsupported_layer_assignment_options() {
     let mut graph = ElkGraph::new("root");
     graph
         .properties
-        .set_layering_strategy(NodeLayeringStrategy::NetworkSimplex);
+        .set_layering_strategy(NodeLayeringStrategy::MinWidth);
     graph.properties.set_layer_bound(5);
     graph.properties.set_layout_partition(3);
     graph.properties.set_min_width_upper_bound_on_width(-1);
@@ -1766,7 +1825,7 @@ fn layered_layout_reports_unsupported_layer_assignment_options() {
         diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
             && diagnostic.severity == Severity::Warning
             && diagnostic.message.contains("layering strategy")
-            && diagnostic.message.contains("NetworkSimplex")
+            && diagnostic.message.contains("MinWidth")
     }));
     assert!(report.diagnostics.iter().any(|diagnostic| {
         diagnostic.code == "ELKRS_LAYERED_UNSUPPORTED_OPTION"
@@ -2273,7 +2332,7 @@ fn node(id: &str, width: f64, height: f64) -> ElkNode {
 type BoolOptionSetter = fn(&mut Properties, bool) -> Option<PropertyValue>;
 type PortAlignmentSetter = fn(&mut Properties, PortAlignment) -> Option<PropertyValue>;
 
-fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 17] {
+fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 16] {
     [
         ("interactive layout", Properties::set_interactive_layout),
         (
@@ -2288,10 +2347,6 @@ fn parent_boolean_option_cases() -> [(&'static str, BoolOptionSetter); 17] {
         (
             "semi-interactive crossing minimization",
             Properties::set_semi_interactive_crossing_minimization,
-        ),
-        (
-            "generate position and layer IDs",
-            Properties::set_generate_position_and_layer_ids,
         ),
         (
             "high degree node treatment",

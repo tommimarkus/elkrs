@@ -285,6 +285,61 @@ fn node_label_and_size_rows_have_java_fixture_evidence() {
 }
 
 #[test]
+fn layer_assignment_rows_have_java_fixture_evidence() {
+    let fixtures = parity_fixtures();
+
+    for row_id in [
+        "LAYERED-P2-002",
+        "LAYERED-META-OPTION-057",
+        "LAYERED-META-OPTION-069",
+        "LAYERED-META-OPTION-074",
+    ] {
+        assert!(
+            fixtures.iter().any(|fixture| {
+                fixture.id == row_id && fixture.status == ParityFixtureStatus::JavaComparable
+            }),
+            "{row_id} should have a Java-comparable parity fixture"
+        );
+        assert_eq!(
+            row_status(PARITY_MATRIX, row_id),
+            Some("java-parity"),
+            "{row_id} should be marked as java-parity in the parity matrix"
+        );
+    }
+}
+
+#[test]
+fn layer_assignment_exclusion_rows_document_compatibility_boundaries() {
+    for row_id in [
+        "LAYERED-P2-003",
+        "LAYERED-META-OPTION-048",
+        "LAYERED-META-OPTION-058",
+        "LAYERED-META-OPTION-059",
+        "LAYERED-META-OPTION-060",
+        "LAYERED-META-OPTION-062",
+        "LAYERED-META-OPTION-063",
+        "LAYERED-META-OPTION-064",
+        "LAYERED-META-OPTION-065",
+        "LAYERED-META-OPTION-066",
+        "LAYERED-META-OPTION-067",
+        "LAYERED-META-OPTION-068",
+        "LAYERED-META-OPTION-070",
+        "LAYERED-META-OPTION-071",
+        "LAYERED-META-OPTION-072",
+        "LAYERED-META-OPTION-073",
+        "LAYERED-META-OPTION-114",
+        "LAYERED-META-OPTION-115",
+        "LAYERED-META-OPTION-130",
+    ] {
+        assert!(
+            row_next_plan(PARITY_MATRIX, row_id)
+                .is_some_and(|next_plan| next_plan.contains("1.0.0 compatibility exclusion")),
+            "{row_id} should document the 1.0.0 compatibility exclusion"
+        );
+    }
+}
+
+#[test]
 fn node_label_placement_row_documents_compatibility_boundary() {
     assert_eq!(
         row_status(PARITY_MATRIX, "LAYERED-META-OPTION-108"),

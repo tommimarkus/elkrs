@@ -2536,6 +2536,36 @@ fn imports_java_layer_assignment_layout_options() {
 }
 
 #[test]
+fn imports_java_boolean_layout_option_strings() {
+    let graph = from_str(
+        r#"
+        {
+          "id": "root",
+          "layoutOptions": {
+            "org.eclipse.elk.layered.generatePositionAndLayerIds": "true"
+          },
+          "children": [
+            {
+              "id": "child",
+              "width": 20,
+              "height": 20,
+              "layoutOptions": {
+                "org.eclipse.elk.noLayout": "false"
+              }
+            }
+          ]
+        }
+        "#,
+    )
+    .unwrap();
+
+    assert!(graph.properties.generate_position_and_layer_ids());
+    assert!(!graph.nodes[&ElementId::from("child")]
+        .properties
+        .no_layout());
+}
+
+#[test]
 fn imports_node_layer_assignment_layout_options() {
     let graph = from_str(
         r#"{

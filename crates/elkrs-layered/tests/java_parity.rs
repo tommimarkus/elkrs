@@ -6,6 +6,7 @@ use std::process::{Command, Stdio};
 
 use elkrs_core::geometry::{Point, Size};
 use elkrs_core::graph::{ElementId, ElementRef, ElkEdge, ElkEdgeSection, ElkGraph, ElkNode};
+use elkrs_core::options::{CoreOption, PropertyValue};
 use elkrs_json::{from_str, to_string_pretty};
 use elkrs_layered::{LayeredLayout, LayoutAlgorithm};
 
@@ -574,6 +575,26 @@ fn assert_parity_fixture_assertion(
                 AssertionContext::new(fixture_id, fixture_name, "Rust"),
             );
         }
+        ParityAssertion::NodeIntegerOption {
+            node_id,
+            option,
+            value,
+        } => {
+            assert_node_integer_option(
+                java_graph,
+                node_id,
+                option,
+                value,
+                AssertionContext::new(fixture_id, fixture_name, "Java"),
+            );
+            assert_node_integer_option(
+                rust_graph,
+                node_id,
+                option,
+                value,
+                AssertionContext::new(fixture_id, fixture_name, "Rust"),
+            );
+        }
     }
 }
 
@@ -841,6 +862,32 @@ fn assert_node_size_at_least(
         context.fixture_name,
         context.engine,
         node.size.height,
+    );
+}
+
+fn assert_node_integer_option(
+    graph: &ElkGraph,
+    node_id: &str,
+    option: CoreOption,
+    value: i64,
+    context: AssertionContext<'_>,
+) {
+    let node = graph
+        .nodes
+        .get(&ElementId::from(node_id))
+        .unwrap_or_else(|| {
+            panic!(
+                "fixture {} ({}) {} output should contain node {node_id}",
+                context.fixture_id, context.fixture_name, context.engine
+            )
+        });
+    assert_eq!(
+        node.properties.get(option),
+        Some(&PropertyValue::Integer(value)),
+        "fixture {} ({}) {} output should set {option:?}={value} on node {node_id}",
+        context.fixture_id,
+        context.fixture_name,
+        context.engine
     );
 }
 
