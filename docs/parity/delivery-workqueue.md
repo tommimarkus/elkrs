@@ -35,13 +35,14 @@ Current safe parallel batches:
 - Batch B: #39 and #38 are complete.
 - Batch C: #41 and #43 are complete.
 - Batch D: #42 and #44 are complete.
-- #45 is complete. No delivery issues remain in the current queue.
+- #45 is complete.
+- #46 is active and must integrate before renewed release-readiness closeout.
 
 ## Current Queue
 
 | Order | Issue | Delivery target | Why this order |
 | --- | --- | --- | --- |
-| - | - | No active delivery issue. | All planned delivery slices are complete locally. |
+| 1 | #46 `Delivery: upstream Java test corpus compatibility gate` | Inventory portable upstream ELK Layered `v0.11.0` black-box tests and `elk-models` fixtures; cover them through Java oracle evidence or document exclusions. | The port must pass the same portable upstream behavioral tests before renewed full parity or `1.0.0` release-readiness claims. |
 
 ## Completed Deliveries
 
@@ -65,5 +66,7 @@ For each delivery issue:
 - Rust tests cover the behavior or exclusion boundary.
 - JSON import/export behavior is explicit when representable.
 - Java oracle evidence exists for each `java-parity` claim.
+- Portable upstream black-box tests and relevant `elk-models` fixtures are
+  covered, explicitly blocked, or excluded with rationale.
 - `docs/parity/elk-layered-v0.11.0.md` and inventory overrides agree.
 - The issue receives a final progress marker with verification commands.

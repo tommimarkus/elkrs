@@ -67,6 +67,9 @@ Parity tracking:
 
 - ELK Layered parity is tracked in [docs/parity/elk-layered-v0.11.0.md](docs/parity/elk-layered-v0.11.0.md).
 - Release claims are limited to matrix rows marked `semantic` or `java-parity` and rows with documented 1.0.0 compatibility exclusions.
+- Full ELK Layered parity also requires issue #46: portable upstream Java
+  black-box tests and relevant `elk-models` fixtures must be inventoried and
+  covered by Java oracle evidence or documented exclusions.
 
 The Java ELK parity harness is opt-in and ignored by default. Run it only when a
 Java ELK JSON command is available. This repository includes a pinned SDKMAN

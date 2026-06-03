@@ -11,7 +11,10 @@ Before publishing a release:
 2. Review `docs/parity/elk-layered-v0.11.0.md`. Release notes may claim only
    the matrix rows that are currently `semantic` or `java-parity`. Do not claim
    full ELK Layered parity until every included row is `java-parity`, or the row
-   is excluded by a documented compatibility decision.
+   is excluded by a documented compatibility decision. Also confirm issue #46 is
+   complete, or every remaining portable upstream Java black-box test and
+   `elk-models` fixture gap has an explicit release-approved blocker or
+   exclusion.
 3. Run the local gate:
 
    ```bash
@@ -58,4 +61,6 @@ elkrs-json = { git = "https://github.com/tommimarkus/elkrs", tag = "v1.0.0" }
 elkrs-layered = { git = "https://github.com/tommimarkus/elkrs", tag = "v1.0.0" }
 ```
 
-Do not publish if any release notes imply full ELK coverage, Dediren adapter support, CLI support, or Java coordinate parity.
+Do not publish if any release notes imply full ELK coverage before the upstream
+test/model corpus gate is complete, or if they imply Dediren adapter support,
+CLI support, or Java coordinate parity.

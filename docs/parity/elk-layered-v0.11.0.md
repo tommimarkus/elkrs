@@ -2,7 +2,7 @@
 
 This file tracks `elkrs-layered` parity against the clean-room ELK Layered v0.11.0 target.
 
-The matrix is intentionally stricter than the README. README scope describes what users can rely on now. This matrix describes what must be closed before claiming full ELK Layered parity.
+The matrix is intentionally stricter than the README. README scope describes what users can rely on now. This matrix describes what must be closed before claiming full ELK Layered parity. Full parity also requires the portable upstream ELK Layered black-box test and model corpus gate tracked by issue #46.
 
 ## Status Values
 
@@ -67,7 +67,8 @@ The Java command must read ELK-style JSON from stdin and write ELK-style JSON to
 | LAYERED-JSON-001 | JSON | Narrow graph, port, label geometry, option, and edge-section round trip | `semantic` | `cargo test -p elkrs-json --test json_roundtrip --locked round_trips_graph_with_ports_options_and_edge_sections`; `cargo test -p elkrs-json --test json_roundtrip --locked round_trips_node_and_edge_label_text`; `cargo test -p elkrs-json --test json_roundtrip --locked unknown_json_fields_are_ignored_and_not_reemitted` | Complete for supported 1.0.0 JSON contract: graph, node, edge, port, label geometry, and edge sections round-trip; unknown JSON object fields are accepted and omitted on serialization |
 | LAYERED-JSON-002 | JSON | All in-scope parity matrix options round trip | `semantic` | `cargo test -p elkrs-json --test json_partitions --locked`; `cargo test -p elkrs-json --test json_errors --locked`; `cargo test -p elkrs-json --test json_partitions --locked unrepresented_known_option_ids_are_ignored_and_not_reemitted`; `cargo test -p elkrs-layered --test parity_matrix --locked json_contract` | Complete for supported 1.0.0 JSON contract: representable graph, node, port, and edge options import, export, and validate; label-scoped options, object-only placement/margin/padding/junction/port-anchor/individual-spacing rows, and non-node `noLayout` targets are 1.0.0 compatibility exclusions |
 | LAYERED-ORACLE-001 | Parity harness | Opt-in Java comparison for chain fixture | `java-parity` | `tools/java-elk-json-runner/bin/build` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | This plan |
-| LAYERED-ORACLE-002 | Parity harness | Fixture-driven Java comparison suite | `java-parity` | `cargo test -p elkrs-layered --test parity_matrix --locked java_backed_fixture_rows_are_marked_java_parity` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete for current JavaComparable fixtures; continue catalog expansion under issue #29 |
+| LAYERED-ORACLE-002 | Parity harness | Fixture-driven Java comparison suite | `java-parity` | `cargo test -p elkrs-layered --test parity_matrix --locked java_backed_fixture_rows_are_marked_java_parity` plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored` | Complete for current JavaComparable fixtures; upstream test/model corpus expansion continues under issue #46 |
+| LAYERED-ORACLE-003 | Parity harness | Portable upstream Java test and model corpus gate | `unsupported` | Issue #46 tracks the missing upstream test/model inventory and compatibility gate | Required before full ELK Layered parity or renewed `1.0.0` release-readiness claims |
 
 ## Supported JSON Contract
 
@@ -266,4 +267,4 @@ or the metadata artifact, then regenerate the section.
 
 ## Release Rule
 
-Do not claim full ELK Layered parity until every matrix row is `java-parity`, or the row is intentionally excluded by a documented compatibility decision.
+Do not claim full ELK Layered parity until every matrix row is `java-parity`, or the row is intentionally excluded by a documented compatibility decision. The portable upstream Java test/model corpus gate in #46 must also be complete, blocked by documented public-model gaps, or explicitly excluded by release decision.

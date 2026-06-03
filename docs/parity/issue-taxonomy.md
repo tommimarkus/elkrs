@@ -12,7 +12,22 @@ delivery issues and is mirrored in GitHub issue #30.
 - Parity target: ELK `v0.11.0`, excluding external plugins.
 - Distribution target: GitHub Releases and pinned Git dependencies.
 - crates.io publication: excluded from this program.
-- Clean-room sources: public docs, option metadata, hand-authored fixtures, and black-box Java output only.
+- Clean-room sources: public docs, option metadata, public-format upstream model
+  files, hand-authored fixtures, downstream consumer fixtures, and black-box
+  Java output only.
+
+## Upstream Test Corpus Contract
+
+Full ELK Layered parity requires coverage of the portable upstream ELK Layered
+`v0.11.0` black-box test and model corpus. Relevant `elk-models` fixtures and
+portable black-box tests must be inventoried and either covered through the
+Java oracle, mapped to clean-room Rust structural assertions, or excluded with a
+specific rationale.
+
+Java white-box processor tests are not copied into `elkrs`. They may only be
+used to identify a public behavioral concern, then mapped to clean-room
+structural assertions where the public API and JSON contract can express the
+behavior.
 
 ## Epic Titles
 
@@ -37,6 +52,8 @@ Each child issue maps to one matrix row or a tightly coupled row group. Each chi
 - Public API decisions and compatibility risk.
 - Rust semantic test requirements.
 - Java oracle fixture requirements.
+- Upstream test/model inventory impact, including portable, non-portable, and
+  equivalent-by-assertion cases.
 - JSON import/export expectations where applicable.
 - Clean-room source and evidence notes.
 - Documentation and release-note impact.
@@ -50,9 +67,13 @@ A row is complete only when it has:
 - Rust semantic tests for the behavior.
 - ELK JSON import/export behavior where the feature is representable in ELK JSON.
 - Opt-in Java oracle fixture evidence.
+- Portable upstream black-box tests or model fixtures for the behavior are
+  covered, blocked by a documented public-model gap, or explicitly excluded.
 - Matrix status updated to `java-parity`, or exclusion rationale.
 - Documentation that matches the actual support boundary.
-- Clean-room evidence based on public docs, option metadata, hand-authored fixtures, or black-box Java output.
+- Clean-room evidence based on public docs, option metadata, public-format model
+  files, hand-authored fixtures, downstream consumer fixtures, or black-box
+  Java output.
 
 An issue is complete only when all covered rows meet the row standard and the issue links the verifying commands or workflow evidence.
 
@@ -92,6 +113,10 @@ The first backlog slice should create these child issues:
 - `Parity: Java oracle fixture suite expansion`
 - `Release: 1.0.0 GitHub release readiness`
 - `#31 Parity: generated ELK Layered metadata residuals`
+
+## Active Delivery Issues
+
+- `#46 Delivery: upstream Java test corpus compatibility gate`
 
 ## Executed Inventory Issues
 
