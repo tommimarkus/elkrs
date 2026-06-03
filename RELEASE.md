@@ -64,3 +64,10 @@ elkrs-layered = { git = "https://github.com/tommimarkus/elkrs", tag = "v1.0.0" }
 Do not publish if any release notes imply full ELK coverage before the upstream
 test/model corpus gate is complete, or if they imply Dediren adapter support,
 CLI support, or Java coordinate parity.
+
+If a release is published while a required parity gate is still open, stop
+follow-on release automation and record a post-release correction in the
+changelog and versioned release notes. Updating the GitHub Release body,
+marking it as a prerelease, deleting assets, moving tags, or cutting a corrected
+patch release still requires explicit release authority and the full release
+gate.

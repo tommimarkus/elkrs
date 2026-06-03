@@ -70,12 +70,12 @@ STATUS_OVERRIDES = {
     ),
     "org.eclipse.elk.spacing.nodeNode": (
         "java-parity",
-        '`cargo test -p elkrs-layered --test quality --locked custom_node_spacing_separates_same_layer_nodes`, `cargo test -p elkrs-json --test json_partitions --locked spacing`, `cargo test -p elkrs-json --test json_errors --locked spacing`, `cargo test -p elkrs-layered --test parity_matrix --locked spacing_metadata_rows_have_java_fixture_evidence`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        '`cargo test -p elkrs-core --lib --locked spacing_defaults_match_elk_layered_metadata_defaults`, `cargo test -p elkrs-layered --test quality --locked custom_node_spacing_separates_same_layer_nodes`, `cargo test -p elkrs-json --test json_partitions --locked spacing`, `cargo test -p elkrs-json --test json_errors --locked negative_node_spacing_returns_invalid_error`, `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_node_node_spacing`, `cargo test -p elkrs-layered --test parity_matrix --locked spacing_metadata_rows_have_java_fixture_evidence`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete for Java-backed node spacing fixture",
     ),
     "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers": (
         "java-parity",
-        '`cargo test -p elkrs-layered --test quality --locked custom_layer_spacing_separates_connected_layers`; `cargo test -p elkrs-layered --test parity_matrix --locked spacing_metadata_rows_have_java_fixture_evidence`; plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        '`cargo test -p elkrs-core --lib --locked spacing_defaults_match_elk_layered_metadata_defaults`; `cargo test -p elkrs-layered --test quality --locked custom_layer_spacing_separates_connected_layers`; `cargo test -p elkrs-json --test json_partitions --locked layer_node_node`; `cargo test -p elkrs-json --test json_errors --locked negative_node_spacing_returns_invalid_error`; `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_rejects_negative_layer_node_node_spacing`; `cargo test -p elkrs-layered --test parity_matrix --locked spacing_metadata_rows_have_java_fixture_evidence`; plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete for Java-backed canonical connected adjacent-layer node spacing",
     ),
     "org.eclipse.elk.layered.spacing.baseValue": (
@@ -165,7 +165,7 @@ STATUS_OVERRIDES = {
     ),
     "org.eclipse.elk.spacing.edgeNode": (
         "java-parity",
-        '`cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_node_spacing_to_obstacle_detours`, `cargo test -p elkrs-json --test json_partitions --locked spacing`, `cargo test -p elkrs-json --test json_errors --locked spacing`, `cargo test -p elkrs-layered --test parity_matrix --locked spacing_metadata_rows_have_java_fixture_evidence`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
+        '`cargo test -p elkrs-core --lib --locked spacing_defaults_match_elk_layered_metadata_defaults`, `cargo test -p elkrs-layered --test basic_layout --locked layered_layout_applies_edge_node_spacing_to_obstacle_detours`, `cargo test -p elkrs-json --test json_partitions --locked spacing`, `cargo test -p elkrs-json --test json_errors --locked spacing`, `cargo test -p elkrs-layered --test parity_matrix --locked spacing_metadata_rows_have_java_fixture_evidence`, plus `ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored`',
         "Complete for Java-backed obstacle-crossing semantics",
     ),
     "org.eclipse.elk.spacing.edgeLabel": (

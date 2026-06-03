@@ -1,0 +1,13 @@
+[package]
+name = "elkrs-visual-parity"
+version = "1.0.0"
+publish = false
+description = "PNG visual parity artifact generator for elkrs and Java ELK"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+elkrs-core = { version = "1.0.0", path = "../../crates/elkrs-core" }
+elkrs-json = { version = "1.0.0", path = "../../crates/elkrs-json" }
+elkrs-layered = { version = "1.0.0", path = "../../crates/elkrs-layered" }

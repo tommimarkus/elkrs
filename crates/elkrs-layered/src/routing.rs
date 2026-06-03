@@ -663,7 +663,8 @@ mod tests {
             vec![
                 Point::new(40.0, 20.0),
                 Point::new(70.0, 20.0),
-                Point::new(70.0, 140.0),
+                Point::new(70.0, 130.0),
+                Point::new(170.0, 130.0),
                 Point::new(170.0, 140.0),
                 Point::new(200.0, 140.0),
             ]

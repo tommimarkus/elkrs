@@ -834,6 +834,26 @@ fn negative_edge_spacing_returns_invalid_error() {
 }
 
 #[test]
+fn negative_node_spacing_returns_invalid_error() {
+    for key in [
+        "org.eclipse.elk.spacing.nodeNode",
+        "elk.spacing.nodeNode",
+        "org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers",
+        "elk.spacing.layerNodeNode",
+    ] {
+        assert_invalid_contains(
+            &format!(
+                r#"{{
+                  "id": "root",
+                  "layoutOptions": {{ "{key}": -1 }}
+                }}"#
+            ),
+            &format!("{key} must be non-negative"),
+        );
+    }
+}
+
+#[test]
 fn negative_layered_edge_spacing_returns_invalid_error() {
     assert_invalid_contains(
         r#"{

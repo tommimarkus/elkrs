@@ -645,9 +645,9 @@ fn apply_layout_options(
             DIRECTION_KEY | LEGACY_DIRECTION_KEY => {
                 graph.properties.set_direction(parse_direction(value, key)?)
             }
-            NODE_NODE_SPACING_KEY | LEGACY_NODE_NODE_SPACING_KEY => {
-                graph.properties.set_spacing_node_node(number(value, key)?)
-            }
+            NODE_NODE_SPACING_KEY | LEGACY_NODE_NODE_SPACING_KEY => graph
+                .properties
+                .set_spacing_node_node(non_negative_number(value, key)?),
             SPACING_BASE_VALUE_KEY => graph
                 .properties
                 .set_spacing_base_value(non_negative_number(value, key)?),
@@ -662,7 +662,7 @@ fn apply_layout_options(
                 .set_spacing_component_component(non_negative_number(value, key)?),
             LAYER_NODE_NODE_SPACING_KEY | LEGACY_LAYER_NODE_NODE_SPACING_KEY => graph
                 .properties
-                .set_spacing_layer_node_node(number(value, key)?),
+                .set_spacing_layer_node_node(non_negative_number(value, key)?),
             EDGE_NODE_SPACING_KEY | LEGACY_EDGE_NODE_SPACING_KEY => graph
                 .properties
                 .set_spacing_edge_node(non_negative_number(value, key)?),

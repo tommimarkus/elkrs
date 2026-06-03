@@ -3,6 +3,7 @@ members = [
   "crates/elkrs-core",
   "crates/elkrs-json",
   "crates/elkrs-layered",
+  "tools/visual-parity",
 ]
 resolver = "2"
 

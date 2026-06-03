@@ -53,6 +53,8 @@ Distribution:
 - Version tags (`v1.0.0`, etc.) run the release workflow.
 - Current distribution is GitHub Releases and pinned Git dependencies, not
   crates.io.
+- `v1.0.0` is a supported-row Git dependency release. It is not a full upstream
+  ELK Layered parity claim while issue #46 remains open.
 - Downstream Cargo projects can depend on a release tag, for example:
 
   ```toml
@@ -79,3 +81,14 @@ test runner for that command:
 tools/java-elk-json-runner/bin/build
 ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" cargo test -p elkrs-layered --test java_parity --locked -- --ignored
 ```
+
+Visual parity evidence can be generated as PNG files for browser inspection:
+
+```bash
+ELKRS_JAVA_ELK_COMMAND="$PWD/tools/java-elk-json-runner/bin/java-elk-json" \
+  cargo run -p elkrs-visual-parity -- --fixture node-node-spacing --out .cache/visual-parity
+```
+
+Use `--all` instead of `--fixture <name>` to render every Java-comparable
+fixture. The PNGs are visual review artifacts; structural parity assertions
+remain in the Java parity test.

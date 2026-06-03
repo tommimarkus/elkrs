@@ -124,6 +124,12 @@ fn validate_graph_properties(properties: &Properties) -> Result<Vec<Diagnostic>,
     ) {
         diagnostics.push(unsupported_hierarchy_handling_diagnostic(None));
     }
+    validate_non_negative_spacing(properties, CoreOption::SpacingNodeNode, "node-node spacing")?;
+    validate_non_negative_spacing(
+        properties,
+        CoreOption::SpacingLayerNodeNode,
+        "layer node-node spacing",
+    )?;
     validate_non_negative_spacing(properties, CoreOption::SpacingEdgeNode, "edge-node spacing")?;
     validate_non_negative_spacing(properties, CoreOption::SpacingEdgeEdge, "edge-edge spacing")?;
     validate_non_negative_spacing(
@@ -1122,6 +1128,8 @@ fn validate_non_negative_spacing(
 
 fn spacing_value(properties: &Properties, option: CoreOption) -> Option<f64> {
     match option {
+        CoreOption::SpacingNodeNode => Some(properties.spacing_node_node()),
+        CoreOption::SpacingLayerNodeNode => Some(properties.spacing_layer_node_node()),
         CoreOption::SpacingEdgeNode => Some(properties.spacing_edge_node()),
         CoreOption::SpacingEdgeEdge => Some(properties.spacing_edge_edge()),
         CoreOption::SpacingBaseValue => stored_number(properties, option, "spacing base value"),

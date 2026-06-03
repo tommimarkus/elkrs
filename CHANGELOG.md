@@ -1,14 +1,31 @@
 # Changelog
 
+## Unreleased
+
+- Aligned default spacing values with the pinned ELK Layered v0.11.0 option
+  metadata for node-node, between-layer node-node, and edge-node spacing.
+- Rejected negative node-node and between-layer node-node spacing through both
+  JSON import validation and direct `elkrs-layered` layout validation.
+- Corrected the `1.0.0` release disclosure: issue #46 remained open after the
+  tag was published, so `1.0.0` must not be read as full upstream
+  test/model-corpus parity or renewed release-readiness.
+- Added `elkrs-visual-parity`, a workspace-local PNG artifact generator for
+  side-by-side Java ELK oracle and `elkrs` visual comparison output.
+
 ## 1.0.0 - 2026-06-03
 
-- Completed the delivery workqueue for the clean-room ELK Layered v0.11.0 parity target, excluding external plugins and documented 1.0.0 compatibility exclusions.
+- Completed the then-closed delivery rows for the clean-room ELK Layered v0.11.0
+  supported matrix target, excluding external plugins and documented 1.0.0
+  compatibility exclusions. The upstream portable Java test/model corpus gate
+  tracked by issue #46 remained open after publication.
 - Promoted Java-backed evidence for directed graphs, multi-edges, ordinary self-loops, ports as endpoints, compound nodes, hierarchy-crossing edges, direction, spacing, node labels as size inputs, node size constraints, layer assignment defaults, orthogonal routing, component spacing, and adjacent-layer crossing minimization.
 - Closed the supported ELK-style JSON contract for graph, node, edge, port, label, edge-section, option import/export/validation, unknown-field discard, and unrepresented known-option discard.
 - Documented compatibility exclusions for out-of-scope labels, inside self-loops, clusters, alternate layerers, model-order and crossing constraints, Brandes-Koepf placement, graph wrapping, non-orthogonal route geometry, junction output, edge merging, port ordering variants, and object-only option rows.
 - Kept Java parity evidence opt-in through `ELKRS_JAVA_ELK_COMMAND` and kept distribution scoped to GitHub Releases plus pinned Git dependencies.
 
-This release does not claim external plugin behavior, crates.io distribution, CLI support, Dediren adapter support, excluded matrix rows, or pixel-perfect Java coordinates.
+This release does not claim full upstream test/model-corpus parity, external
+plugin behavior, crates.io distribution, CLI support, Dediren adapter support,
+excluded matrix rows, or pixel-perfect Java coordinates.
 
 ## 0.2.0 - 2026-06-02
 

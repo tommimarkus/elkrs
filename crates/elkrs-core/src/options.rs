@@ -2,10 +2,10 @@ use std::collections::BTreeMap;
 
 use crate::geometry::Size;
 
-pub const DEFAULT_NODE_NODE_SPACING: f64 = 80.0;
-pub const DEFAULT_LAYER_NODE_NODE_SPACING: f64 = 120.0;
+pub const DEFAULT_NODE_NODE_SPACING: f64 = 20.0;
+pub const DEFAULT_LAYER_NODE_NODE_SPACING: f64 = 20.0;
 pub const DEFAULT_COMPONENT_COMPONENT_SPACING: f64 = 20.0;
-pub const DEFAULT_EDGE_NODE_SPACING: f64 = 20.0;
+pub const DEFAULT_EDGE_NODE_SPACING: f64 = 10.0;
 pub const DEFAULT_EDGE_EDGE_SPACING: f64 = 10.0;
 pub const DEFAULT_NODE_SELF_LOOP_SPACING: f64 = 10.0;
 pub const DEFAULT_PORT_PORT_SPACING: f64 = 10.0;
@@ -2321,9 +2321,14 @@ mod tests {
     }
 
     #[test]
-    fn spacing_defaults_match_layered_layout_defaults() {
+    fn spacing_defaults_match_elk_layered_metadata_defaults() {
         let properties = Properties::default();
 
+        assert_eq!(properties.spacing_node_node(), 20.0);
+        assert_eq!(properties.spacing_layer_node_node(), 20.0);
+        assert_eq!(properties.spacing_edge_node(), 10.0);
+        assert_eq!(properties.spacing_edge_edge(), 10.0);
+        assert_eq!(properties.spacing_component_component(), 20.0);
         assert_eq!(properties.spacing_node_node(), DEFAULT_NODE_NODE_SPACING);
         assert_eq!(
             properties.spacing_layer_node_node(),
