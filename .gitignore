@@ -7,3 +7,4 @@ docs/superpowers/
 /tools/java-elk-json-runner/build/
 /tools/java-elk-json-runner/bin/main/
 /crates/*/*.cdx.json
+.tmp/
