@@ -1,5 +1,9 @@
 # elkrs 1.0 Parity Issue Taxonomy
 
+Project status: discontinued. This taxonomy is historical and must not be used
+to start new issue creation, parity expansion, or release-readiness work unless
+the project is explicitly revived.
+
 This document defines how GitHub Issues track the `elkrs` `1.0.0` full ELK `v0.11.0` parity program, excluding external plugins.
 
 The parity matrix is the product contract. GitHub Issues are the execution ledger.
@@ -116,7 +120,8 @@ The first backlog slice should create these child issues:
 
 ## Active Delivery Issues
 
-- `#46 Delivery: upstream Java test corpus compatibility gate`
+No active delivery issues. `#46 Delivery: upstream Java test corpus
+compatibility gate` remained open when the project was discontinued.
 
 ## Executed Inventory Issues
 

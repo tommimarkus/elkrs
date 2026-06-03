@@ -1,5 +1,9 @@
 # elkrs 1.0 Delivery Workqueue
 
+Project status: discontinued. This workqueue is retained as historical parity
+planning evidence only. Do not start new parity delivery work from this queue
+unless the project is explicitly revived.
+
 This is the durable execution-order source for the `elkrs` `1.0.0` ELK
 Layered `v0.11.0` parity program. It exists so new sessions and compacted
 contexts do not infer priority from recent chat or recent commits.
@@ -36,13 +40,13 @@ Current safe parallel batches:
 - Batch C: #41 and #43 are complete.
 - Batch D: #42 and #44 are complete.
 - #45 is complete.
-- #46 is active and must integrate before renewed release-readiness closeout.
+- #46 was still open when the project was discontinued.
 
 ## Current Queue
 
 | Order | Issue | Delivery target | Why this order |
 | --- | --- | --- | --- |
-| 1 | #46 `Delivery: upstream Java test corpus compatibility gate` | Inventory portable upstream ELK Layered `v0.11.0` black-box tests and `elk-models` fixtures; cover them through Java oracle evidence or document exclusions. | The port must pass the same portable upstream behavioral tests before renewed full parity or `1.0.0` release-readiness claims. |
+| - | Discontinued | No active delivery queue. | The upstream Java test corpus compatibility gate was not completed before discontinuation. |
 
 ## Completed Deliveries
 

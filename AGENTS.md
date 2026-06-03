@@ -10,8 +10,10 @@
 
 Integration tests live in each crate's `tests/` directory. Shared layered helpers are in `crates/elkrs-layered/tests/support/`. Parity tracking is in `docs/parity/elk-layered-v0.11.0.md`. The optional Java oracle runner lives in `tools/java-elk-json-runner/`.
 
-Before starting parity implementation, read `docs/parity/delivery-workqueue.md`.
-It is the durable execution-order source and is mirrored in GitHub issue #30.
+This project is discontinued. Do not start new feature, parity, release, or
+security-maintenance work unless the user explicitly revives the project for the
+current task. Historical parity planning lives in
+`docs/parity/delivery-workqueue.md`.
 
 ## Initialized Policies
 

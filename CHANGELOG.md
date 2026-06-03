@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Marked the project as discontinued. No further feature work, parity expansion,
+  release preparation, or security maintenance is planned unless the project is
+  explicitly revived.
 - Aligned default spacing values with the pinned ELK Layered v0.11.0 option
   metadata for node-node, between-layer node-node, and edge-node spacing.
 - Rejected negative node-node and between-layer node-node spacing through both

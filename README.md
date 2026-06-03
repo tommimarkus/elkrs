@@ -1,8 +1,16 @@
 # elkrs
 
+## Project Status
+
+This project is discontinued. The repository is kept for historical reference
+and for consumers pinned to existing Git commits or tags, but no further
+feature work, parity expansion, release preparation, or security maintenance is
+planned.
+
 elkrs is a Rust port of Eclipse Layout Kernel concepts and behavior.
 
-The 1.0.0 target is library-first strict clean-room ELK Layered behavior aligned with ELK v0.11.0.
+The last development target was library-first strict clean-room ELK Layered
+behavior aligned with ELK v0.11.0.
 
 Downstream users adapt their own graph contracts.
 
@@ -25,8 +33,10 @@ Current scope:
 
 Security:
 
-- Vulnerability reporting and supported versions are documented in `SECURITY.md`.
-- The current `1.0.x` supply-chain target is SCVS Level 1 and SLSA Build Level 1 evidence for GitHub-built release artifacts.
+- No versions are currently supported. Historical reporting guidance is in
+  `SECURITY.md`.
+- The former `1.0.x` supply-chain target was SCVS Level 1 and SLSA Build Level
+  1 evidence for GitHub-built release artifacts.
 
 Not current scope:
 
@@ -50,11 +60,13 @@ Cargo build artifacts are written under `.cache/cargo-target` by repo config.
 
 Distribution:
 
-- Version tags (`v1.0.0`, etc.) run the release workflow.
-- Current distribution is GitHub Releases and pinned Git dependencies, not
+- Version tags (`v1.0.0`, etc.) historically ran the release workflow. Do not
+  create new release tags or GitHub Releases unless the project is explicitly
+  revived.
+- Historical distribution was GitHub Releases and pinned Git dependencies, not
   crates.io.
-- `v1.0.0` is a supported-row Git dependency release. It is not a full upstream
-  ELK Layered parity claim while issue #46 remains open.
+- `v1.0.0` was the final tagged Git dependency release. It is not a full
+  upstream ELK Layered parity claim while issue #46 remains open.
 - Downstream Cargo projects can depend on a release tag, for example:
 
   ```toml
@@ -62,16 +74,18 @@ Distribution:
   elkrs-layered = { git = "https://github.com/tommimarkus/elkrs", tag = "v1.0.0" }
   ```
 
-- The release workflow attaches a source archive, source file manifests, SBOMs,
-  checksums, and build provenance to the GitHub Release.
+- The release workflow attached a source archive, source file manifests, SBOMs,
+  checksums, and build provenance to historical GitHub Releases.
 
 Parity tracking:
 
 - ELK Layered parity is tracked in [docs/parity/elk-layered-v0.11.0.md](docs/parity/elk-layered-v0.11.0.md).
-- Release claims are limited to matrix rows marked `semantic` or `java-parity` and rows with documented 1.0.0 compatibility exclusions.
-- Full ELK Layered parity also requires issue #46: portable upstream Java
-  black-box tests and relevant `elk-models` fixtures must be inventoried and
-  covered by Java oracle evidence or documented exclusions.
+- Release claims remain limited to matrix rows marked `semantic` or
+  `java-parity` and rows with documented 1.0.0 compatibility exclusions.
+- Full ELK Layered parity was not completed. Issue #46 remained open, so
+  portable upstream Java black-box tests and relevant `elk-models` fixtures were
+  not fully inventoried and covered by Java oracle evidence or documented
+  exclusions.
 
 The Java ELK parity harness is opt-in and ignored by default. Run it only when a
 Java ELK JSON command is available. This repository includes a pinned SDKMAN

@@ -1,5 +1,10 @@
 # Release Checklist
 
+This project is discontinued. Do not prepare new versions, create or move tags,
+publish artifacts, push release state, or mutate GitHub Releases unless the
+project is explicitly revived and release authority is granted for that work.
+The checklist below is retained for historical reference only.
+
 This repository initializes `release-policy`: SemVer workspace versions,
 annotated `v<version>` git tags, GitHub Releases, pinned Git dependencies, and
 no crates.io publication yet. Do not publish, tag, mutate release tags, create
